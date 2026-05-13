@@ -4,7 +4,7 @@ Current Version: v1.0
 本資料夾提供公司內部 AI Agent 開發規範基底。
 
 使用方式：
-- 每個專案複製此資料夾
+- 每個專案複製 `AGENTS.md` 與 `agents/` 資料夾
 - 保留 core、restrictions、workflow 作為通用基底
 - 依專案技術棧調整 frontend、backend、architecture
 - 任務執行前，依任務類型讀取對應規則
@@ -16,6 +16,47 @@ Current Version: v1.0
 - 降低技術債
 - 維持架構一致性
 - 提升多人協作穩定性
+
+
+## 專案部署方式
+
+若要在實際專案中使用本規則，建議採用以下結構：
+
+```txt
+your-project/
+├─ AGENTS.md
+├─ agents/
+│  ├─ core.md
+│  ├─ restrictions.md
+│  ├─ workflow.md
+│  ├─ frontend.md
+│  ├─ backend.md
+│  ├─ python-tool.md
+│  ├─ review.md
+│  └─ logging.md
+└─ ...
+```
+
+### 建立步驟
+
+1. 將 `AGENTS.md` 複製到目標專案根目錄。
+2. 將整個 `agents/` 資料夾複製到目標專案根目錄。
+3. 確認 `AGENTS.md` 內容仍指向 `agents/*.md` 規則檔。
+4. 之後在任務 prompt 開頭指定任務類型與任務模式。
+
+`AGENTS.md` 作為 Codex 讀取規則的預設入口；`agents/` 資料夾保存各任務類型的細部規則。
+
+### 專案中的任務 prompt 範例
+
+```txt
+任務類型：前端任務
+任務模式：學習模式
+
+本次任務：
+修改 AssetCard component 樣式。
+```
+
+若未指定任務模式，預設不啟用 Learning-oriented Output，也不更新 task log。
 
 
 ## 規則結構
@@ -41,8 +82,8 @@ Current Version: v1.0
 ### review.md
 定義任務完成後的 review 檢查項目。
 
-### runtime.md
-AI 任務執行時的規則載入入口。
+### AGENTS.md
+Codex 任務執行時的規則載入入口，需放在專案根目錄。
 
 
 ## 任務類型與任務模式
@@ -97,16 +138,13 @@ AI 任務執行時的規則載入入口。
 
 ## 使用範例
 
-1. 請閱讀 /agents/runtime.md
-2. 指定任務類型
-3. 視需求指定任務模式
-4. 描述任務
-5. 描述限制條件
-6. 描述完成條件
+1. 指定任務類型
+2. 視需求指定任務模式
+3. 描述任務
+4. 描述限制條件
+5. 描述完成條件
 
 ### Frontend Task - Learning Mode
-
-請閱讀 /agents/runtime.md
 
 任務類型：前端任務
 任務模式：學習模式
@@ -125,8 +163,6 @@ AI 任務執行時的規則載入入口。
 
 ### Backend Task - Production Project Mode
 
-請閱讀 /agents/runtime.md
-
 任務類型：後端任務
 任務模式：正式專案模式
 
@@ -142,8 +178,6 @@ AI 任務執行時的規則載入入口。
 - 確認 build 成功
 
 ### Python Tool Task - Learning Mode
-
-請閱讀 /agents/runtime.md
 
 任務類型：Python 工具任務
 任務模式：學習模式

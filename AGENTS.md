@@ -1,13 +1,13 @@
-# Runtime Rules
+# Agent Rules
 
-本文件為 AI 任務執行時的規則載入與行為控制入口。
+本文件為 Codex 任務執行時的規則載入與行為控制入口。
 
 ## 任務模式
 
 任務開始時，可在 prompt 開頭明確指定模式：
 
-- 學習模式：啟用 `workflow.md` 的 Learning-oriented Output
-- 正式專案模式：啟用 `logging.md` 的 task log
+- 學習模式：啟用 `agents/workflow.md` 的 Learning-oriented Output
+- 正式專案模式：啟用 `agents/logging.md` 的 task log
 
 若 prompt 未明確指定：
 
@@ -19,26 +19,25 @@
 模式可同時啟用，例如：
 
 ```txt
-模式：學習模式、正式專案模式
+任務模式：學習模式、正式專案模式
 ```
 
 ## 必讀規則
 
 所有任務都必須先閱讀：
 
-- core.md
-- restrictions.md
-- workflow.md
+- agents/core.md
+- agents/restrictions.md
+- agents/workflow.md
 
 ---
-
 
 ## 前端任務
 
 需額外閱讀：
 
-- frontend.md
-- review.md
+- agents/frontend.md
+- agents/review.md
 
 適用情境：
 - Vue component
@@ -53,8 +52,8 @@
 
 需額外閱讀：
 
-- backend.md
-- review.md
+- agents/backend.md
+- agents/review.md
 
 適用情境：
 - API 開發
@@ -68,8 +67,8 @@
 
 需額外閱讀：
 
-- python-tool.md
-- review.md
+- agents/python-tool.md
+- agents/review.md
 
 適用情境：
 - CLI 工具
@@ -84,21 +83,19 @@
 
 需閱讀：
 
-- core.md
-- restrictions.md
-- review.md
-
-
+- agents/core.md
+- agents/restrictions.md
+- agents/review.md
 
 ## 規則優先級
 
 規則衝突時，依以下優先級處理：
 
-1. restrictions.md
-2. core.md
-3. workflow.md
-4. frontend.md / backend.md / python-tool.md
-5. review.md
+1. agents/restrictions.md
+2. agents/core.md
+3. agents/workflow.md
+4. agents/frontend.md / agents/backend.md / agents/python-tool.md
+5. agents/review.md
 
 ## 未知情況處理
 
