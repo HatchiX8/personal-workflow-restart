@@ -2,6 +2,26 @@
 
 本文件為 AI 任務執行時的規則載入與行為控制入口。
 
+## 任務模式
+
+任務開始時，可在 prompt 開頭明確指定模式：
+
+- 學習模式：啟用 `workflow.md` 的 Learning-oriented Output
+- 正式專案模式：啟用 `logging.md` 的 task log
+
+若 prompt 未明確指定：
+
+- 預設不啟用學習模式
+- 預設不啟用正式專案模式
+- 不輸出 Learning-oriented Output
+- 不更新 task log
+
+模式可同時啟用，例如：
+
+```txt
+模式：學習模式、正式專案模式
+```
+
 ## 必讀規則
 
 所有任務都必須先閱讀：
@@ -44,6 +64,22 @@
 
 ---
 
+## Python 工具任務
+
+需額外閱讀：
+
+- python-tool.md
+- review.md
+
+適用情境：
+- CLI 工具
+- 檔案整理、轉換、批次處理
+- 資料匯入、匯出、清洗
+- 開發流程自動化
+- 本機維運或檢查腳本
+
+---
+
 ## Review Task
 
 需閱讀：
@@ -61,7 +97,7 @@
 1. restrictions.md
 2. core.md
 3. workflow.md
-4. frontend.md / backend.md
+4. frontend.md / backend.md / python-tool.md
 5. review.md
 
 ## 未知情況處理

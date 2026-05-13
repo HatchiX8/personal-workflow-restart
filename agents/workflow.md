@@ -10,7 +10,7 @@
 
 - core.md
 - restrictions.md
-- frontend.md 或 backend.md
+- 任務類型對應規則，例如 frontend.md、backend.md 或 python-tool.md
 
 ## 2. Validation Phase
 
@@ -44,7 +44,11 @@
 
 ### Learning-oriented Output
 
-任務結束時，若此規則仍啟用，Agent 必須回報：
+僅當 prompt 開頭明確指定「學習模式」時啟用。
+
+未指定學習模式時，Agent 不需要輸出本段內容。
+
+啟用學習模式時，任務結束後 Agent 必須回報：
 
 - 新增/修改了哪些 function
 - 每個 function 的責任
@@ -54,4 +58,8 @@
 
 ## 4. Logging
 
-任務結束後，必須依照 `logging.md` 更新 task log。
+僅當 prompt 開頭明確指定「正式專案模式」時啟用。
+
+未指定正式專案模式時，Agent 不需要更新 task log。
+
+啟用正式專案模式時，任務結束後必須依照 `logging.md` 更新 task log。

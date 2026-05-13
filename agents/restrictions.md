@@ -16,6 +16,7 @@
 
 ## Scope Restrictions
 - 禁止修改未指定模組
+- 若完成任務必須修改關聯檔案，Agent 可修改最小必要範圍，但必須在輸出中說明原因。
 - 禁止刪除既有功能
 
 ## Refactor Restrictions
