@@ -32,6 +32,19 @@
 - 避免使用全域可變狀態保存任務結果
 - 錯誤處理需提供可理解的訊息，不直接吞掉例外
 
+## Type Safety Rules
+
+- 公開 function 必須標註參數型別與回傳型別
+- 跨模組傳遞的資料結構，優先使用 `dataclass`
+- 固定選項值優先使用 `Enum` 或 `Literal`
+- 複雜 dict 結構不得直接使用裸 `dict`，應定義 `TypedDict` 或 `dataclass`
+- 避免使用 `Any`，除非有明確理由
+- 若使用 `Any`，需在註解說明原因
+- 不使用 `list`、`dict` 作為模糊型別，應寫成 `list[Path]`、`dict[str, int]`
+- function 回傳可能為空時，需明確標註 `Optional[T]` 或 `T | None`
+- 不得用型別註解掩蓋實際可能回傳的資料型態
+- 解析外部資料，例如 JSON、README、設定檔時，需先轉成明確資料結構再傳給其他模組
+
 ## File Operation Rules
 
 - 寫入、覆蓋、刪除、搬移檔案前，必須確認目標路徑來自明確輸入或安全推導

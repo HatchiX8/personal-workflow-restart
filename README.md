@@ -1,5 +1,5 @@
 # Agent Rules Template Version
-Current Version: v1.0
+Current Version: v1.01
 
 本資料夾提供公司內部 AI Agent 開發規範基底。
 
