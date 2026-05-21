@@ -6,7 +6,7 @@ Current Version: v1.01
 使用方式：
 - 每個專案複製 `AGENTS.md` 與 `agents/` 資料夾
 - 保留 core、restrictions、workflow 作為通用基底
-- 依專案技術棧調整 frontend、backend、architecture
+- 依專案技術棧調整 frontend、backend、python-tool
 - 任務執行前，依任務類型讀取對應規則
 - 若需要額外行為，需在 prompt 開頭指定任務模式
 - 修改完成後，agent自動依 review.md 進行自我檢查
