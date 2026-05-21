@@ -36,6 +36,26 @@
 - 不得以預設推測補齊規則
 - 不得使用模型預設最佳實踐取代專案規則
 
+## Architecture Task
+
+若任務涉及新增、移動、刪除資料夾或檔案，必須先閱讀 `agents/architecture.md`。
+
+需額外閱讀：
+
+- agents/architecture.md
+- agents/review.md
+
+適用情境：
+
+- 新增資料夾
+- 新增模組
+- 移動檔案
+- 修改 import direction
+- 調整專案分層
+- 拆分 service、rules、parser、detectors、types 等檔案
+- 新增跨模組共用工具
+- 不得因「最佳實踐」主動新增檔案、模組或資料夾
+
 ## 任務模式
 
 任務開始時，可在 prompt 開頭明確指定模式：
@@ -77,6 +97,7 @@
 - agents/review.md
 
 適用情境：
+
 - Vue component
 - composables
 - stores
@@ -93,6 +114,7 @@
 - agents/review.md
 
 適用情境：
+
 - API 開發
 - database
 - service logic
@@ -108,6 +130,7 @@
 - agents/review.md
 
 適用情境：
+
 - CLI 工具
 - 檔案整理、轉換、批次處理
 - 資料匯入、匯出、清洗
@@ -129,10 +152,11 @@
 規則衝突時，依以下優先級處理：
 
 1. agents/restrictions.md
-2. agents/core.md
-3. agents/workflow.md
-4. agents/frontend.md / agents/backend.md / agents/python-tool.md
-5. agents/review.md
+2. agents/architecture.md
+3. agents/core.md
+4. agents/workflow.md
+5. agents/frontend.md / agents/backend.md / agents/python-tool.md
+6. agents/review.md
 
 ## 未知情況處理
 
