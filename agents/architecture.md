@@ -1,29 +1,24 @@
-# Project Structure
+# Architecture Rules
 
-## 範例
+本文件是 Architecture Task 的規則入口。
 
-src/project_analyzer/
-├── cli.py
-├── app.py
-├── scanner/
-├── readme/
-├── config/
-├── stats/
-├── module_analyzer/
-├── reporter/
-└── shared/
+本文件不定義特定專案的資料夾名稱、模組責任、分層邊界或 import direction。
 
----
+上述專案客製規則應放在 `agents/skills/project-structure.md`。
 
-## 模組責任
+## 結構變更判斷
 
-### scanner/
+涉及以下情境時，必須同時閱讀 `agents/skills/project-structure.md`：
 
-- 僅負責 filesystem scanning
-- 不得實作 statistics logic
-- 不得產生 report
+- 新增資料夾
+- 新增模組
+- 移動檔案
+- 修改 import direction
+- 調整專案分層
+- 拆分 service、rules、parser、detectors、types 等檔案
+- 新增跨模組共用工具
 
-### reporter/
+若 `agents/skills/project-structure.md` 不存在：
 
-- 僅負責 output formatting
-- 不得掃描檔案
+- 停止 Architecture Task
+- 回報缺少 `agents/skills/project-structure.md`

@@ -9,6 +9,7 @@ Current Version: v1.03
 - 每個專案複製 `AGENTS.md` 與 `agents/` 資料夾
 - 保留 core、restrictions、workflow 作為通用基底
 - 依專案技術棧調整 frontend、backend、python-tool
+- 將專案客製資料夾結構與模組責任放在 `agents/skills/project-structure.md`
 - 任務執行前，依任務類型讀取對應規則
 - 若需要額外行為，需在 prompt 開頭指定任務模式
 - 修改完成後，agent自動依 review.md 進行自我檢查
@@ -35,7 +36,9 @@ your-project/
 │  ├─ backend.md
 │  ├─ python-tool.md
 │  ├─ review.md
-│  └─ logging.md
+│  ├─ logging.md
+│  └─ skills/
+│     └─ project-structure.md
 └─ ...
 ```
 
@@ -44,7 +47,7 @@ your-project/
 1. 將 `AGENTS.md` 複製到目標專案根目錄。
 2. 將整個 `agents/` 資料夾複製到目標專案根目錄。
 3. 確認 `AGENTS.md` 內容仍指向 `agents/*.md` 規則檔。
-4. 之後在任務 prompt 開頭指定任務類型與任務模式。
+4. 之後在任務 prompt 開頭指定任務類型、任務模式與需要的 skill。
 
 `AGENTS.md` 作為 Codex 讀取規則的預設入口；`agents/` 資料夾保存各任務類型的細部規則。
 
@@ -53,12 +56,49 @@ your-project/
 ```txt
 任務類型：前端任務
 任務模式：學習模式
+指定 skill：project-structure
 
 本次任務：
 修改 AssetCard component 樣式。
 ```
 
 若未指定任務模式，預設不啟用 Learning-oriented Output，也不更新 task log。
+
+## 指定 Skill
+
+Skill 用於保存專案客製或情境限定的額外規則，例如資料夾結構、模組責任、特殊檔案產生流程或團隊約定。
+
+當任務 prompt 明確指定 skill 時，Agent 必須額外讀取：
+
+```txt
+agents/skills/<skill-name>.md
+```
+
+建議放在任務模式後面：
+
+```txt
+任務類型：前端任務
+任務模式：學習模式
+指定 skill：project-structure
+
+本次任務：
+將 parser 拆成多個檔案，並調整 import。
+```
+
+Agent 執行流程：
+
+1. 先讀取必讀規則：core.md、restrictions.md、workflow.md。
+2. 依任務類型讀取 frontend.md、backend.md、python-tool.md 或 review.md。
+3. 若 prompt 指定 skill，讀取 `agents/skills/<skill-name>.md`。
+4. 若任務本身觸發 Architecture Task，依規則讀取 architecture.md、review.md；涉及專案結構判斷時，額外讀取 `agents/skills/project-structure.md`。
+
+若指定的 skill 檔案不存在：
+
+- Agent 必須停止任務執行
+- 回報缺少的 skill 檔案路徑
+- 不得以模型預設最佳實踐推測或補齊該 skill 規則
+
+Skill 不會取代 core、restrictions、workflow 或任務類型規則；它只補充特定情境下的客製規則。
 
 ## 規則結構
 
@@ -86,6 +126,16 @@ your-project/
 
 定義 Python 工具程式、自動化腳本與批次處理程式開發規則。
 
+### architecture.md
+
+定義通用架構判斷原則，不放入特定專案的資料夾名稱或模組責任。
+
+### skills/project-structure.md
+
+定義專案客製的資料夾結構、模組責任與依賴邊界。
+
+當任務涉及新增、移動、拆分檔案、調整 import direction 或改變專案分層時，需額外讀取。
+
 ### review.md
 
 定義任務完成後的 review 檢查項目。
@@ -111,6 +161,7 @@ Codex 任務執行時的規則載入入口，需放在專案根目錄。
 - 後端任務：讀取 backend.md、review.md
 - Python 工具任務：讀取 python-tool.md、review.md
 - Review Task：讀取 core.md、restrictions.md、review.md
+- Architecture Task：讀取 architecture.md、review.md；涉及專案結構判斷時，額外讀取 skills/project-structure.md
 
 ### 任務模式
 
@@ -137,6 +188,8 @@ Codex 任務執行時的規則載入入口，需放在專案根目錄。
 - 核心理念修改：core.md
 - 禁止事項修改：restrictions.md
 - 任務流程修改：workflow.md
+- 通用架構判斷修改：architecture.md
+- 專案資料夾結構與模組責任修改：skills/project-structure.md
 - 前端規則修改：frontend.md
 - 後端規則修改：backend.md
 - Python 工具規則修改：python-tool.md

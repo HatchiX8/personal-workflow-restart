@@ -40,10 +40,21 @@
 
 若任務涉及新增、移動、刪除資料夾或檔案，必須先閱讀 `agents/architecture.md`。
 
+`agents/architecture.md` 只保存通用架構原則，不保存特定專案的資料夾結構或模組責任。
+
+若任務涉及新增、移動、拆分檔案、調整 import direction 或改變專案分層，必須額外閱讀 `agents/skills/project-structure.md`。
+
+若 `agents/skills/project-structure.md` 不存在，且任務必須依賴專案客製結構規則才能完成：
+
+- 停止任務執行
+- 回報缺少 `agents/skills/project-structure.md`
+- 不得自行推測模組放置位置、責任邊界或 import direction
+
 需額外閱讀：
 
 - agents/architecture.md
 - agents/review.md
+- agents/skills/project-structure.md（涉及專案結構判斷時）
 
 適用情境：
 
@@ -153,10 +164,11 @@
 
 1. agents/restrictions.md
 2. agents/architecture.md
-3. agents/core.md
-4. agents/workflow.md
-5. agents/frontend.md / agents/backend.md / agents/python-tool.md
-6. agents/review.md
+3. agents/skills/project-structure.md
+4. agents/core.md
+5. agents/workflow.md
+6. agents/frontend.md / agents/backend.md / agents/python-tool.md
+7. agents/review.md
 
 ## 未知情況處理
 
