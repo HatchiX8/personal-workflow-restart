@@ -1,5 +1,7 @@
 # Frontend Rules
 
+本文件定義前端開發時的通用規範。
+
 ## TypeScript Rules
 
 - 不允許使用 any
