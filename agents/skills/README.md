@@ -4,8 +4,8 @@ skills 是任務類型之外的能力擴充規則。
 
 ## 載入原則
 
-- skill 不會取代 core / restrictions / workflow
-- skill 僅補充特定能力的操作規則
+- skill 不取代規則載入流程
+- skill 可補充或覆蓋通用任務類型規則
 - 任務需要時才載入對應 skill
 - 可同時載入多個 skill
 - skill 不得違反 restrictions.md
@@ -15,11 +15,12 @@ skills 是任務類型之外的能力擴充規則。
 規則衝突時：
 
 1. agents/restrictions.md
-2. agents/core.md
-3. agents/workflow.md
-4. 任務類型規則
-5. agents/skills/*.md
-6. agents/review.md
+2. 明確指定或任務觸發載入的 agents/skills/*.md
+3. agents/architecture.md
+4. agents/core.md
+5. agents/workflow.md
+6. 任務類型規則
+7. agents/review.md
 
 ## Skill 檔案應包含
 

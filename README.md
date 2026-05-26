@@ -98,7 +98,7 @@ Agent 執行流程：
 - 回報缺少的 skill 檔案路徑
 - 不得以模型預設最佳實踐推測或補齊該 skill 規則
 
-Skill 不會取代 core、restrictions、workflow 或任務類型規則；它只補充特定情境下的客製規則。
+Skill 不取代規則載入流程；它可補充或覆蓋通用任務類型規則，但不得違反 `agents/restrictions.md`。
 
 ## 規則結構
 
@@ -128,13 +128,13 @@ Skill 不會取代 core、restrictions、workflow 或任務類型規則；它只
 
 ### architecture.md
 
-定義通用架構判斷原則，不放入特定專案的資料夾名稱或模組責任。
+定義 Architecture Task 的載入入口，說明何時需要讀取專案結構 skill。
 
 ### skills/project-structure.md
 
 定義專案客製的資料夾結構、模組責任與依賴邊界。
 
-當任務涉及新增、移動、拆分檔案、調整 import direction 或改變專案分層時，需額外讀取。
+當任務涉及新增、移動、刪除、拆分檔案、調整 import direction 或改變專案分層時，需額外讀取。
 
 ### review.md
 
@@ -160,7 +160,7 @@ Codex 任務執行時的規則載入入口，需放在專案根目錄。
 - 前端任務：讀取 frontend.md、review.md
 - 後端任務：讀取 backend.md、review.md
 - Python 工具任務：讀取 python-tool.md、review.md
-- Review Task：讀取 core.md、restrictions.md、review.md
+- Review Task：讀取 core.md、restrictions.md、workflow.md、review.md
 - Architecture Task：讀取 architecture.md、review.md；涉及專案結構判斷時，額外讀取 skills/project-structure.md
 
 ### 任務模式
@@ -188,7 +188,7 @@ Codex 任務執行時的規則載入入口，需放在專案根目錄。
 - 核心理念修改：core.md
 - 禁止事項修改：restrictions.md
 - 任務流程修改：workflow.md
-- 通用架構判斷修改：architecture.md
+- Architecture Task 載入入口修改：architecture.md
 - 專案資料夾結構與模組責任修改：skills/project-structure.md
 - 前端規則修改：frontend.md
 - 後端規則修改：backend.md

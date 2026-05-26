@@ -13,6 +13,7 @@
 - 新增資料夾
 - 新增模組
 - 移動檔案
+- 刪除檔案或資料夾
 - 修改 import direction
 - 調整專案分層
 - 拆分 service、rules、parser、detectors、types 等檔案
