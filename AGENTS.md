@@ -82,6 +82,20 @@
 
 ---
 
+## Refactor Task
+
+若任務明確要求重構、整理既有邏輯、降低重複、拆分 function、改善可讀性或調整責任邊界，需額外閱讀：
+
+- agents/skills/refactor.md
+- agents/review.md
+
+若重構涉及新增、移動、刪除、拆分資料夾或檔案，或調整 import direction、專案分層，仍必須同時依 Architecture Task 載入：
+
+- agents/architecture.md
+- agents/skills/project-structure.md
+
+---
+
 ## 前端任務
 
 需額外閱讀：
