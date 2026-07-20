@@ -35,7 +35,7 @@
 ## 使用限制
 
 - 本 skill 僅補充專案客製結構規則，不取代規則載入流程
-- 本 skill 可覆蓋通用任務類型規則，但不得違反 `agents/restrictions.md`
+- 本 skill 可覆蓋通用任務類型規則，但不得違反 `AI-Workflow/roles/developer/restrictions.md`
 - 不得因「最佳實踐」主動改變既有資料夾結構
 - 不得在未確認責任邊界前新增共用層、抽象層或跨模組依賴
 - 若本文件尚未依專案填寫，Agent 不得將範本內容視為實際專案規則

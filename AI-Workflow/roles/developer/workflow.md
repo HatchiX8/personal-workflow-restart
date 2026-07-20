@@ -8,9 +8,9 @@
 
 必須遵守：
 
-- core.md
-- restrictions.md
-- 任務類型對應規則，例如 frontend.md、backend.md 或 python-tool.md
+- AI-Workflow/roles/developer/core.md
+- AI-Workflow/roles/developer/restrictions.md
+- 任務類型對應規則，例如 AI-Workflow/roles/developer/frontend.md、AI-Workflow/roles/developer/backend.md 或 AI-Workflow/roles/developer/python-tool.md
 
 ## 2. Validation Phase
 
@@ -18,7 +18,7 @@
 
 必須依本次修改範圍執行對應驗證：
 
-- review.md 自我檢查
+- AI-Workflow/roles/developer/review.md 自我檢查
 - TypeScript typecheck（涉及 TypeScript / Vue / 前端邏輯時）
 - lint（專案有設定且修改程式碼時）
 - build（涉及可建置程式碼或設定時）
@@ -62,4 +62,4 @@
 
 未指定正式專案模式時，Agent 不需要更新 task log。
 
-啟用正式專案模式時，任務結束後必須依照 `logging.md` 更新 task log。
+啟用正式專案模式時，任務結束後必須依照 `AI-Workflow/roles/developer/logging.md` 更新 task log。

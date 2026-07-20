@@ -202,7 +202,7 @@ refactor skills 的目標是讓 Agent 在可控範圍內整理既有程式碼，
 
 Agent 會依序執行：
 
-1. 讀取 `core.md`、`restrictions.md`、`workflow.md`
+1. 讀取 `AI-Workflow/roles/developer/core.md`、`AI-Workflow/roles/developer/restrictions.md`、`AI-Workflow/roles/developer/workflow.md`
 2. 讀取 refactor router 規則
 3. 判定 refactor 模式
 4. 判定小範圍或大範圍重構
