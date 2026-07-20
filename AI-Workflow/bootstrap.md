@@ -4,14 +4,28 @@
 
 目前 bootstrap 只支援 Developer。
 
+## AI Workflow Root Resolution
+
+每次任務都必須先解析 AI Workflow Root。
+
+AI Workflow Root 判斷流程：
+
+1. 若 prompt 開頭明確指定 `AI-Workflow 路徑：<path>`，使用該路徑作為 AI Workflow Root。
+2. 若 prompt 開頭明確指定 `Bootstrap 路徑：<path>/bootstrap.md`，使用該 bootstrap 所在資料夾作為 AI Workflow Root。
+3. 若 prompt 未指定外部路徑，且目前工作目錄 `.env` 存在 `AI_WORKFLOW_ROOT=<path>`，使用 `AI_WORKFLOW_ROOT` 作為 AI Workflow Root。
+4. 若 prompt 未指定外部路徑，且系統環境變數存在 `AI_WORKFLOW_ROOT`，使用 `AI_WORKFLOW_ROOT` 作為 AI Workflow Root。
+5. 若以上皆未指定，使用專案根目錄下的 `AI-Workflow/` 作為 AI Workflow Root。
+
+本規則文件中的 `AI-Workflow/...` 皆表示「已解析的 AI Workflow Root 底下的相對路徑」。
+
 ## Bootstrap Required
 
-若專案根目錄不存在 `AI-Workflow/bootstrap.md`：
+若解析後的 AI Workflow Root 不存在 `bootstrap.md`：
 
 - 停止任務執行
 - 不得自行推測入口規則
 - 不得直接開始修改程式碼
-- 回報缺少 `AI-Workflow/bootstrap.md`
+- 回報缺少 `<AI Workflow Root>/bootstrap.md`
 
 若必要規則檔案不存在：
 

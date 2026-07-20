@@ -2,16 +2,16 @@
 
 本文件為 Codex 任務執行時的規則載入與行為控制入口。
 
-本文件必須由 `AI-Workflow/bootstrap.md` 判斷角色後載入。
+本文件必須由解析後的 `AI-Workflow/bootstrap.md` 判斷角色後載入。
 
 ## Rule Bootstrap
 
-若專案根目錄不存在 `AI-Workflow/roles/developer/`：
+若解析後的 AI Workflow Root 不存在 `roles/developer/`：
 
 - 停止任務執行
 - 不得自行推測規則
 - 不得直接開始修改程式碼
-- 回報缺少規則環境
+- 回報缺少 Developer 規則環境
 
 ## Architecture Task
 

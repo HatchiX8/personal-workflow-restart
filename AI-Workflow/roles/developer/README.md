@@ -28,7 +28,15 @@ Current Version: v1.03
 
 目前 bootstrap 只支援 Developer。
 
-建議在 prompt 開頭指定角色：
+若要讓不同專案共用同一份集中式規則，建議在專案根目錄建立 `.env`：
+
+```txt
+AI_WORKFLOW_ROOT=<path-to-ai-workflow>
+```
+
+`.env` 必須加入 `.gitignore`，不得上傳版本控制。
+
+設定 `.env` 後，prompt 只需要指定角色：
 
 ```txt
 角色：Developer
@@ -82,6 +90,10 @@ your-project/
 5. 之後在任務 prompt 開頭指定角色、任務類型、任務模式與需要的 skill。
 
 `AI-Workflow/bootstrap.md` 作為 AI Workflow 入口；`AI-Workflow/workflow/common.md` 保存全角色通用 workflow；`AI-Workflow/roles/developer/` 資料夾保存 Developer 各任務類型的細部規則。
+
+若 prompt 指定外部 AI-Workflow 路徑，所有 `AI-Workflow/...` 規則路徑都必須以該外部路徑解析。
+
+若 prompt 未指定外部 AI-Workflow 路徑，則優先使用 `.env` 或系統環境變數中的 `AI_WORKFLOW_ROOT`。
 
 ## 指定 Skill
 

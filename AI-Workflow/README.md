@@ -28,7 +28,15 @@
 
 目前 bootstrap 只支援 Developer。
 
-建議在 prompt 開頭指定角色：
+若要讓不同專案共用同一份集中式規則，建議在專案根目錄建立 `.env`：
+
+```txt
+AI_WORKFLOW_ROOT=<path-to-ai-workflow>
+```
+
+`.env` 必須加入 `.gitignore`，不得上傳版本控制。
+
+設定 `.env` 後，prompt 只需要指定角色：
 
 ```txt
 角色：Developer
@@ -45,3 +53,7 @@
 本次任務：
 修改 AssetCard component 樣式。
 ```
+
+若需要臨時覆蓋 `.env`，可在 prompt 指定 `AI-Workflow 路徑` 或 `Bootstrap 路徑`。
+
+若 prompt 未指定路徑，且 `.env` / 系統環境變數沒有 `AI_WORKFLOW_ROOT`，則預設使用目前專案根目錄下的 `AI-Workflow/`。
