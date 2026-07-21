@@ -36,6 +36,12 @@ AI_WORKFLOW_ROOT=<path-to-ai-workflow>
 
 `.env` 必須加入 `.gitignore`，不得上傳版本控制。
 
+## 環境變數
+
+| 參數名稱 | 必填 | 說明 |
+| --- | --- | --- |
+| `AI_WORKFLOW_ROOT` | 否 | 指向集中式 `AI-Workflow` 目錄。未設定時，預設使用目前專案根目錄下的 `AI-Workflow/`。 |
+
 設定 `.env` 後，prompt 只需要指定角色：
 
 ```txt
