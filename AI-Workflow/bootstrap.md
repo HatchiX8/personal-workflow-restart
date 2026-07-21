@@ -2,7 +2,7 @@
 
 本文件是 AI Workflow 的入口規則。
 
-目前 bootstrap 只支援 Developer。
+目前 bootstrap 支援 Developer 與 Project Analyst。
 
 ## AI Workflow Root Resolution
 
@@ -55,6 +55,7 @@ AI Workflow Root 判斷流程：
 ## Supported Role
 
 - Developer：`AI-Workflow/roles/developer.md`
+- Project Analyst：`AI-Workflow/roles/project-analyst.md`
 
 ## Prompt Role
 
@@ -62,6 +63,12 @@ AI Workflow Root 判斷流程：
 
 ```txt
 角色：Developer
+```
+
+或：
+
+```txt
+角色：Project Analyst
 ```
 
 ## Role Resolution
@@ -72,9 +79,10 @@ AI Workflow Root 判斷流程：
 
 1. 讀取 prompt 開頭的 `角色：<role-name>`。
 2. 若角色為 `Developer`，讀取 `AI-Workflow/roles/developer.md`。
-3. 若未指定角色，預設使用 `Developer`。
-4. 若指定的角色不是 `Developer`，停止任務執行。
-5. 若指定角色的規則檔不存在，停止任務執行並回報缺少的角色規則檔。
+3. 若角色為 `Project Analyst`，讀取 `AI-Workflow/roles/project-analyst.md`。
+4. 若未指定角色，預設使用 `Developer`。
+5. 若指定的角色不是支援角色，停止任務執行。
+6. 若指定角色的規則檔不存在，停止任務執行並回報缺少的角色規則檔。
 
 角色判斷完成後，必須讀取：
 

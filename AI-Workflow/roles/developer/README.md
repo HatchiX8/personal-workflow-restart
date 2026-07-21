@@ -26,7 +26,7 @@ Current Version: v1.03
 
 ## Prompt 指定角色
 
-目前 bootstrap 只支援 Developer。
+目前 bootstrap 支援 Developer 與 Project Analyst。
 
 若要讓不同專案共用同一份集中式規則，建議在專案根目錄建立 `.env`：
 

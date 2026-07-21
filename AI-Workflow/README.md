@@ -7,9 +7,10 @@
 - `AI-Workflow/bootstrap.md`
 - `AI-Workflow/workflow/common.md`
 
-目前只有一個角色：
+目前支援角色：
 
-- Developer
+- Developer：負責開發、重構、review 與技術任務執行。
+- Project Analyst：負責分析專案並產出專案分析 md 檔，幫助工程師快速上手新專案。
 
 目前規則搬移狀態：
 
@@ -26,7 +27,7 @@
 
 ## Prompt 指定角色
 
-目前 bootstrap 只支援 Developer。
+目前 bootstrap 支援 Developer 與 Project Analyst。
 
 若要讓不同專案共用同一份集中式規則，建議在專案根目錄建立 `.env`：
 
@@ -46,6 +47,15 @@ AI_WORKFLOW_ROOT=<path-to-ai-workflow>
 
 ```txt
 角色：Developer
+```
+
+若要分析新專案並產出專案分析文件，可指定：
+
+```txt
+角色：Project Analyst
+
+本次任務：
+分析目前專案，並將專案分析文件輸出到 docs/PROJECT_ANALYSIS.md。
 ```
 
 可同時指定任務類型、任務模式與 skill：
