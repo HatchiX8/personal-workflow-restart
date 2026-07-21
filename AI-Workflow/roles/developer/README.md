@@ -26,23 +26,7 @@ Current Version: v1.03
 
 ## Prompt 指定角色
 
-目前 bootstrap 支援 Developer 與 Project Analyst。
-
-若要讓不同專案共用同一份集中式規則，建議在專案根目錄建立 `.env`：
-
-```txt
-AI_WORKFLOW_ROOT=<path-to-ai-workflow>
-```
-
-`.env` 必須加入 `.gitignore`，不得上傳版本控制。
-
-## 環境變數
-
-| 參數名稱 | 必填 | 說明 |
-| --- | --- | --- |
-| `AI_WORKFLOW_ROOT` | 否 | 指向集中式 `AI-Workflow` 目錄。未設定時，預設使用目前專案根目錄下的 `AI-Workflow/`。 |
-
-設定 `.env` 後，prompt 只需要指定角色：
+使用 Developer 角色時，任務 prompt 建議明確指定：
 
 ```txt
 角色：Developer
@@ -59,47 +43,6 @@ AI_WORKFLOW_ROOT=<path-to-ai-workflow>
 本次任務：
 修改 AssetCard component 樣式。
 ```
-
-## 專案部署方式
-
-若要在實際專案中使用本規則，建議採用以下結構：
-
-```txt
-your-project/
-├─ AI-Workflow/
-│  ├─ bootstrap.md
-│  ├─ README.md
-│  ├─ workflow/
-│  │  └─ common.md
-│  └─ roles/
-│     ├─ developer.md
-│     └─ developer/
-│        ├─ core.md
-│        ├─ restrictions.md
-│        ├─ workflow.md
-│        ├─ frontend.md
-│        ├─ backend.md
-│        ├─ python-tool.md
-│        ├─ review.md
-│        ├─ logging.md
-│        └─ skills/
-│           └─ project-structure.md
-└─ ...
-```
-
-### 建立步驟
-
-1. 將 `AI-Workflow/bootstrap.md` 作為入口規則。
-2. 將 `AI-Workflow/workflow/common.md` 作為通用 workflow 規則。
-3. 將 `AI-Workflow/roles/developer.md` 作為 Developer 角色入口。
-4. 將 `AI-Workflow/roles/developer/` 作為 Developer 細部規則資料夾。
-5. 之後在任務 prompt 開頭指定角色、任務類型、任務模式與需要的 skill。
-
-`AI-Workflow/bootstrap.md` 作為 AI Workflow 入口；`AI-Workflow/workflow/common.md` 保存全角色通用 workflow；`AI-Workflow/roles/developer/` 資料夾保存 Developer 各任務類型的細部規則。
-
-若 prompt 指定外部 AI-Workflow 路徑，所有 `AI-Workflow/...` 規則路徑都必須以該外部路徑解析。
-
-若 prompt 未指定外部 AI-Workflow 路徑，則優先使用 `.env` 或系統環境變數中的 `AI_WORKFLOW_ROOT`。
 
 ## 指定 Skill
 
@@ -152,10 +95,6 @@ Skill 不取代規則載入流程；它可補充或覆蓋通用任務類型規�
 ### review.md
 
 定義任務完成後的 review 檢查項目。
-
-### AI-Workflow/bootstrap.md
-
-AI Workflow 的入口規則。
 
 ## 任務類型與任務模式
 
