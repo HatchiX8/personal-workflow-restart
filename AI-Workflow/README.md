@@ -9,8 +9,9 @@
 
 目前支援角色：
 
-- Developer：負責開發、重構、review 與技術任務執行。
+- Developer：負責開發、重構與技術任務執行。
 - Project Analyst：負責分析專案並產出專案分析 md 檔，幫助工程師快速上手新專案。
+- Review：負責在任務完成或功能完成後進行獨立 review，檢查需求落差、bug、邏輯衝突、資料流、contract 與驗證缺口。
 
 目前規則搬移狀態：
 
@@ -27,7 +28,7 @@
 
 ## Prompt 指定角色
 
-目前 bootstrap 支援 Developer 與 Project Analyst。
+目前 bootstrap 支援 Developer、Project Analyst 與 Review。
 
 若要讓不同專案共用同一份集中式規則，建議在專案根目錄建立 `.env`：
 
@@ -57,6 +58,48 @@ AI_WORKFLOW_ROOT=<path-to-ai-workflow>
 本次任務：
 分析目前專案，並將專案分析文件輸出到 docs/PROJECT_ANALYSIS.md。
 ```
+
+若要執行 Review，可指定：
+
+```txt
+角色：Review
+Reviewer：Change Reviewer
+任務類型：前端任務
+
+本次任務：
+檢查目前 staged changes 是否可 commit。
+```
+
+或針對完整頁面 / 模組功能：
+
+```txt
+角色：Review
+Reviewer：Feature Reviewer
+任務類型：後端任務
+
+本次任務：
+檢查會員 API 模組是否符合完整功能需求。
+```
+
+Review 支援兩種 reviewer：
+
+- Change Reviewer：單一任務完成、git add 後、commit 前使用，主要依據 `git diff --cached` 與該任務需求。
+- Feature Reviewer：整個頁面或模組功能完成後使用，主要依據完整功能需求與現有完整程式碼，不限定 commit 或最近 diff。
+
+Review 會依任務類型自動載入 checks：
+
+- 所有 Review：讀取 `AI-Workflow/roles/review/checks/common.md`
+- 前端任務：額外讀取 `AI-Workflow/roles/review/checks/frontend.md`
+- 後端任務：額外讀取 `AI-Workflow/roles/review/checks/backend.md`
+
+Review 預設會產出 markdown report：
+
+- Change Reviewer：`AI-Workflow/reviews/change/<YYYYMMDD-HHmm>-<task-slug>.md`
+- Feature Reviewer：`AI-Workflow/reviews/feature/<YYYYMMDD-HHmm>-<feature-slug>.md`
+
+若 prompt 明確指定輸出位置，會寫入指定位置。
+
+若 prompt 明確表示不用落檔，才只在對話中回報。
 
 可同時指定任務類型、任務模式與 skill：
 
