@@ -11,6 +11,7 @@
 
 - Developer：負責開發、重構與技術任務執行。
 - Project Analyst：負責分析專案並產出專案分析 md 檔，幫助工程師快速上手新專案。
+- Module Analyst：負責分析指定前端或後端單一模組並產出 agent 通用的 module context，幫助後續 agent 依模組邊界進行修改或 review。
 - Review：負責在任務完成或功能完成後進行獨立 review，檢查需求落差、bug、邏輯衝突、資料流、contract 與驗證缺口。
 
 目前規則搬移狀態：
@@ -28,7 +29,7 @@
 
 ## Prompt 指定角色
 
-目前 bootstrap 支援 Developer、Project Analyst 與 Review。
+目前 bootstrap 支援 Developer、Project Analyst、Module Analyst 與 Review。
 
 若要讓不同專案共用同一份集中式規則，建議在專案根目錄建立 `.env`：
 
@@ -57,6 +58,26 @@ AI_WORKFLOW_ROOT=<path-to-ai-workflow>
 
 本次任務：
 分析目前專案，並將專案分析文件輸出到 docs/PROJECT_ANALYSIS.md。
+```
+
+若要分析指定模組並產出後續 agent 可沿用的 module context，可指定：
+
+```txt
+角色：Module Analyst
+任務類型：前端任務
+
+本次任務：
+分析會員資料頁面模組，並將 module context 輸出到 AI-Workflow/module-context/frontend/。
+```
+
+或：
+
+```txt
+角色：Module Analyst
+任務類型：後端任務
+
+本次任務：
+分析訂單 API 模組，並將 module context 輸出到 AI-Workflow/module-context/backend/。
 ```
 
 若要執行 Review，可指定：
@@ -96,6 +117,8 @@ Review 預設會產出 markdown report：
 
 - Change Reviewer：`AI-Workflow/reviews/change/<YYYYMMDD-HHmm>-<task-slug>.md`
 - Feature Reviewer：`AI-Workflow/reviews/feature/<YYYYMMDD-HHmm>-<feature-slug>.md`
+
+report 使用 UTF-8 編碼，內容以中文呈現。
 
 若 prompt 明確指定輸出位置，會寫入指定位置。
 

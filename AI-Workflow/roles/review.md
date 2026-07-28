@@ -88,6 +88,10 @@ Review 的 Change Reviewer 與 Feature Reviewer 是角色執行模式，不是�
 
 Review 預設必須產出 markdown report。
 
+report 必須使用 UTF-8 編碼。
+
+report 內容必須以中文呈現；程式碼識別字、檔案路徑、指令、API 欄位名稱與錯誤訊息可保留原文。
+
 若使用者指定輸出位置，必須寫入指定位置。
 
 若使用者未指定輸出位置，依 reviewer 類型寫入：
