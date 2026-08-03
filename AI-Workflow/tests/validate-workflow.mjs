@@ -1,0 +1,712 @@
+import crypto from 'node:crypto';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import {
+  buildReferenceRolePlan,
+  preflightReferencePipeline,
+  resolveContexts,
+  resolveResourcePath,
+  runReferencePipeline,
+  validateRegistrySnapshot,
+  verifyExecutor
+} from './reference-pipeline.mjs';
+
+const testsDir = path.dirname(fileURLToPath(import.meta.url));
+const workflowRoot = path.resolve(testsDir, '..');
+const projectRoot = path.resolve(workflowRoot, '..');
+const failures = [];
+const notes = [];
+
+const jsonFiles = new Map();
+const readText = (relativePath, required = true) => {
+  const absolutePath = path.resolve(projectRoot, relativePath);
+  if (!fs.existsSync(absolutePath)) {
+    if (required) failures.push(`Missing file: ${relativePath}`);
+    return null;
+  }
+  return fs.readFileSync(absolutePath, 'utf8');
+};
+
+const readWorkflowText = (relativePath, required = true) => readText(path.join('AI-Workflow', relativePath), required);
+
+const readJson = (relativePath, required = true) => {
+  if (jsonFiles.has(relativePath)) return jsonFiles.get(relativePath);
+  const content = readText(relativePath, required);
+  if (content === null) return null;
+  try {
+    const value = JSON.parse(content);
+    jsonFiles.set(relativePath, value);
+    return value;
+  } catch (error) {
+    failures.push(`Invalid JSON: ${relativePath} (${error.message})`);
+    return null;
+  }
+};
+
+const readWorkflowJson = (relativePath, required = true) => readJson(path.join('AI-Workflow', relativePath), required);
+const existsWithin = (base, relativePath) => {
+  if (typeof relativePath !== 'string' || !relativePath || path.isAbsolute(relativePath)) return false;
+  const resolved = path.resolve(base, relativePath);
+  return resolved === base || resolved.startsWith(`${base}${path.sep}`);
+};
+const workflowPathExists = (relativePath) => existsWithin(workflowRoot, relativePath) && fs.existsSync(path.resolve(workflowRoot, relativePath));
+const projectPathExists = (relativePath) => existsWithin(projectRoot, relativePath) && fs.existsSync(path.resolve(projectRoot, relativePath));
+const assert = (condition, message) => {
+  if (!condition) failures.push(message);
+};
+const hasOwn = (value, key) => Object.prototype.hasOwnProperty.call(value ?? {}, key);
+const arrayOfStrings = (value) => Array.isArray(value) && value.every((item) => typeof item === 'string');
+const unique = (items) => new Set(items).size === items.length;
+const stableJson = (value) => JSON.stringify(value, Object.keys(value).sort());
+const sha256 = (value) => `sha256:${crypto.createHash('sha256').update(value).digest('hex')}`;
+const parseSemver = (value) => {
+  const match = /^(\d+)\.(\d+)\.(\d+)(?:-[0-9A-Za-z.-]+)?$/.exec(value ?? '');
+  return match ? match.slice(1).map(Number) : null;
+};
+const compareSemver = (left, right) => {
+  for (let index = 0; index < 3; index += 1) {
+    if (left[index] !== right[index]) return left[index] - right[index];
+  }
+  return 0;
+};
+
+function walkJsonFiles(directory) {
+  if (!fs.existsSync(directory)) return [];
+  const files = [];
+  for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
+    const current = path.join(directory, entry.name);
+    if (entry.isDirectory()) files.push(...walkJsonFiles(current));
+    else if (entry.isFile() && entry.name.endsWith('.json')) files.push(current);
+  }
+  return files;
+}
+
+function checkAllJsonParses() {
+  for (const absolutePath of [...walkJsonFiles(workflowRoot), ...walkJsonFiles(path.join(projectRoot, '.ai-workflow'))]) {
+    const relativePath = path.relative(projectRoot, absolutePath);
+    readJson(relativePath);
+  }
+  notes.push(`JSON parse checked: ${jsonFiles.size} files`);
+}
+
+function checkConfigReferences() {
+  const workflowConfig = readWorkflowJson('workflow.config.json');
+  const projectConfig = readJson('.ai-workflow/project.config.json');
+  if (!workflowConfig || !projectConfig) return;
+
+  const workflowReferences = [
+    ['bootstrap', workflowConfig.bootstrap],
+    ...Object.entries(workflowConfig.orchestration ?? {}),
+    ...Object.entries(workflowConfig.registries ?? {}),
+    ...Object.entries(workflowConfig.schemas ?? {})
+  ];
+  for (const [name, relativePath] of workflowReferences) {
+    assert(existsWithin(workflowRoot, relativePath), `Config path escapes Workflow Root: ${name}=${relativePath}`);
+    assert(workflowPathExists(relativePath), `Config reference does not exist: ${name}=${relativePath}`);
+  }
+  assert(!hasOwn(workflowConfig.registries, 'legacy_aliases'), 'Workflow Config must not register legacy Prompt aliases.');
+  assert(!hasOwn(workflowConfig, 'compatibility'), 'Integrated Workflow must not expose a legacy compatibility block.');
+
+  const projectReferences = [
+    ['project_root', projectConfig.project_root],
+    ...(typeof projectConfig.module_registry === 'string' ? [['module_registry', projectConfig.module_registry]] : []),
+    ...((projectConfig.project_contexts ?? []).map((item, index) => [
+      `project_contexts[${index}]`,
+      item?.path
+    ]))
+  ];
+  for (const [name, relativePath] of projectReferences) {
+    assert(existsWithin(projectRoot, relativePath), `Config path escapes Project Root: ${name}=${relativePath}`);
+    if (name !== 'project_root' && relativePath) {
+      assert(projectPathExists(relativePath), `Project config reference does not exist: ${name}=${relativePath}`);
+    }
+  }
+  assert(!hasOwn(projectConfig, 'workflow_root'), 'Project Config must not declare a Workflow Root.');
+  assert(projectConfig.project_root === '.', 'Project Config must identify the repository root with project_root=".".');
+  assert(projectConfig.$schema === 'https://controlled-agent-workflow.local/schemas/project-config.schema.json', 'Project Config must use the centralized Project Config schema ID.');
+  const workflowVersion = parseSemver(workflowConfig.workflow_version);
+  const minimumVersion = parseSemver(projectConfig.workflow_compatibility?.minimum_version);
+  const maximumMajorVersion = projectConfig.workflow_compatibility?.maximum_major_version;
+  assert(Boolean(workflowVersion), 'Workflow Config must use a semantic workflow_version.');
+  assert(Boolean(minimumVersion), 'Project Config must declare a semantic minimum Workflow version.');
+  assert(Number.isInteger(maximumMajorVersion), 'Project Config must declare maximum_major_version.');
+  if (workflowVersion && minimumVersion && Number.isInteger(maximumMajorVersion)) {
+    assert(compareSemver(workflowVersion, minimumVersion) >= 0, 'Installed Workflow is older than the Project Config minimum version.');
+    assert(workflowVersion[0] <= maximumMajorVersion, 'Installed Workflow major version exceeds the Project Config maximum.');
+  }
+  assert(!(projectConfig.context_policy?.require_project_context_for ?? []).includes('develop'), 'Routine Develop must not require a Project Context by default.');
+  assert(!(projectConfig.context_policy?.require_project_context_for ?? []).includes('review'), 'Routine Review must not require a Project Context by default.');
+  assert((projectConfig.project_contexts ?? []).every((item) => item && typeof item === 'object' && !Array.isArray(item)), 'Project Context entries must use the structured canonical format.');
+}
+
+function checkUniqueIds(label, items, key) {
+  if (!Array.isArray(items)) return;
+  const ids = items.map((item) => item?.[key]).filter((item) => typeof item === 'string');
+  assert(unique(ids), `Duplicate ${label} IDs detected: ${ids.join(', ')}`);
+}
+
+function checkDependencies() {
+  const roles = readWorkflowJson('registry/roles.json');
+  const skills = readWorkflowJson('registry/skills.json');
+  const bundles = readWorkflowJson('registry/rule-bundles.json');
+  const modules = readWorkflowJson('registry/modules.json');
+  if (!roles || !skills || !bundles || !modules) return;
+
+  checkUniqueIds('role', roles.roles, 'role_id');
+  checkUniqueIds('skill', skills.skills, 'skill_id');
+  checkUniqueIds('rule', bundles.rules, 'rule_id');
+  checkUniqueIds('bundle', bundles.bundles, 'bundle_id');
+  checkUniqueIds('module', modules.modules, 'module_id');
+
+  const roleIds = new Set((roles.roles ?? []).map((item) => item.role_id));
+  const skillIds = new Set((skills.skills ?? []).map((item) => item.skill_id));
+  const ruleIds = new Set((bundles.rules ?? []).map((item) => item.rule_id));
+  const ruleById = new Map((bundles.rules ?? []).map((item) => [item.rule_id, item]));
+  const bundleIds = new Set((bundles.bundles ?? []).map((item) => item.bundle_id));
+  const knownIds = new Set([...skillIds, ...ruleIds, ...bundleIds]);
+  const graph = new Map();
+
+  const addDependencies = (nodeId, dependencies, source) => {
+    const deps = Array.isArray(dependencies) ? dependencies : [];
+    graph.set(nodeId, deps);
+    for (const dependency of deps) {
+      assert(knownIds.has(dependency), `Dangling dependency: ${source} -> ${dependency}`);
+    }
+  };
+
+  for (const role of roles.roles ?? []) {
+    for (const bundleId of [...(role.required_bundle_ids ?? []), ...(role.optional_bundle_ids ?? [])]) {
+      assert(bundleIds.has(bundleId), `Role ${role.role_id} references missing bundle ${bundleId}`);
+    }
+    assert(workflowPathExists(role.entry), `Role entry does not exist: ${role.entry}`);
+    assert(role.entry === `roles/${role.role_id}/entry.md`, `Role entry is not canonical: ${role.role_id} -> ${role.entry}`);
+    assert(workflowPathExists(role.planner), `Role Planner does not exist: ${role.planner}`);
+    assert(role.planner === `roles/${role.role_id}/planner.md`, `Role Planner is not canonical: ${role.role_id} -> ${role.planner}`);
+    for (const mode of role.modes ?? []) {
+      assert(workflowPathExists(mode.entry), `Role mode entry does not exist: ${mode.entry}`);
+      assert(mode.entry === `roles/${role.role_id}/modes/${mode.mode_id}/entry.md`, `Role mode entry is not canonical: ${role.role_id}/${mode.mode_id} -> ${mode.entry}`);
+    }
+  }
+
+  for (const skill of skills.skills ?? []) {
+    assert(roleIds.has(skill.role_id), `Skill ${skill.skill_id} references missing role ${skill.role_id}`);
+    if (skill.status === 'active') {
+      assert(workflowPathExists(skill.path), `Active Skill path does not exist: ${skill.skill_id} -> ${skill.path}`);
+    }
+    if (skill.status === 'deprecated' || skill.status === 'manual_review' || skill.load_policy === 'manual_review') {
+      assert(skill.load_policy === 'manual_review', `Manual-review Skill has an auto-load policy: ${skill.skill_id}`);
+      assert(skill.status !== 'active', `Manual-review Skill cannot be active: ${skill.skill_id}`);
+    }
+    addDependencies(skill.skill_id, skill.dependencies, `skill:${skill.skill_id}`);
+    assert(arrayOfStrings(skill.selectors?.all), `Skill all selectors are invalid: ${skill.skill_id}`);
+    assert(arrayOfStrings(skill.selectors?.any), `Skill any selectors are invalid: ${skill.skill_id}`);
+    assert(arrayOfStrings(skill.selectors?.none), `Skill none selectors are invalid: ${skill.skill_id}`);
+    assert(Number.isInteger(skill.precedence?.rank), `Skill precedence is missing: ${skill.skill_id}`);
+    assert(workflowPathExists(skill.manifest_path), `Skill Manifest does not exist: ${skill.skill_id}`);
+  }
+
+  for (const rule of bundles.rules ?? []) {
+    if (rule.status === 'active') {
+      assert(workflowPathExists(rule.path), `Active Rule path does not exist: ${rule.rule_id} -> ${rule.path}`);
+    }
+    if (rule.load_policy === 'manual_review' || rule.status === 'manual_review' || rule.status === 'legacy') {
+      assert(rule.required !== true, `Manual-review/legacy Rule cannot be required: ${rule.rule_id}`);
+    }
+    addDependencies(rule.rule_id, rule.dependencies, `rule:${rule.rule_id}`);
+    assert(['any', 'all', undefined].includes(rule.trigger_mode), `Invalid Rule trigger mode: ${rule.rule_id}`);
+    assert(Number.isInteger(rule.precedence?.rank), `Rule precedence is missing: ${rule.rule_id}`);
+    assert(!/(^|\/)readme\.md$/i.test(rule.path), `README cannot be an execution Rule: ${rule.rule_id}`);
+    assert(rule.readme_execution_rule !== true, `Execution README metadata is not supported: ${rule.rule_id}`);
+  }
+
+  assert(bundles.dependency_contract?.dependencies === 'inclusion only; a selected item recursively includes these IDs', 'Rule dependency semantics must be inclusion-only.');
+  assert(bundles.dependency_contract?.precedence === 'conflict arbitration only; it never changes inclusion or load order', 'Rule precedence must not control load order.');
+  assert(!ruleById?.get?.('developer.frontend')?.dependencies?.includes('developer.self-review'), 'Frontend Rule must not use self-review as an inclusion dependency.');
+  assert(!ruleById?.get?.('developer.backend')?.dependencies?.includes('developer.self-review'), 'Backend Rule must not use self-review as an inclusion dependency.');
+  assert(!ruleById?.get?.('developer.python-tool')?.dependencies?.includes('developer.self-review'), 'Python Tool Rule must not use self-review as an inclusion dependency.');
+  for (const document of [...(bundles.documentation_files ?? []), ...(skills.documentation_files ?? [])]) {
+    assert(document.routable === false, `Documentation README cannot be routable: ${document.path}`);
+  }
+
+  for (const bundle of bundles.bundles ?? []) {
+    addDependencies(bundle.bundle_id, bundle.dependencies, `bundle:${bundle.bundle_id}`);
+    for (const ruleId of bundle.rule_ids ?? []) {
+      assert(ruleIds.has(ruleId), `Bundle ${bundle.bundle_id} references missing rule ${ruleId}`);
+    }
+  }
+
+  const visiting = new Set();
+  const visited = new Set();
+  const visit = (nodeId, trail = []) => {
+    if (visiting.has(nodeId)) {
+      failures.push(`Dependency cycle detected: ${[...trail, nodeId].join(' -> ')}`);
+      return;
+    }
+    if (visited.has(nodeId)) return;
+    visiting.add(nodeId);
+    for (const dependency of graph.get(nodeId) ?? []) visit(dependency, [...trail, nodeId]);
+    visiting.delete(nodeId);
+    visited.add(nodeId);
+  };
+  for (const nodeId of graph.keys()) visit(nodeId);
+}
+
+function checkRegistrySnapshots() {
+  const registryPaths = [
+    'registry/roles.json',
+    'registry/skills.json',
+    'registry/rule-bundles.json',
+    'registry/modules.json'
+  ];
+  for (const registryPath of registryPaths) {
+    const registry = readWorkflowJson(registryPath);
+    if (!registry) continue;
+    assert(['canonical-inventory', 'generated-skill-packages'].includes(registry.source?.type), `Registry uses unsupported inventory metadata: ${registryPath}`);
+    assert(Array.isArray(registry.source?.source_paths) && registry.source.source_paths.length > 0, `Registry source paths missing: ${registryPath}`);
+    const snapshotPaths = registry.source_snapshot?.files?.map((item) => item.path).sort() ?? [];
+    const sourcePaths = [...(registry.source?.source_paths ?? [])].sort();
+    assert(JSON.stringify(snapshotPaths) === JSON.stringify(sourcePaths), `Registry snapshot sources do not match source paths: ${registryPath}`);
+    for (const error of validateRegistrySnapshot(workflowRoot, registry)) failures.push(error);
+  }
+}
+
+function checkModuleInvariants() {
+  const modules = readWorkflowJson('registry/modules.json');
+  if (!modules) return;
+  const contextIds = [];
+  for (const module of modules.modules ?? []) {
+    if (module.module_id === 'lunch') assert(module.aliases?.includes('午餐'), 'Lunch module must register the 午餐 alias.');
+    const candidates = module.context_candidates ?? [];
+    checkUniqueIds(`context for ${module.module_id}`, candidates, 'context_id');
+    for (const candidate of candidates) {
+      contextIds.push(candidate.context_id);
+      assert(candidate.current !== true || candidate.binding_status === 'bound', `Current Context must be bound: ${candidate.context_id}`);
+      assert(candidate.current !== true || candidate.project_id, `Current Context must have a project_id: ${candidate.context_id}`);
+      assert(candidate.current !== true || candidate.load_policy !== 'manual_review', `Current Context cannot be manual-review: ${candidate.context_id}`);
+      if (candidate.load_policy === 'manual_review' || candidate.binding_status === 'unbound') {
+        assert(candidate.current !== true, `Unbound/manual-review Context cannot be current: ${candidate.context_id}`);
+      }
+    }
+    const currentByTarget = new Map();
+    for (const candidate of candidates.filter((item) => item.current === true)) {
+      const target = candidate.target ?? 'unknown';
+      currentByTarget.set(target, (currentByTarget.get(target) ?? 0) + 1);
+    }
+    for (const [target, count] of currentByTarget) {
+      assert(count === 1, `Module ${module.module_id} has ${count} current Contexts for ${target}`);
+    }
+    const pointer = module.context_selection?.current_context;
+    if (pointer === null) {
+      assert(candidates.every((candidate) => candidate.current !== true), `Null current pointer has a current candidate: ${module.module_id}`);
+      assert(module.context_selection?.auto_resolution === 'blocked', `Unbound module must block auto resolution: ${module.module_id}`);
+    } else if (pointer && typeof pointer === 'object') {
+      for (const [target, contextId] of Object.entries(pointer)) {
+        const current = candidates.find((candidate) => candidate.context_id === contextId && candidate.current === true);
+        assert(Boolean(current), `Current pointer does not select a current Context: ${module.module_id}/${target}`);
+        assert(current?.target === target, `Current pointer target mismatch: ${module.module_id}/${target}`);
+      }
+    }
+  }
+  assert(unique(contextIds), 'Context IDs must be unique across the module registry.');
+}
+
+function checkBootstrapAndAdapter() {
+  const bootstrap = readWorkflowText('bootstrap.md');
+  const adapter = readText('AGENTS.md');
+  const healthCheck = readWorkflowText('tests/prompts/bootstrap-health-check.md');
+  if (bootstrap !== null) {
+    const forbidden = /\b(role|roles|skill|skills|reviewer|frontend|backend|feature|framework)\b|角色|技能|前端|後端|Reviewer|Feature|Framework/i;
+    assert(!forbidden.test(bootstrap), 'Bootstrap contains business routing keywords.');
+    assert(/does not classify the request|不分類需求/i.test(bootstrap), 'Bootstrap must explicitly state that it does not classify requests.');
+    assert(!/Bootstrap\s+(?:starts|begins|executes)\s+(?:the\s+)?(?:task\s+)?execution/i.test(bootstrap), 'Bootstrap must not start execution.');
+    assert(/Workflow Root 只有一個權威來源：主機介接規則實際載入的 `bootstrap\.md` 所在目錄/.test(bootstrap), 'Bootstrap must derive Workflow Root from the loaded bootstrap.md.');
+    assert(/不得使用 Prompt、環境變數[\s\S]*替代主機介接規則指定的 Workflow Root/.test(bootstrap), 'Bootstrap must reject fallback Workflow Root discovery.');
+    assert(/測試 AI Workflow 規則運作/.test(bootstrap), 'Bootstrap health-check Prompt is missing.');
+    assert(/必須只回覆：[\s\S]*測試規則運作成功/.test(bootstrap), 'Bootstrap health-check response contract is missing.');
+  }
+  if (adapter !== null) {
+    assert(/^[A-Za-z]:\\[^\r\n]+\\AI-Workflow\\bootstrap\.md$/m.test(adapter), 'Host Adapter must contain one absolute centralized bootstrap.md path.');
+    assert(/集中式 Workflow 內的所有後續[\s\S]*都必須相對於 Workflow Root/.test(adapter), 'Host Adapter must require relative internal Workflow paths.');
+    assert(/BLOCKED: workflow-bootstrap-unavailable/.test(adapter), 'Host Adapter must fail closed when Bootstrap is unavailable.');
+    const forbidden = /角色|技能|Reviewer|Frontend|Backend|Feature|Framework|reviewer|frontend|backend|feature|framework/i;
+    assert(!forbidden.test(adapter), 'Host Adapter contains business routing.');
+    assert(!/任務類型|task type|skill/i.test(adapter), 'Host Adapter must remain a minimal Bootstrap pointer.');
+    const absoluteWorkflowPaths = adapter.match(/[A-Za-z]:\\[^\r\n`]+/g) ?? [];
+    assert(absoluteWorkflowPaths.length === 1, 'Host Adapter must contain exactly one absolute Workflow path.');
+  }
+  if (healthCheck !== null) {
+    const promptMatches = healthCheck.match(/測試 AI Workflow 規則運作/g) ?? [];
+    const responseMatches = healthCheck.match(/測試規則運作成功/g) ?? [];
+    assert(promptMatches.length === 1, 'Bootstrap health-check document must contain the exact Prompt once.');
+    assert(responseMatches.length === 1, 'Bootstrap health-check document must contain the exact response once.');
+  }
+}
+
+function checkIntegratedInputContract() {
+  const taskAnalysis = readWorkflowText('orchestration/task-analysis.md');
+  const commonRules = readWorkflowText('workflow/common.md');
+  const manifestSchema = readWorkflowJson('schemas/task-manifest.schema.json');
+  if (taskAnalysis !== null) {
+    assert(/角色：<role_id>/.test(taskAnalysis), 'Task Analysis must document the canonical Role control field.');
+    assert(/Skill：<skill_id>/.test(taskAnalysis), 'Task Analysis must document the canonical Skill control field.');
+    assert(/unsupported-prompt-control-field:<field>/.test(taskAnalysis), 'Task Analysis must block unsupported structured routing controls.');
+    assert(!/legacy-aliases|legacy input|legacy-default/i.test(taskAnalysis), 'Task Analysis still references legacy Prompt normalization.');
+  }
+  const provenanceSources = manifestSchema?.$defs?.provenance?.properties?.source?.enum
+    ?? manifestSchema?.$defs?.provenanceEntry?.properties?.source?.enum
+    ?? [];
+  assert(!provenanceSources.includes('legacy-default'), 'Task Manifest provenance must not allow legacy-default.');
+  assert(!fs.existsSync(path.join(workflowRoot, 'registry', 'legacy-aliases.json')), 'Legacy Prompt alias Registry must be removed.');
+  if (commonRules !== null) assert(/固定輸入/.test(commonRules), 'Common Rules must preserve frozen workflow inputs.');
+}
+
+function validateManifest(value, label) {
+  const errors = [];
+  const required = [
+    'schema_version', 'task_id', 'created_at', 'raw_request', 'action', 'task_type', 'role_id',
+    'skill_ids', 'targets', 'target_mode', 'project', 'modules', 'scope', 'routing_triggers',
+    'review_mode', 'analysis_mode', 'provenance', 'unresolved', 'status'
+  ];
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return [`${label}: not an object`];
+  for (const key of required) if (!hasOwn(value, key)) errors.push(`${label}: missing ${key}`);
+  if (value.schema_version !== '1.0') errors.push(`${label}: invalid schema_version`);
+  if (!['develop', 'review', 'analyze', 'unknown'].includes(value.action)) errors.push(`${label}: invalid action`);
+  if (!['feature', 'change', 'bugfix', 'refactor', 'migration', 'maintenance', 'analysis', 'unknown'].includes(value.task_type)) errors.push(`${label}: invalid task_type`);
+  if (value.role_id !== null && typeof value.role_id !== 'string') errors.push(`${label}: invalid role_id`);
+  if (!arrayOfStrings(value.skill_ids) || !unique(value.skill_ids)) errors.push(`${label}: invalid skill_ids`);
+  const targets = ['frontend', 'backend', 'database', 'tooling', 'docs'];
+  if (!Array.isArray(value.targets) || !value.targets.every((target) => targets.includes(target)) || !unique(value.targets)) errors.push(`${label}: invalid targets`);
+  if (!['single', 'fullstack', 'mixed', 'unknown'].includes(value.target_mode)) errors.push(`${label}: invalid target_mode`);
+  if (!value.project || typeof value.project !== 'object' || !['project_id', 'project_root', 'config_path'].every((key) => hasOwn(value.project, key))) errors.push(`${label}: invalid project`);
+  if (!Array.isArray(value.modules)) errors.push(`${label}: invalid modules`);
+  if (!value.scope || !['summary', 'include_paths', 'exclude_paths', 'change_source'].every((key) => hasOwn(value.scope, key))) errors.push(`${label}: invalid scope`);
+  if (!arrayOfStrings(value.routing_triggers) || !unique(value.routing_triggers)) errors.push(`${label}: invalid routing_triggers`);
+  if (!['change', 'feature', null].includes(value.review_mode)) errors.push(`${label}: invalid review_mode`);
+  if (!['project', 'module', null].includes(value.analysis_mode)) errors.push(`${label}: invalid analysis_mode`);
+  if (!['analyzed', 'needs-resolution'].includes(value.status)) errors.push(`${label}: invalid status`);
+  if (!value.provenance || typeof value.provenance !== 'object') errors.push(`${label}: invalid provenance`);
+  if (!arrayOfStrings(value.unresolved)) errors.push(`${label}: invalid unresolved`);
+  return errors;
+}
+
+function checkRuntimeFixtures() {
+  const valid = readWorkflowJson('tests/fixtures/runtime/valid-task-manifest.json');
+  const invalid = readWorkflowJson('tests/fixtures/runtime/invalid-task-manifest.json');
+  assert(validateManifest(valid, 'valid-task-manifest').length === 0, 'Valid Task Manifest fixture must pass validation.');
+  assert(validateManifest(invalid, 'invalid-task-manifest').length > 0, 'Invalid Task Manifest fixture must fail validation.');
+}
+
+function checkPhase3Fixtures() {
+  const fixtureDir = path.join(workflowRoot, 'tests', 'fixtures', 'phase-3');
+  const expectedDir = path.join(workflowRoot, 'tests', 'expected', 'phase-3');
+  for (const file of fs.readdirSync(fixtureDir).filter((name) => name.endsWith('.request.json'))) {
+    const scenario = readJson(path.join('AI-Workflow', 'tests', 'fixtures', 'phase-3', file));
+    const id = file.replace('.request.json', '');
+    const manifest = readJson(path.join('AI-Workflow', 'tests', 'expected', 'phase-3', `${id}.task-manifest.json`));
+    const selection = readJson(path.join('AI-Workflow', 'tests', 'expected', 'phase-3', `${id}.rule-selection.json`), false);
+    const preflight = readJson(path.join('AI-Workflow', 'tests', 'expected', 'phase-3', `${id}.preflight-result.json`), false);
+    assert(scenario?.scenario_id === id, `Phase 3 fixture scenario mismatch: ${id}`);
+    assert(manifest?.scenario_id === id || manifest?.task_id?.includes(id), `Phase 3 manifest scenario mismatch: ${id}`);
+    assert(validateManifest(manifest, `Phase 3 manifest ${id}`).length === 0, `Phase 3 manifest is invalid: ${id}`);
+    if (selection) {
+      assert(selection.scenario_id === id, `Phase 3 selection scenario mismatch: ${id}`);
+      validateSelection(selection, id);
+    }
+    if (preflight) {
+      assert(preflight.scenario_id === id || preflight.task_id === manifest?.task_id, `Phase 3 Preflight scenario mismatch: ${id}`);
+      assert(preflight.task_id === manifest?.task_id, `Phase 3 Preflight Task ID mismatch: ${id}`);
+      assert(['PASS', 'PASS_WITH_WARNINGS', 'BLOCKED'].includes(preflight.status), `Phase 3 invalid Preflight status: ${id}`);
+      assert(preflight.can_execute === (preflight.status !== 'BLOCKED'), `Phase 3 Preflight can_execute mismatch: ${id}`);
+      if (preflight.status === 'BLOCKED') {
+        assert(preflight.execution_contract === null, `Phase 3 blocked Preflight must not expose an execution contract: ${id}`);
+        assert((preflight.blockers ?? []).length > 0, `Phase 3 blocked Preflight needs a blocker: ${id}`);
+      } else {
+        assert(preflight.execution_contract && typeof preflight.execution_contract === 'object', `Phase 3 passing Preflight needs an execution contract: ${id}`);
+      }
+    }
+  }
+  assert(fs.existsSync(expectedDir), 'Phase 3 expected directory must exist.');
+}
+
+function validateSelection(selection, scenarioId) {
+  const registry = readWorkflowJson('registry/rule-bundles.json');
+  const skillRegistry = readWorkflowJson('registry/skills.json');
+  const activeRuleIds = new Set((registry?.rules ?? []).filter((rule) => rule.status === 'active').map((rule) => rule.rule_id));
+  const activeSkillIds = new Set((skillRegistry?.skills ?? []).filter((skill) => skill.status === 'active').map((skill) => skill.skill_id));
+  const selected = selection.selected_rule_ids ?? [];
+  assert(unique(selected), `Duplicate selected rules in ${scenarioId}`);
+  for (const ruleId of selected) assert(activeRuleIds.has(ruleId) || activeSkillIds.has(ruleId), `Selection ${scenarioId} contains inactive/unknown rule: ${ruleId}`);
+  for (const forbidden of selection.forbidden_routing_sources ?? []) {
+    assert(!selected.some((ruleId) => ruleId.toLowerCase().includes(path.basename(forbidden, '.md').toLowerCase())), `Selection ${scenarioId} uses forbidden source: ${forbidden}`);
+  }
+  assert(!selected.some((ruleId) => /readme/i.test(ruleId)), `Selection ${scenarioId} selected a README as a rule.`);
+}
+
+function checkPhase4Fixtures() {
+  const fixtureDir = path.join(workflowRoot, 'tests', 'fixtures', 'phase-4');
+  for (const file of fs.readdirSync(fixtureDir).filter((name) => name.endsWith('.json'))) {
+    const fixture = readJson(path.join('AI-Workflow', 'tests', 'fixtures', 'phase-4', file));
+    const expected = readJson(path.join('AI-Workflow', 'tests', 'expected', 'phase-4', file));
+    assert(fixture?.scenario_id === expected?.scenario_id, `Phase 4 scenario mismatch: ${file}`);
+    assert(typeof expected?.status === 'string', `Phase 4 expected status missing: ${file}`);
+    if (expected?.status === 'BLOCKED') {
+      assert(expected.execution_started === false, `Phase 4 blocked fixture started execution: ${file}`);
+      assert(expected.request_classification_performed === false, `Phase 4 blocked fixture classified request: ${file}`);
+    }
+    if (expected?.status === 'HEALTH_CHECK_PASSED') {
+      assert(fixture.raw_request === '測試 AI Workflow 規則運作', `Phase 4 health-check Prompt mismatch: ${file}`);
+      assert(expected.response === '測試規則運作成功', `Phase 4 health-check response mismatch: ${file}`);
+      assert(expected.dispatcher_started === false, `Phase 4 health-check started Dispatcher: ${file}`);
+      assert(expected.execution_started === false, `Phase 4 health-check started execution: ${file}`);
+    }
+  }
+}
+
+function checkPhase5Fixtures() {
+  const fixtureDir = path.join(workflowRoot, 'tests', 'fixtures', 'phase-5');
+  for (const file of fs.readdirSync(fixtureDir).filter((name) => name.endsWith('.context-input.json'))) {
+    const id = file.replace('.context-input.json', '');
+    const fixture = readJson(path.join('AI-Workflow', 'tests', 'fixtures', 'phase-5', file));
+    const expected = readJson(path.join('AI-Workflow', 'tests', 'expected', 'phase-5', `${id}.context-result.json`));
+    assert(fixture?.scenario_id === expected?.scenario_id, `Phase 5 scenario mismatch: ${id}`);
+    assert(['RESOLVED', 'RESOLVED_WITH_WARNINGS', 'BLOCKED'].includes(expected?.status), `Phase 5 invalid status: ${id}`);
+    const manifest = {
+      action: fixture.query?.action,
+      task_type: fixture.query?.task_type ?? 'analysis',
+      analysis_mode: fixture.query?.analysis_mode ?? null,
+      routing_triggers: fixture.query?.risk_facts ?? [],
+      targets: fixture.query?.targets ?? [],
+      modules: fixture.query?.module_reference ? [{ module_id: fixture.query.module_reference }] : [],
+      project: { project_id: fixture.verified_project?.project_id, project_root: '.', config_path: fixture.verified_project?.config_path }
+    };
+    const syntheticProjectConfig = {
+      project_id: fixture.verified_project?.project_id,
+      project_contexts: fixture.project_contexts ?? [],
+      context_policy: fixture.context_policy ?? {}
+    };
+    const actual = resolveContexts({
+      manifest,
+      projectConfig: syntheticProjectConfig,
+      modulesRegistry: { modules: fixture.modules ?? [] },
+      roots: { workflowRoot, projectRoot }
+    });
+    const actualStatus = actual.blockers.length ? 'BLOCKED' : actual.warnings.length ? 'RESOLVED_WITH_WARNINGS' : 'RESOLVED';
+    assert(actualStatus === expected.status, `Phase 5 reference Context result mismatch: ${id}`);
+    assert(JSON.stringify(actual.contexts.map((context) => context.context_id)) === JSON.stringify((expected.contexts ?? []).map((context) => context.context_id)), `Phase 5 selected Context mismatch: ${id}`);
+    for (const context of expected?.contexts ?? []) {
+      assert(Boolean(context.context_id && context.path_base && context.path && context.reason), `Phase 5 selected Context is incomplete: ${id}`);
+      const candidate = [
+        ...(fixture.modules ?? []).flatMap((module) => module.context_candidates ?? []),
+        ...(fixture.project_contexts ?? [])
+      ].find((item) => item.context_id === context.context_id);
+      assert(Boolean(candidate), `Phase 5 selected Context is not in input candidates: ${id}/${context.context_id}`);
+      assert(candidate?.current === true, `Phase 5 selected Context is not current: ${id}/${context.context_id}`);
+      assert((candidate?.project_id ?? fixture.verified_project?.project_id) === context.project_id, `Phase 5 selected Context project mismatch: ${id}/${context.context_id}`);
+    }
+    if (id.includes('unbound') || id.includes('cross-project')) assert((expected.contexts ?? []).length === 0, `Phase 5 ${id} must not select a Context.`);
+    if (id.includes('unbound')) assert(expected.status === 'BLOCKED', `Phase 5 unbound scenario must block: ${id}`);
+  }
+}
+
+function checkPhase6RegressionCases() {
+  const cases = readWorkflowJson('tests/fixtures/phase-6/regression-cases.json');
+  assert(Array.isArray(cases?.cases), 'Phase 6 regression matrix must contain cases.');
+  const ids = (cases?.cases ?? []).map((item) => item.scenario_id);
+  assert(unique(ids), 'Phase 6 regression scenario IDs must be unique.');
+  const requiredIds = [
+    'natural-language-develop', 'explicit-role', 'explicit-skill',
+    'unsupported-routing-controls', 'unknown-role', 'unknown-skill', 'ambiguous-target-module',
+    'review-unknown-target-common-only', 'unbound-context'
+  ];
+  for (const id of requiredIds) assert(ids.includes(id), `Missing Phase 6 regression case: ${id}`);
+
+  const rules = readWorkflowJson('registry/rule-bundles.json');
+  const skills = readWorkflowJson('registry/skills.json');
+  const activeRules = new Set((rules?.rules ?? []).filter((rule) => rule.status === 'active').map((rule) => rule.rule_id));
+  const activeSkills = new Set((skills?.skills ?? []).filter((skill) => skill.status === 'active').map((skill) => skill.skill_id));
+  const activeResources = new Set([...activeRules, ...activeSkills]);
+  for (const testCase of cases?.cases ?? []) {
+    const expected = testCase.expected ?? {};
+    assert(typeof testCase.raw_request === 'string' && testCase.raw_request.length > 0, `Regression case has no raw request: ${testCase.scenario_id}`);
+    for (const ruleId of expected.must_include_rule_ids ?? []) assert(activeResources.has(ruleId), `Regression ${testCase.scenario_id} requires unknown/inactive rule ${ruleId}`);
+    for (const ruleId of expected.must_exclude_rule_ids ?? []) assert(!activeRules.has(ruleId) || !expected.selected_rule_ids?.includes(ruleId), `Regression ${testCase.scenario_id} auto-loads forbidden rule ${ruleId}`);
+    if (expected.explicit_skill_id) assert(activeSkills.has(expected.explicit_skill_id), `Regression ${testCase.scenario_id} explicit Skill is not active: ${expected.explicit_skill_id}`);
+    if (expected.preflight_status) assert(['PASS', 'PASS_WITH_WARNINGS', 'BLOCKED'].includes(expected.preflight_status), `Regression ${testCase.scenario_id} has invalid Preflight status`);
+    if (expected.must_not_select_context === true) assert(expected.selected_context_ids?.length === 0, `Regression ${testCase.scenario_id} selected a forbidden Context`);
+    if (testCase.scenario_id === 'review-unknown-target-common-only') {
+      assert(expected.must_include_rule_ids?.includes('review.check.common'), 'Review unknown-target case must include common checks.');
+      assert((expected.must_include_rule_ids ?? []).every((ruleId) => !['review.check.frontend', 'review.check.backend'].includes(ruleId)), 'Review unknown-target case must not include target checks.');
+    }
+    if (testCase.scenario_id === 'unsupported-routing-controls') {
+      assert(expected.preflight_status === 'BLOCKED', 'Unsupported Prompt routing controls must be blocked.');
+      assert(expected.must_not_accept_structured_routing_fields === true, 'Unsupported Prompt routing controls must not be accepted.');
+      assert((expected.unresolved ?? []).every((item) => item.startsWith('unsupported-prompt-control-field:')), 'Unsupported Prompt routing controls need structured unresolved codes.');
+    }
+  }
+}
+
+function checkTaskAnalysisEvidenceFixtures() {
+  const fixture = readWorkflowJson('tests/fixtures/phase-8/task-analysis-evidence.json');
+  assert(Array.isArray(fixture?.cases), 'Task Analysis evidence fixture must contain cases.');
+  for (const testCase of fixture?.cases ?? []) {
+    const manifest = readJson(testCase.manifest);
+    const expected = testCase.assertions ?? {};
+    assert(manifest?.role_id === (expected.role_id ?? manifest?.role_id), `Task Analysis evidence Role mismatch: ${testCase.scenario_id}`);
+    if (expected.action) assert(manifest?.action === expected.action, `Task Analysis evidence Action mismatch: ${testCase.scenario_id}`);
+    if (expected.task_type) assert(manifest?.task_type === expected.task_type, `Task Analysis evidence task type mismatch: ${testCase.scenario_id}`);
+    if (expected.targets) assert(JSON.stringify(manifest?.targets) === JSON.stringify(expected.targets), `Task Analysis evidence Target mismatch: ${testCase.scenario_id}`);
+    if (expected.skill_ids) assert(JSON.stringify(manifest?.skill_ids) === JSON.stringify(expected.skill_ids), `Task Analysis evidence Skill mismatch: ${testCase.scenario_id}`);
+    if (expected.module_id) assert((manifest?.modules ?? []).some((module) => module.module_id === expected.module_id), `Task Analysis evidence Module mismatch: ${testCase.scenario_id}`);
+    for (const [field, assertion] of Object.entries(expected.provenance ?? {})) {
+      const provenance = manifest?.provenance?.[field];
+      assert(provenance?.source === assertion.source, `Task Analysis provenance source mismatch: ${testCase.scenario_id}/${field}`);
+      assert((provenance?.evidence ?? []).some((evidence) => evidence.includes(assertion.evidence_includes)), `Task Analysis provenance evidence mismatch: ${testCase.scenario_id}/${field}`);
+    }
+  }
+}
+
+function checkSkillPackages() {
+  const registry = readWorkflowJson('registry/skills.json');
+  if (!registry) return;
+  const registeredManifests = new Set((registry.skills ?? []).map((skill) => skill.manifest_path));
+  const manifestPaths = walkJsonFiles(path.join(workflowRoot, 'roles'))
+    .filter((absolutePath) => path.basename(absolutePath) === 'skill.json')
+    .map((absolutePath) => path.relative(workflowRoot, absolutePath).replaceAll('\\', '/'))
+    .sort();
+  assert(
+    JSON.stringify([...registeredManifests].sort()) === JSON.stringify(manifestPaths),
+    'Skill Registry must contain every role Skill Manifest exactly once.'
+  );
+
+  for (const skill of registry.skills ?? []) {
+    const manifest = readWorkflowJson(skill.manifest_path);
+    if (!manifest) continue;
+    const packageRoot = path.posix.dirname(skill.manifest_path);
+    const expectedEntry = path.posix.join(packageRoot, manifest.entry);
+    assert(skill.path === expectedEntry, `Skill entry mismatch: ${skill.skill_id}`);
+    assert(manifest.skill_id === skill.skill_id, `Skill ID drift: ${skill.skill_id}`);
+    assert(manifest.role_id === skill.role_id, `Skill Role drift: ${skill.skill_id}`);
+    assert(manifest.category === skill.category, `Skill category drift: ${skill.skill_id}`);
+    assert(manifest.status === skill.status, `Skill status drift: ${skill.skill_id}`);
+    assert(manifest.version === skill.version, `Skill version drift: ${skill.skill_id}`);
+    assert(manifest.owner === skill.owner, `Skill owner drift: ${skill.skill_id}`);
+    assert(manifest.load_policy === skill.load_policy, `Skill load policy drift: ${skill.skill_id}`);
+    assert(JSON.stringify(manifest.selectors) === JSON.stringify(skill.selectors), `Skill selectors drift: ${skill.skill_id}`);
+    assert(JSON.stringify(manifest.scopes) === JSON.stringify(skill.scopes), `Skill scopes drift: ${skill.skill_id}`);
+    assert(JSON.stringify(manifest.dependencies) === JSON.stringify(skill.dependencies), `Skill dependencies drift: ${skill.skill_id}`);
+    assert(JSON.stringify(manifest.conflicts) === JSON.stringify(skill.conflicts), `Skill conflicts drift: ${skill.skill_id}`);
+    assert(manifest.precedence === skill.precedence?.rank, `Skill precedence drift: ${skill.skill_id}`);
+    assert(manifest.rule_language === 'zh-TW', `Skill rule language must be zh-TW: ${skill.skill_id}`);
+    const rules = readWorkflowText(skill.path);
+    assert(/[\u3400-\u9fff]/u.test(rules ?? ''), `Skill rules must contain Chinese: ${skill.skill_id}`);
+    for (const testPath of manifest.tests ?? []) {
+      assert(workflowPathExists(path.posix.join(packageRoot, testPath)), `Skill test does not exist: ${skill.skill_id}/${testPath}`);
+    }
+  }
+  notes.push(`Skill Package checked: ${manifestPaths.length} packages`);
+}
+
+function checkRolePlannerCases() {
+  const fixture = readWorkflowJson('tests/fixtures/role-planner-cases.json');
+  const roles = readWorkflowJson('registry/roles.json');
+  assert(Array.isArray(fixture?.cases), 'Role Planner fixture must contain cases.');
+  for (const testCase of fixture?.cases ?? []) {
+    const manifest = testCase.manifest;
+    const role = (roles?.roles ?? []).find((item) => item.role_id === manifest.role_id);
+    const rolePlan = buildReferenceRolePlan(manifest, role);
+    assert(rolePlan.status === 'planned', `Role Planner did not complete: ${testCase.scenario_id}`);
+    assert(rolePlan.planner_entry === testCase.expected_planner, `Role Planner entry mismatch: ${testCase.scenario_id}`);
+    assert(rolePlan.role_id === manifest.role_id, `Role Plan role mismatch: ${testCase.scenario_id}`);
+    assert(rolePlan.action === manifest.action, `Role Plan action mismatch: ${testCase.scenario_id}`);
+    for (const selector of testCase.expected_selectors ?? []) {
+      assert(rolePlan.skill_selectors.includes(selector), `Role Plan selector missing: ${testCase.scenario_id}/${selector}`);
+    }
+  }
+  notes.push(`Role Planner checked: ${fixture?.cases?.length ?? 0} cases`);
+}
+
+function checkReferencePipeline() {
+  const manifest = readWorkflowJson('tests/fixtures/phase-8/routine-develop-pass.task-manifest.json');
+  const expected = readWorkflowJson('tests/expected/phase-8/routine-develop-pass.pipeline-result.json');
+  if (!manifest || !expected) return;
+  const roots = { workflowRoot, projectRoot };
+  const run = runReferencePipeline(manifest, roots);
+  const preflight = preflightReferencePipeline({ manifest, resolution: run.resolution, context: run.context, roots });
+  assert(preflight.status === expected.preflight_status, 'Reference pipeline Preflight status mismatch.');
+  assert(preflight.can_execute === expected.can_execute, 'Reference pipeline can_execute mismatch.');
+  assert(JSON.stringify(run.resolution.rules.map((rule) => rule.rule_id)) === JSON.stringify(expected.selected_rule_ids), 'Reference pipeline selected Rule IDs mismatch.');
+  assert(JSON.stringify([...run.resolution.rules].sort((left, right) => left.load_order - right.load_order).map((rule) => rule.rule_id)) === JSON.stringify(expected.load_order_rule_ids), 'Reference pipeline load order mismatch.');
+  assert(JSON.stringify(run.resolution.contexts.map((context) => context.context_id)) === JSON.stringify(expected.selected_context_ids), 'Reference pipeline selected Context IDs mismatch.');
+  assert(expected.require_real_sha256 === true, 'Reference pipeline must require real SHA-256 validation.');
+  for (const rule of run.resolution.rules) assert(/^sha256:[a-f0-9]{64}$/.test(rule.content_hash), `Reference pipeline missing real Rule hash: ${rule.rule_id}`);
+  for (const context of run.resolution.contexts) assert(/^sha256:[a-f0-9]{64}$/.test(context.content_hash), `Reference pipeline missing real Context hash: ${context.context_id}`);
+  assert(/^sha256:[a-f0-9]{64}$/.test(run.resolution.fingerprint), 'Reference pipeline missing real fingerprint.');
+  assert(preflight.execution_contract?.rule_set_fingerprint === run.resolution.fingerprint, 'Passing Preflight must expose the frozen Rule Set fingerprint.');
+  const accepted = verifyExecutor({ resolution: run.resolution, preflight, roots });
+  assert(accepted.accepted === true, `Executor must accept a fresh frozen Rule Set: ${accepted.reason}`);
+  const firstRulePath = path.resolve(workflowRoot, run.resolution.rules[0].path);
+  const tampered = verifyExecutor({
+    resolution: run.resolution,
+    preflight,
+    roots,
+    readBytes: (absolutePath) => absolutePath === firstRulePath ? Buffer.from('tampered-bytes') : fs.readFileSync(absolutePath)
+  });
+  assert(tampered.accepted === false && tampered.reason.startsWith('rule-hash-mismatch:'), 'Executor must reject changed Rule bytes.');
+  let traversalRejected = false;
+  try {
+    resolveResourcePath(roots, 'workflow_root', '../outside.md');
+  } catch {
+    traversalRejected = true;
+  }
+  assert(traversalRejected, 'Context/Rule resource path traversal must be rejected.');
+
+  const explicitManifest = readWorkflowJson('tests/expected/phase-3/explicit-role-skill.task-manifest.json');
+  const explicitRun = runReferencePipeline(explicitManifest, roots);
+  const explicitRuleIds = new Set(explicitRun.resolution.rules.map((rule) => rule.rule_id));
+  for (const requiredId of [
+    'developer.frontend.base',
+    'developer.language.typescript'
+  ]) {
+    assert(explicitRuleIds.has(requiredId), `Explicit Role/Skill pipeline did not select ${requiredId}.`);
+  }
+}
+
+function checkGitignore() {
+  const gitignore = readText('.gitignore');
+  if (gitignore === null) return;
+  assert(/\.ai-workflow\/runtime\/?/.test(gitignore) || /AI-Workflow\/runtime\/?/.test(gitignore), '.gitignore must ignore runtime artifacts.');
+  assert(!/^\s*\.ai-workflow\/project\.config\.json\s*$/m.test(gitignore), '.gitignore must not ignore .ai-workflow/project.config.json.');
+  assert(!/^\s*project\.config\.json\s*$/m.test(gitignore), '.gitignore must not ignore project.config.json.');
+}
+
+function main() {
+  checkAllJsonParses();
+  checkConfigReferences();
+  checkDependencies();
+  checkRegistrySnapshots();
+  checkModuleInvariants();
+  checkBootstrapAndAdapter();
+  checkIntegratedInputContract();
+  checkRuntimeFixtures();
+  checkPhase3Fixtures();
+  checkPhase4Fixtures();
+  checkPhase5Fixtures();
+  checkPhase6RegressionCases();
+  checkTaskAnalysisEvidenceFixtures();
+  checkSkillPackages();
+  checkRolePlannerCases();
+  checkReferencePipeline();
+  checkGitignore();
+
+  if (failures.length > 0) {
+    console.error(`Workflow validation failed with ${failures.length} issue(s):`);
+    for (const failure of failures) console.error(`- ${failure}`);
+    process.exitCode = 1;
+    return;
+  }
+  console.log('Workflow validation passed.');
+  for (const note of notes) console.log(`- ${note}`);
+}
+
+main();

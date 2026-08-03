@@ -1,0 +1,79 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://controlled-agent-workflow.local/schemas/task-manifest.schema.json",
+  "title": "Task Manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "task_id", "created_at", "raw_request", "action", "task_type", "role_id", "skill_ids", "targets", "target_mode", "project", "modules", "scope", "routing_triggers", "review_mode", "analysis_mode", "provenance", "unresolved", "status"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schema_version": { "const": "1.0" },
+    "task_id": { "type": "string", "minLength": 1 },
+    "created_at": { "type": "string", "format": "date-time" },
+    "raw_request": { "type": "string", "minLength": 1 },
+    "action": { "enum": ["develop", "review", "analyze", "unknown"] },
+    "task_type": { "enum": ["feature", "change", "bugfix", "refactor", "migration", "maintenance", "analysis", "unknown"] },
+    "role_id": { "type": ["string", "null"] },
+    "skill_ids": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+    "targets": { "type": "array", "items": { "enum": ["frontend", "backend", "database", "tooling", "docs"] }, "uniqueItems": true },
+    "target_mode": { "enum": ["single", "fullstack", "mixed", "unknown"] },
+    "project": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["project_id", "project_root", "config_path"],
+      "properties": {
+        "project_id": { "type": ["string", "null"] },
+        "project_root": { "type": ["string", "null"] },
+        "config_path": { "type": ["string", "null"] }
+      }
+    },
+    "modules": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["module_id", "name", "aliases", "candidate_paths"],
+        "properties": {
+          "module_id": { "type": "string" },
+          "name": { "type": "string" },
+          "aliases": { "type": "array", "items": { "type": "string" } },
+          "candidate_paths": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    },
+    "scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["summary", "include_paths", "exclude_paths", "change_source"],
+      "properties": {
+        "summary": { "type": "string" },
+        "include_paths": { "type": "array", "items": { "type": "string" } },
+        "exclude_paths": { "type": "array", "items": { "type": "string" } },
+        "change_source": { "enum": ["request", "staged", "worktree", "full-project"] }
+      }
+    },
+    "routing_triggers": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "uniqueItems": true
+    },
+    "review_mode": { "enum": ["change", "feature", null] },
+    "analysis_mode": { "enum": ["project", "module", null] },
+    "provenance": { "type": "object", "additionalProperties": { "$ref": "#/$defs/provenance" } },
+    "unresolved": { "type": "array", "items": { "type": "string" } },
+    "status": { "enum": ["analyzed", "needs-resolution"] }
+  },
+  "$defs": {
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source", "confidence", "evidence", "candidates"],
+      "properties": {
+        "source": { "enum": ["explicit", "config", "registry", "repository-evidence", "inference"] },
+        "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+        "evidence": { "type": "array", "items": { "type": "string" } },
+        "candidates": { "type": "array", "items": { "type": "string" } }
+      }
+    }
+  }
+}

@@ -1,0 +1,5 @@
+{
+  "scenario_id": "ambiguous-blocking",
+  "raw_request": "請處理 Lunch 的問題。",
+  "project_config_path": ".ai-workflow/project.config.json"
+}

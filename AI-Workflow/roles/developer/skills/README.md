@@ -1,31 +1,28 @@
-# Skills Rules
+# Developer Skills
 
-skills 是任務類型之外的能力擴充規則。
+Developer 的 Target、Language、Runtime、Framework、Task Technique、Validation 與 Output
+特規都封裝為 Skill Package。專案結構、模組責任與專案技術限制由 Project Context 提供，不放在
+集中式 Developer Skill。
 
-## 載入原則
+每個 package 必須包含：
 
-- skill 不取代規則載入流程
-- skill 可補充或覆蓋通用任務類型規則
-- 任務需要時才載入對應 skill
-- 可同時載入多個 skill
-- skill 不得違反 AI-Workflow/roles/developer/restrictions.md
+```text
+skill.json
+rules.md
+README.md
+tests/
+```
 
-## 優先級
+`skill.json` 是唯一 routing metadata，`rules.md` 必須使用中文；README 只供工程師閱讀。
 
-規則衝突時：
+新增 Skill 不得修改 Developer Entry、Planner 或 Workflow。Skill 不得自行載入其他 Skill，
+相依與衝突必須宣告在 Manifest。
 
-1. AI-Workflow/roles/developer/restrictions.md
-2. 明確指定或任務觸發載入的 AI-Workflow/roles/developer/skills/*.md
-3. AI-Workflow/roles/developer/architecture.md
-4. AI-Workflow/roles/developer/core.md
-5. AI-Workflow/roles/developer/workflow.md
-6. 任務類型規則
-7. AI-Workflow/roles/developer/review.md
+主要分類：
 
-## Skill 檔案應包含
-
-- 適用情境
-- 使用限制
-- 操作流程
-- 驗證方式
-- 完成輸出要求
+- `frontend/`、`backend/`：Target 共通能力。
+- `language/`：可跨前後端使用的語言規則。
+- `runtime/`：Runtime 與套件生態規則。
+- `frontend/vue`、`frontend/react`：Frontend Framework 規則。
+- `refactor/`：任務技巧。
+- `tooling/`：工具特規。

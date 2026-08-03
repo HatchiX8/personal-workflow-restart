@@ -1,0 +1,67 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://controlled-agent-workflow.local/schemas/preflight-result.schema.json",
+  "title": "Preflight Result",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "task_id", "resolution_id", "checked_at", "status", "can_execute", "checks", "blockers", "warnings", "execution_contract"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schema_version": { "const": "1.0" },
+    "task_id": { "type": "string" },
+    "resolution_id": { "type": "string" },
+    "checked_at": { "type": "string", "format": "date-time" },
+    "status": { "enum": ["PASS", "PASS_WITH_WARNINGS", "BLOCKED"] },
+    "can_execute": { "type": "boolean" },
+    "checks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["check_id", "status", "subject", "message", "path"],
+        "properties": {
+          "check_id": { "type": "string" },
+          "status": { "enum": ["pass", "warning", "failed"] },
+          "subject": { "type": "string" },
+          "message": { "type": "string" },
+          "path": { "type": ["string", "null"] }
+        }
+      }
+    },
+    "blockers": { "type": "array", "items": { "type": "string" } },
+    "warnings": { "type": "array", "items": { "type": "string" } },
+    "execution_contract": {
+      "type": ["object", "null"],
+      "default": null,
+      "allOf": [
+        {
+          "if": { "type": "object" },
+          "then": { "$ref": "#/$defs/executionContract" }
+        }
+      ]
+    }
+  },
+  "$defs": {
+    "executionContract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["role_id", "executor_entry", "rule_set_fingerprint", "allowed_action"],
+      "properties": {
+        "role_id": { "type": "string" },
+        "executor_entry": { "type": "string" },
+        "rule_set_fingerprint": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+        "allowed_action": { "enum": ["develop", "review", "analyze"] }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "status": { "const": "BLOCKED" } } },
+      "then": { "properties": { "can_execute": { "const": false }, "execution_contract": { "const": null }, "blockers": { "minItems": 1 } } }
+    },
+    {
+      "if": { "properties": { "status": { "enum": ["PASS", "PASS_WITH_WARNINGS"] } } },
+      "then": { "properties": { "can_execute": { "const": true }, "execution_contract": { "type": "object" } } }
+    }
+  ]
+}

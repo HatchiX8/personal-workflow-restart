@@ -1,0 +1,26 @@
+{
+  "scenario_id": "stale-high-risk-blocked",
+  "verified_project": {
+    "project_id": "synthetic-a",
+    "canonical_root": "C:/synthetic/project-a",
+    "config_path": "tests/fixtures/phase-5/synthetic-a.project.config.json"
+  },
+  "context_policy": {
+    "require_project_context_for": [],
+    "status_policy": {"current": "pass", "stale": "warning", "partial": "warning", "unknown": "warning", "required_context_failure": "blocked"},
+    "high_risk_conditions": ["architecture", "database", "migration", "fullstack", "cross-module"]
+  },
+  "query": {
+    "action": "analyze",
+    "analysis_mode": "project",
+    "task_type": "migration",
+    "project_id": "synthetic-a",
+    "canonical_root": "C:/synthetic/project-a",
+    "targets": ["docs"],
+    "risk_facts": ["migration"]
+  },
+  "project_contexts": [
+    {"context_id": "ctx.synthetic-a.project.stale", "path_base": "workflow_root", "path": "tests/fixtures/phase-5/context-files/synthetic-a-project-stale.md", "status": "stale", "current": true, "targets": ["docs"], "required_for": []}
+  ],
+  "modules": []
+}

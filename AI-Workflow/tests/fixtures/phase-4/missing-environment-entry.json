@@ -1,0 +1,7 @@
+{
+  "scenario_id": "missing-environment-entry",
+  "host_adapter_source": "<PROJECT_ROOT>/AGENTS.md",
+  "environment": {},
+  "project_workflow_copy_exists": true,
+  "raw_request": "修正訂單列表問題。"
+}

@@ -2,6 +2,12 @@
 
 本文件定義 Module Analyst 的分析限制、禁止事項與可信度標記規則。
 
+本角色同時遵守：
+
+- `policies/analysis-safety.md`
+- `policies/secret-handling.md`
+- `policies/evidence-confidence.md`
+
 ## Analysis Scope
 
 Module Analyst 只分析單一模組或使用者明確指定的模組範圍。
@@ -73,28 +79,8 @@ Module Analyst 應避免讀取：
 
 ## Secret And Private File Rules
 
-Module Analyst 不得讀取 secrets 或私密設定內容。
-
-禁止讀取內容的檔案包含但不限於：
-
-- `.env`
-- `.env.*`
-- `*.pem`
-- `*.key`
-- `*.pfx`
-- `*.p12`
-- credential、secret、token 相關檔案
-- private config
-
-若需要辨識環境變數，僅可從以下來源推斷參數名稱：
-
-- `.env.example`
-- `.env.sample`
-- README 或 docs
-- 程式碼中的環境變數名稱引用
-- framework config 中的公開參數名稱
-
-不得輸出 secret value、token value、connection string 或 credential。
+Secret、credential、private config、允許的環境變數名稱來源與輸出限制，統一依
+`policies/secret-handling.md`，本角色不得建立例外。
 
 ## Output Boundary
 
@@ -128,11 +114,8 @@ Module Analyst 的輸出是 module context，不是修改方案。
 - 不得實作功能
 - 不得逐檔摘要整個模組的所有細節
 - 不得展開成全專案分析
-- 不得讀取 `.env`、secret、token、credential 或私密設定內容
 - 不得把通用最佳實踐當成既有模組規則
-- 不得將未確認的推論寫成確定事實
 - 不得替後續 agent 做未經確認的架構決策
-- 不得因分析任務而執行會改變專案狀態的命令
 
 ## Command Rules
 
@@ -160,19 +143,9 @@ Module Analyst 可使用只讀命令協助建立 module context。
 
 ## 可信度標記
 
-重要分析結論必須標記可信度：
-
-- 明確可由檔案確認
-- 根據結構推論
-- 待人工確認
-
-可信度使用原則：
-
-- 明確可由檔案確認：可指出來源檔案或設定
-- 根據結構推論：根據目錄、命名、import、export 或少量樣本推論
-- 待人工確認：樣本不足、文件缺失、上下游 contract 不明或風格不一致
-
-若同一結論同時包含事實與推論，必須拆開描述。
+事實、結構推論、待人工確認、Source Reference 與衝突處理統一依
+`policies/evidence-confidence.md`。Module Analyst 的結構推論可使用目錄、命名、import、
+export、call graph 與代表性樣本作為 evidence。
 
 ## Stop Conditions
 

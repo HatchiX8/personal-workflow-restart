@@ -1,109 +1,79 @@
-# Bootstrap
+# Bootstrap 啟動規則
 
-本文件是 AI Workflow 的入口規則。
+Bootstrap 是 Workflow 的唯一入口，負責驗證集中式 Workflow Root、Project Config 與編排契約，並啟動 Dispatcher。Bootstrap 不分類需求，也不載入作業規則。
 
-目前 bootstrap 支援 Developer、Project Analyst、Module Analyst 與 Review。
+所有檔案都必須以 UTF-8 讀取。`workflow.config.json` 中的所有路徑都以解析後的 Workflow Root 為基準；Project Config 中的所有路徑都以解析後的 Project Root 為基準。
 
-## AI Workflow Root Resolution
+## Workflow Root 驗證
 
-每次任務都必須先解析 AI Workflow Root。
+Workflow Root 只有一個權威來源：主機介接規則實際載入的 `bootstrap.md` 所在目錄。
 
-AI Workflow Root 判斷流程：
+1. 主機介接規則必須以絕對路徑載入本 `bootstrap.md`。
+2. 將本檔案的父目錄 canonicalize，作為唯一 Workflow Root。
+3. Workflow Root 必須同時包含可讀取的 `bootstrap.md` 與 `workflow.config.json`。
+4. 本檔案的 canonical path 必須等於 Workflow Root 下相對路徑 `bootstrap.md` 的解析結果。
 
-1. 若 prompt 開頭明確指定 `AI-Workflow 路徑：<path>`，使用該路徑作為 AI Workflow Root。
-2. 若 prompt 開頭明確指定 `Bootstrap 路徑：<path>/bootstrap.md`，使用該 bootstrap 所在資料夾作為 AI Workflow Root。
-3. 若 prompt 未指定外部路徑，且目前工作目錄 `.env` 存在 `AI_WORKFLOW_ROOT=<path>`，使用 `AI_WORKFLOW_ROOT` 作為 AI Workflow Root。
-4. 若 prompt 未指定外部路徑，且系統環境變數存在 `AI_WORKFLOW_ROOT`，使用 `AI_WORKFLOW_ROOT` 作為 AI Workflow Root。
-5. 若以上皆未指定，使用專案根目錄下的 `AI-Workflow/` 作為 AI Workflow Root。
+任一條件不成立時，只回傳 `BLOCKED: workflow-bootstrap-unavailable`。不得使用 Prompt、環境變數、
+工作目錄搜尋或其他來源替代主機介接規則指定的 Workflow Root。
 
-本規則文件中的 `AI-Workflow/...` 皆表示「已解析的 AI Workflow Root 底下的相對路徑」。
+## Workflow Config 驗證
 
-## Bootstrap Required
+以 UTF-8 JSON 讀取 `<WORKFLOW_ROOT>/workflow.config.json`。若無法解析或缺少已設定的核心路徑，回傳 `BLOCKED`。
 
-若解析後的 AI Workflow Root 不存在 `bootstrap.md`：
+驗證下列設定檔案存在於 Workflow Root 下且可讀取：
 
-- 停止任務執行
-- 不得自行推測入口規則
-- 不得直接開始修改程式碼
-- 回報缺少 `<AI Workflow Root>/bootstrap.md`
+- `schemas.workflow_config`
+- `schemas.project_config`
+- `orchestration.dispatcher`
+- `orchestration.task_analysis`
+- `orchestration.role_planner`
+- `orchestration.rule_resolution`
+- `orchestration.context_resolution`
+- `orchestration.preflight`
+- `orchestration.executor_adapter`
 
-若必要規則檔案不存在：
+Bootstrap 只能驗證路徑與解析設定。Registry 內容、作業規則內容，以及 project/application 檔案都不是 Bootstrap 的輸入。
 
-- 停止任務執行
-- 列出缺少的規則檔案
-- 不得以預設推測補齊規則
-- 不得使用模型預設最佳實踐取代專案規則
+## Project Root 與 Project Config
 
-## File Encoding Rules
+Project Root 是目前生效之專案根目錄 `AGENTS.md` 所在目錄。Bootstrap 必須讀取：
 
-所有檔案讀取、檢視、修改與輸出，皆必須使用 UTF-8 編碼。
-
-若檔案內容包含中文，必須確保：
-
-- 使用 UTF-8 解碼檢視檔案
-- 不得使用錯誤編碼導致中文亂碼
-- 修改檔案後必須維持 UTF-8 編碼
-- 不得因編碼問題移除、替換或改寫中文內容
-- 若偵測到中文亂碼，必須停止修改並回報問題
-
-若工具或環境無法確認編碼：
-
-- 不得直接覆寫原檔
-- 必須先回報編碼風險
-- 必須保留原始中文內容
-
-## Supported Role
-
-- Developer：`AI-Workflow/roles/developer.md`
-- Project Analyst：`AI-Workflow/roles/project-analyst.md`
-- Module Analyst：`AI-Workflow/roles/module-analyst.md`
-- Review：`AI-Workflow/roles/review.md`
-
-## Prompt Role
-
-任務 prompt 可在開頭指定：
-
-```txt
-角色：Developer
+```text
+<PROJECT_ROOT>/.ai-workflow/project.config.json
 ```
 
-或：
+Project Config 必須是可讀取的 UTF-8 JSON，並通過 Workflow Root 中 `schemas/project-config.schema.json` 的驗證。Project Config 不得宣告或覆寫 Workflow Root。
 
-```txt
-角色：Project Analyst
+Project Config 宣告的 Workflow 版本範圍必須涵蓋目前的 `workflow_version`。缺少 Config、Schema 驗證失敗或版本不符合時，回傳 `BLOCKED` 與對應錯誤碼，不得進入 Dispatcher。
+
+Bootstrap 不得從工作目錄名稱推測專案身分，也不得接受 Prompt 或環境變數覆寫 Project Config。
+
+## 入口健康檢查
+
+完成 Workflow Root、Workflow Config、Project Root 與 Project Config 驗證後，若原始需求去除前後空白後完全等於：
+
+```text
+測試 AI Workflow 規則運作
 ```
 
-或：
+必須只回覆：
 
-```txt
-角色：Module Analyst
+```text
+測試規則運作成功
 ```
 
-或：
+健康檢查不得啟動 Dispatcher，也不得附加說明、標點、Markdown 或其他文字。驗證尚未完成或失敗時不得回覆成功。
 
-```txt
-角色：Review
-```
+## 交付 Dispatcher
 
-## Role Resolution
+Root 與核心驗證成功後，使用下列輸入呼叫已設定的 Dispatcher：
 
-每次任務都必須先判斷角色。
+- 未經修改的原始需求；
+- canonical Workflow Root；
+- canonical Project Root；
+- 已解析的 Workflow Config；
+- 已解析的 Project Config；
+- 主機介接規則、Root 與 Config 的 provenance；
+- 非阻擋性 diagnostics。
 
-判斷流程：
-
-1. 讀取 prompt 開頭的 `角色：<role-name>`。
-2. 若角色為 `Developer`，讀取 `AI-Workflow/roles/developer.md`。
-3. 若角色為 `Project Analyst`，讀取 `AI-Workflow/roles/project-analyst.md`。
-4. 若角色為 `Module Analyst`，讀取 `AI-Workflow/roles/module-analyst.md`。
-5. 若角色為 `Review`，讀取 `AI-Workflow/roles/review.md`。
-6. 若未指定角色，預設使用 `Developer`。
-7. 若指定的角色不是支援角色，停止任務執行。
-8. 若指定角色的規則檔不存在，停止任務執行並回報缺少的角色規則檔。
-
-角色判斷完成後，必須讀取：
-
-- `AI-Workflow/workflow/common.md`
-
-## Reserved
-
-- 其他角色保留預留位置，尚未建立角色規則。
+後續所有階段都由 Dispatcher 負責。Bootstrap 不得開始執行任務。

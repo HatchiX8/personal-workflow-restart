@@ -1,0 +1,10 @@
+{
+  "scenario_id": "environment-entry",
+  "status": "READY_FOR_DISPATCH",
+  "workflow_root_source": "host-adapter-bootstrap-parent",
+  "project_config_source": "<PROJECT_ROOT>/.ai-workflow/project.config.json",
+  "dispatcher_input": {
+    "raw_request_preserved": true,
+    "request_classification_performed": false
+  }
+}

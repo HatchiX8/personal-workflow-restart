@@ -1,0 +1,38 @@
+{
+  "$schema": "https://controlled-agent-workflow.local/schemas/skill-package.schema.json",
+  "schema_version": "1.0",
+  "skill_id": "developer.frontend.react",
+  "display_name": "Developer React 規則",
+  "version": "1.0.0",
+  "owner": "workflow-team",
+  "role_id": "developer",
+  "category": "technology",
+  "status": "active",
+  "entry": "rules.md",
+  "rule_language": "zh-TW",
+  "load_policy": "conditional",
+  "aliases": [],
+  "selectors": {
+    "all": [
+      "target=frontend",
+      "framework=react"
+    ],
+    "any": [],
+    "none": []
+  },
+  "scopes": {
+    "project_ids": [],
+    "module_ids": []
+  },
+  "dependencies": [
+    "developer.frontend.base"
+  ],
+  "conflicts": [],
+  "precedence": 6,
+  "compatibility": {
+    "minimum_workflow_version": "1.1.0",
+    "maximum_workflow_major": 1
+  },
+  "tests": [],
+  "notes": []
+}

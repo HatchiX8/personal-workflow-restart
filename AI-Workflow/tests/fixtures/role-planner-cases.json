@@ -1,0 +1,88 @@
+{
+  "schema_version": "1.0",
+  "cases": [
+    {
+      "scenario_id": "developer-explicit",
+      "explicit_role": true,
+      "manifest": {
+        "task_id": "role-plan-developer",
+        "role_id": "developer",
+        "action": "develop",
+        "task_type": "change",
+        "targets": ["frontend"],
+        "routing_triggers": [],
+        "modules": [],
+        "project": {"project_id": "controlled-agent-workflow"}
+      },
+      "expected_planner": "roles/developer/planner.md",
+      "expected_selectors": ["role=developer", "action=develop", "task-type=change", "target=frontend"]
+    },
+    {
+      "scenario_id": "review-explicit",
+      "explicit_role": true,
+      "manifest": {
+        "task_id": "role-plan-review",
+        "role_id": "review",
+        "action": "review",
+        "task_type": "change",
+        "targets": ["frontend"],
+        "routing_triggers": [],
+        "review_mode": "change",
+        "modules": [],
+        "project": {"project_id": "controlled-agent-workflow"}
+      },
+      "expected_planner": "roles/review/planner.md",
+      "expected_selectors": ["role=review", "action=review", "review-mode=change", "target=frontend"]
+    },
+    {
+      "scenario_id": "project-analyst-explicit",
+      "explicit_role": true,
+      "manifest": {
+        "task_id": "role-plan-project-analyst",
+        "role_id": "project-analyst",
+        "action": "analyze",
+        "task_type": "analysis",
+        "targets": ["docs"],
+        "routing_triggers": [],
+        "analysis_mode": "project",
+        "modules": [],
+        "project": {"project_id": "controlled-agent-workflow"}
+      },
+      "expected_planner": "roles/project-analyst/planner.md",
+      "expected_selectors": ["role=project-analyst", "action=analyze", "analysis-mode=project"]
+    },
+    {
+      "scenario_id": "module-analyst-explicit",
+      "explicit_role": true,
+      "manifest": {
+        "task_id": "role-plan-module-analyst",
+        "role_id": "module-analyst",
+        "action": "analyze",
+        "task_type": "analysis",
+        "targets": ["backend"],
+        "routing_triggers": [],
+        "analysis_mode": "module",
+        "modules": [{"module_id": "purchase"}],
+        "project": {"project_id": "controlled-agent-workflow"}
+      },
+      "expected_planner": "roles/module-analyst/planner.md",
+      "expected_selectors": ["role=module-analyst", "action=analyze", "analysis-mode=module", "target=backend"]
+    },
+    {
+      "scenario_id": "developer-inferred-without-role-control",
+      "explicit_role": false,
+      "manifest": {
+        "task_id": "role-plan-inferred-developer",
+        "role_id": "developer",
+        "action": "develop",
+        "task_type": "change",
+        "targets": ["frontend"],
+        "routing_triggers": [],
+        "modules": [],
+        "project": {"project_id": "controlled-agent-workflow"}
+      },
+      "expected_planner": "roles/developer/planner.md",
+      "expected_selectors": ["role=developer", "action=develop", "task-type=change", "target=frontend"]
+    }
+  ]
+}

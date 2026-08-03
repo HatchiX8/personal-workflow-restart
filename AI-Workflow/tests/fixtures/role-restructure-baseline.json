@@ -1,0 +1,244 @@
+{
+  "schema_version": "1.0",
+  "baseline_id": "role-restructure-before-skill-packages",
+  "created_at": "2026-07-31T00:00:00+08:00",
+  "language": "zh-TW",
+  "policy": "僅允許配置重整、規則搬移與重複內容單一來源化，不得改變既有專業規則語意。",
+  "files": [
+    {
+      "path": "roles/developer/README.md",
+      "content_hash": "sha256:1ecadeb7492fd85532bf9e56d964aed47e60487b5835aea3e38fbaf25343dd79",
+      "migration_status": "pending"
+    },
+    {
+      "path": "roles/developer/architecture.md",
+      "content_hash": "sha256:c9425e3314c448404e09919901968ba817379c7953c393351957a40cf16a45c9",
+      "migration_status": "pending"
+    },
+    {
+      "path": "roles/developer/backend.md",
+      "content_hash": "sha256:ac9b18b9fa7236030125bd0e89b7d13b879ccb4c97e38d65b58666feb75610fe",
+      "migration_status": "pending"
+    },
+    {
+      "path": "roles/developer/core.md",
+      "content_hash": "sha256:2ed20f1b914ae8810193a937f75ab5f6cc00abdee713bdab69496f7e5e8843f8",
+      "migration_status": "pending"
+    },
+    {
+      "path": "roles/developer/entry.md",
+      "content_hash": "sha256:864a2070c4d560e86641c6f157ad29ff7fcdeb16e3d5188758d3f7ab332eb300",
+      "migration_status": "pending"
+    },
+    {
+      "path": "roles/developer/frontend.md",
+      "content_hash": "sha256:1f0c231948dd4032ccaae3a92312351daf7bb90b04342b367ada55bea456cbb8",
+      "migration_status": "pending"
+    },
+    {
+      "path": "roles/developer/logging.md",
+      "content_hash": "sha256:ee5dd1da93f9b26962abc26f8258925f635dc7ff366b629e6fa3c184ed441465",
+      "migration_status": "pending"
+    },
+    {
+      "path": "roles/developer/python-tool.md",
+      "content_hash": "sha256:e7fa1812e2a123c4dec4c811a72cdb4e7480cfcb5b0d9f7f927a9a0709c6b3f4",
+      "migration_status": "pending"
+    },
+    {
+      "path": "roles/developer/restrictions.md",
+      "content_hash": "sha256:e32d34dafcd0e211e3a053e2be752f4480bd65832c3c649d696f0167a28a895e",
+      "migration_status": "pending"
+    },
+    {
+      "path": "roles/developer/review.md",
+      "content_hash": "sha256:a1ad8e48c714bd3d978c15dfe84b6057751388a3461f14068588237c85a77acd",
+      "migration_status": "pending"
+    },
+    {
+      "path": "roles/developer/skills/README.md",
+      "content_hash": "sha256:69f1561d53d784b5e6edaa14f5c96d73bbd7efa45265b99ceee142c43257c750",
+      "migration_status": "pending"
+    },
+    {
+      "path": "roles/developer/skills/net-api-development.md",
+      "content_hash": "sha256:e3fff924021d84b44261963a1142984c208fd894e964fb34c63a05df34e26af2",
+      "migration_status": "pending"
+    },
+    {
+      "path": "roles/developer/skills/project-structure.md",
+      "content_hash": "sha256:4d938364e44818c61e5da010035e671c4ed97e5116cb4f115483475754d0bd5b",
+      "migration_status": "pending"
+    },
+    {
+      "path": "roles/developer/skills/refactor/README.md",
+      "content_hash": "sha256:8f32fa1b7c5c40c0697a818811a790056074e73c52971af450874091d5891054",
+      "migration_status": "pending"
+    },
+    {
+      "path": "roles/developer/skills/refactor/bigProject.md",
+      "content_hash": "sha256:fb16914f815604ad0cc54e38f901ca4167a701f17eb571a777602a24dc1d9475",
+      "migration_status": "pending"
+    },
+    {
+      "path": "roles/developer/skills/refactor/general-refactor.md",
+      "content_hash": "sha256:6963654fbeba532ef3d1ccb4d5b6c41bd45c0cd13e96860a3ae9531c680702ec",
+      "migration_status": "pending"
+    },
+    {
+      "path": "roles/developer/skills/refactor/node-backend-refactor.md",
+      "content_hash": "sha256:a986e5fbe3112ca3dfa6e6366a89820c16d203bf8342c8e824745fa515d8590c",
+      "migration_status": "pending"
+    },
+    {
+      "path": "roles/developer/workflow.md",
+      "content_hash": "sha256:69d86c73eb8c6077ede79c1fd5b364a78971cc4206df7ad8fb4708fe7500dabf",
+      "migration_status": "pending"
+    },
+    {
+      "path": "roles/module-analyst/README.md",
+      "content_hash": "sha256:e8c5915ec3e42205fde6d0daf293d812a5c7dc047533f387f2231630b9a16e1b",
+      "migration_status": "pending"
+    },
+    {
+      "path": "roles/module-analyst/backend.md",
+      "content_hash": "sha256:e4ca8db8b63a3bb5601eaf25ae67aecd2134206087d6e9d01d5152d8a853f3e2",
+      "migration_status": "pending"
+    },
+    {
+      "path": "roles/module-analyst/entry.md",
+      "content_hash": "sha256:30ad5dc2e4ccb6b0b4b965d102118345f8b0fc2235f54b988e6ed8abbfbbf75c",
+      "migration_status": "pending"
+    },
+    {
+      "path": "roles/module-analyst/frontend.md",
+      "content_hash": "sha256:dd486d11a3f48104f981ce1fecfe257fd75abff5a55ef39130547536e5a7fce4",
+      "migration_status": "pending"
+    },
+    {
+      "path": "roles/module-analyst/output.md",
+      "content_hash": "sha256:edb486fa61f4fcb0732cadbbe5e8a9a8192083b096b77ec693aea5eceaaec8c7",
+      "migration_status": "pending"
+    },
+    {
+      "path": "roles/module-analyst/report.md",
+      "content_hash": "sha256:fdaa295d604533075cce364709fb4d198bcea924348a09030f3008860aa2b9a7",
+      "migration_status": "pending"
+    },
+    {
+      "path": "roles/module-analyst/restrictions.md",
+      "content_hash": "sha256:abbb178408a05d5722d858a2343ed31705ff9d6666d453a9944dfa1505c29586",
+      "migration_status": "pending"
+    },
+    {
+      "path": "roles/module-analyst/workflow.md",
+      "content_hash": "sha256:2111747598a4be330b20344a567b743b344e5dbeccd3d33b01ddff10566b25bb",
+      "migration_status": "pending"
+    },
+    {
+      "path": "roles/project-analyst/entry.md",
+      "content_hash": "sha256:6455bd25e9c8b97d47f9b44978aa97786964a35b38dc3058c3df8e9683a13465",
+      "migration_status": "pending"
+    },
+    {
+      "path": "roles/project-analyst/identify-project.md",
+      "content_hash": "sha256:b11336644915958197db1eedef2693e0e8d874ca6906532a7125b13fffb4f50e",
+      "migration_status": "pending"
+    },
+    {
+      "path": "roles/project-analyst/output.md",
+      "content_hash": "sha256:8b7a0d35938d16908723f978ccc47eb2b9a1de12efddda7328b0ee03fc401aea",
+      "migration_status": "pending"
+    },
+    {
+      "path": "roles/project-analyst/restrictions.md",
+      "content_hash": "sha256:649b92eb2e7bb08f57cff590ee3333af2f04d6b8382cb05118051e81e9143565",
+      "migration_status": "pending"
+    },
+    {
+      "path": "roles/project-analyst/team-style.md",
+      "content_hash": "sha256:734e48e2111193346407050c5946d139a23e366ae0028c1a13f9166a14686957",
+      "migration_status": "pending"
+    },
+    {
+      "path": "roles/project-analyst/workflow.md",
+      "content_hash": "sha256:293dfe948f6e766d85766bc564303e680feee5169443d850590e94aedd7c588d",
+      "migration_status": "pending"
+    },
+    {
+      "path": "roles/review/README.md",
+      "content_hash": "sha256:247bb89b37aa11c84e817e6f4aeea9ca2664390063b05b404790ea2e77460e26",
+      "migration_status": "pending"
+    },
+    {
+      "path": "roles/review/checks/backend.md",
+      "content_hash": "sha256:56c0b1183df77681d77d2e52c927f66aa5d821d6071a01adb87aa371a5a4eef2",
+      "migration_status": "pending"
+    },
+    {
+      "path": "roles/review/checks/common.md",
+      "content_hash": "sha256:be1eb890506dc6715977234c80344e5a2fceae231448eefbf2652e657e429c4f",
+      "migration_status": "pending"
+    },
+    {
+      "path": "roles/review/checks/frontend.md",
+      "content_hash": "sha256:acd19dbfa2e27f60c583775c326a53a86e27041a2e2cefa33d09b4668daadb33",
+      "migration_status": "pending"
+    },
+    {
+      "path": "roles/review/entry.md",
+      "content_hash": "sha256:c86618548c6c7df44493292b409b445608d8a5a0581dfe7a0bab5bddca3b59ad",
+      "migration_status": "pending"
+    },
+    {
+      "path": "roles/review/modes/change/entry.md",
+      "content_hash": "sha256:eac9a3fb871ad3983028a98477bbb3133daaf08d559993b093a39012b5c07306",
+      "migration_status": "pending"
+    },
+    {
+      "path": "roles/review/modes/change/pass-conditions.md",
+      "content_hash": "sha256:b19d20aeedb5404f22ff3b2495c621cfe9eea70d3a9501e57ec288a85a0cfedb",
+      "migration_status": "pending"
+    },
+    {
+      "path": "roles/review/modes/change/report.md",
+      "content_hash": "sha256:620de1d9455f2c9d4f96e34a9f3f79d775df7f9ec7acf21a9445aba3ca4844fc",
+      "migration_status": "pending"
+    },
+    {
+      "path": "roles/review/modes/change/restrictions.md",
+      "content_hash": "sha256:6b213d9af708d5e974289e8c8aaecb705fc306eb5a92d13d42452d85e653fa82",
+      "migration_status": "pending"
+    },
+    {
+      "path": "roles/review/modes/change/workflow.md",
+      "content_hash": "sha256:86d50ddf7eed385d340bb5672c54dbfa9354c0054ed0abd07829f7c71c22daa4",
+      "migration_status": "pending"
+    },
+    {
+      "path": "roles/review/modes/feature/entry.md",
+      "content_hash": "sha256:14750d86c6ce16ef3448e8112a6547cb9dd7500ec8164324203ff82d5f553344",
+      "migration_status": "pending"
+    },
+    {
+      "path": "roles/review/modes/feature/pass-conditions.md",
+      "content_hash": "sha256:b1025b73750befc9d21d3a5e2edd88426823fbfdd8b30f6092fa6f22fed5ee31",
+      "migration_status": "pending"
+    },
+    {
+      "path": "roles/review/modes/feature/report.md",
+      "content_hash": "sha256:9d8d58aaf029d7849fcec876fc888c0bca73755bcec919b381065e5ced77d61c",
+      "migration_status": "pending"
+    },
+    {
+      "path": "roles/review/modes/feature/restrictions.md",
+      "content_hash": "sha256:5da59cbc1f584095abcfe05b4b22bd8094e9725049ce482dae1ff2885bae0b7d",
+      "migration_status": "pending"
+    },
+    {
+      "path": "roles/review/modes/feature/workflow.md",
+      "content_hash": "sha256:c1eef39bdde076d2b65561c204d20703a9cd391e2aae94628916102d6dcf7eee",
+      "migration_status": "pending"
+    }
+  ]
+}

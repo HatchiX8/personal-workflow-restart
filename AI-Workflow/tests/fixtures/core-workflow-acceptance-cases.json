@@ -1,0 +1,110 @@
+{
+  "schema_version": "1.0",
+  "stop_after": "rule-resolution",
+  "cases": [
+    {
+      "scenario_id": "accept-developer-explicit-role-skill",
+      "specified_role": true,
+      "specified_skill": true,
+      "prompt": "角色：developer\nSkill：developer.language.typescript\n\n調整 Vue 前端訂單列表元件的 TypeScript 資料型別，不要改變功能行為。",
+      "expected": {
+        "action": "develop",
+        "role_id": "developer",
+        "planner_entry": "roles/developer/planner.md",
+        "targets": ["frontend"],
+        "required_skill_ids": [
+          "developer.language.typescript",
+          "developer.frontend.base"
+        ],
+        "conditional_skill_ids": ["developer.frontend.vue"],
+        "forbidden_role_ids": ["review", "project-analyst", "module-analyst"]
+      }
+    },
+    {
+      "scenario_id": "accept-review-explicit-role-auto-skill",
+      "specified_role": true,
+      "specified_skill": false,
+      "prompt": "角色：review\n\n檢查目前 staged changes 中的後端訂單 API 修改，確認 request、response、錯誤處理與資料寫入是否符合需求。",
+      "expected": {
+        "action": "review",
+        "role_id": "review",
+        "planner_entry": "roles/review/planner.md",
+        "review_mode": "change",
+        "targets": ["backend"],
+        "required_skill_ids": ["review.check.backend"],
+        "required_rule_ids": ["review.check.common"],
+        "forbidden_skill_ids": ["review.check.frontend"]
+      }
+    },
+    {
+      "scenario_id": "accept-module-analyst-explicit-role-skill",
+      "specified_role": true,
+      "specified_skill": true,
+      "prompt": "角色：module-analyst\nSkill：module-analyst.frontend\n\n分析 Lunch 模組的前後端邊界、資料流、API contract 與付款狀態更新流程，只產生模組分析所需的規則集合。",
+      "expected": {
+        "action": "analyze",
+        "role_id": "module-analyst",
+        "planner_entry": "roles/module-analyst/planner.md",
+        "analysis_mode": "module",
+        "module_ids": ["lunch"],
+        "targets": ["frontend", "backend"],
+        "required_skill_ids": [
+          "module-analyst.frontend",
+          "module-analyst.backend"
+        ],
+        "allowed_preflight_status": ["PASS", "PASS_WITH_WARNINGS"]
+      }
+    },
+    {
+      "scenario_id": "accept-project-analyst-explicit-role-no-skill",
+      "specified_role": true,
+      "specified_skill": false,
+      "prompt": "角色：project-analyst\n\n分析目前專案的技術棧、主要入口、資料夾責任、團隊開發風格與新工程師建議閱讀順序。",
+      "expected": {
+        "action": "analyze",
+        "role_id": "project-analyst",
+        "planner_entry": "roles/project-analyst/planner.md",
+        "analysis_mode": "project",
+        "required_skill_ids": [],
+        "required_rule_ids": ["project.entry", "project.workflow", "project.output"]
+      }
+    },
+    {
+      "scenario_id": "accept-inferred-role-auto-skill",
+      "specified_role": false,
+      "specified_skill": false,
+      "prompt": "重構 Node.js 後端訂單服務，移除 service 內的重複邏輯並維持既有 API 行為。",
+      "expected": {
+        "action": "develop",
+        "role_id": "developer",
+        "planner_entry": "roles/developer/planner.md",
+        "task_type": "refactor",
+        "targets": ["backend"],
+        "required_selectors": ["runtime=node-js"],
+        "required_skill_ids": [
+          "developer.backend.base",
+          "developer.refactor.general",
+          "developer.runtime.node-js"
+        ]
+      }
+    },
+    {
+      "scenario_id": "accept-inferred-role-explicit-skill",
+      "specified_role": false,
+      "specified_skill": true,
+      "prompt": "Skill：developer.language.typescript\n\n調整 Node.js TypeScript 後端訂單 API 的 request validation 與錯誤回應，不改變既有 API 路徑。",
+      "expected": {
+        "action": "develop",
+        "role_id": "developer",
+        "planner_entry": "roles/developer/planner.md",
+        "targets": ["backend"],
+        "required_skill_ids": [
+          "developer.language.typescript",
+          "developer.backend.base",
+          "developer.runtime.node-js"
+        ],
+        "must_not_use_default_role": true
+      }
+    }
+  ]
+}

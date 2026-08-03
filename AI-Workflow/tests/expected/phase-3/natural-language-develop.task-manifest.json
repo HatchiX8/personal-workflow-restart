@@ -1,0 +1,49 @@
+{
+  "$schema": "../../../schemas/task-manifest.schema.json",
+  "schema_version": "1.0",
+  "task_id": "phase3-natural-language-develop",
+  "created_at": "2026-07-30T09:30:00Z",
+  "raw_request": "修正午餐訂單列表無法更新付款狀態的問題。",
+  "action": "develop",
+  "task_type": "bugfix",
+  "role_id": "developer",
+  "skill_ids": [],
+  "targets": ["frontend"],
+  "target_mode": "single",
+  "project": {
+    "project_id": "controlled-agent-workflow",
+    "project_root": ".",
+    "config_path": ".ai-workflow/project.config.json"
+  },
+  "modules": [
+    {
+      "module_id": "lunch",
+      "name": "Lunch",
+      "aliases": ["lunch"],
+      "candidate_paths": []
+    }
+  ],
+  "scope": {
+    "summary": "Fix the Lunch order-list payment state update.",
+    "include_paths": [],
+    "exclude_paths": [],
+    "change_source": "request"
+  },
+  "routing_triggers": [],
+  "review_mode": null,
+  "analysis_mode": null,
+  "provenance": {
+    "action": {"source": "inference", "confidence": 0.95, "evidence": ["修正"], "candidates": ["develop"]},
+    "task_type": {"source": "inference", "confidence": 0.96, "evidence": ["問題"], "candidates": ["bugfix"]},
+    "role_id": {"source": "registry", "confidence": 1.0, "evidence": ["develop maps to developer"], "candidates": ["developer"]},
+    "skill_ids": {"source": "registry", "confidence": 1.0, "evidence": ["No explicit, mandatory, or auto-load skill applies"], "candidates": []},
+    "targets": {"source": "inference", "confidence": 0.92, "evidence": ["訂單列表"], "candidates": ["frontend"]},
+    "modules": {"source": "registry", "confidence": 1.0, "evidence": ["Exact module alias Lunch"], "candidates": ["lunch"]},
+    "scope": {"source": "inference", "confidence": 0.95, "evidence": ["更新付款狀態"], "candidates": ["request"]},
+    "routing_triggers": {"source": "inference", "confidence": 1.0, "evidence": ["No Registry trigger is supported by the request"], "candidates": []},
+    "review_mode": {"source": "inference", "confidence": 1.0, "evidence": ["action is develop"], "candidates": []},
+    "analysis_mode": {"source": "inference", "confidence": 1.0, "evidence": ["action is develop"], "candidates": []}
+  },
+  "unresolved": ["Module Context for lunch is unbound and has no current pointer."],
+  "status": "needs-resolution"
+}

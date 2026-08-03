@@ -1,0 +1,8 @@
+{
+  "scenario_id": "bootstrap-health-check",
+  "status": "HEALTH_CHECK_PASSED",
+  "response": "測試規則運作成功",
+  "dispatcher_started": false,
+  "request_classification_performed": false,
+  "execution_started": false
+}

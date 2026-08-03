@@ -1,0 +1,111 @@
+{
+  "schema_version": "1.0",
+  "purpose": "Integrated routing regression matrix",
+  "cases": [
+    {
+      "scenario_id": "natural-language-develop",
+      "raw_request": "修正午餐訂單列表無法更新付款狀態的問題。",
+      "expected": {
+        "action": "develop",
+        "role_id": "developer",
+        "task_type": "bugfix",
+        "targets": ["frontend"],
+        "module_id": "lunch",
+        "preflight_status": "BLOCKED",
+        "must_include_rule_ids": ["developer.frontend.base", "developer.self-review"],
+        "must_not_select_context": true,
+        "selected_context_ids": []
+      }
+    },
+    {
+      "scenario_id": "explicit-role",
+      "raw_request": "檢查目前 staged changes 是否符合需求。",
+      "explicit_role": "review",
+      "expected": {
+        "action": "review",
+        "role_id": "review",
+        "preflight_status": "BLOCKED",
+        "must_include_rule_ids": ["review.entry", "review.check.common"]
+      }
+    },
+    {
+      "scenario_id": "explicit-skill",
+      "raw_request": "重構 Node.js 後端訂單服務，降低重複邏輯。",
+      "explicit_skill": "developer.runtime.node-js",
+      "expected": {
+        "action": "develop",
+        "role_id": "developer",
+        "task_type": "refactor",
+        "targets": ["backend"],
+        "explicit_skill_id": "developer.runtime.node-js",
+        "preflight_status": "BLOCKED"
+      }
+    },
+    {
+      "scenario_id": "unsupported-routing-controls",
+      "raw_request": "任務類型：前端任務\n修改 AssetCard component 樣式。",
+      "expected": {
+        "preflight_status": "BLOCKED",
+        "unresolved": [
+          "unsupported-prompt-control-field:task-type"
+        ],
+        "must_not_accept_structured_routing_fields": true
+      }
+    },
+    {
+      "scenario_id": "unknown-role",
+      "raw_request": "建立新的訂單 API。",
+      "explicit_role": "Architect",
+      "expected": {
+        "role_id": null,
+        "preflight_status": "BLOCKED",
+        "unresolved": ["unknown-role"],
+        "must_not_fallback_role": true
+      }
+    },
+    {
+      "scenario_id": "unknown-skill",
+      "raw_request": "修正訂單 API 的驗證問題。",
+      "explicit_skill": "security-review",
+      "expected": {
+        "role_id": "developer",
+        "preflight_status": "BLOCKED",
+        "unresolved": ["unknown-skill"],
+        "must_not_fallback_skill": true
+      }
+    },
+    {
+      "scenario_id": "ambiguous-target-module",
+      "raw_request": "調整訂單流程，可能涉及前端與後端的 Lunch 或 Purchase 模組。",
+      "expected": {
+        "preflight_status": "BLOCKED",
+        "unresolved": ["ambiguous-target", "ambiguous-module"],
+        "must_not_auto_select": true
+      }
+    },
+    {
+      "scenario_id": "review-unknown-target-common-only",
+      "raw_request": "Review 這次已完成的變更。",
+      "explicit_role": "review",
+      "expected": {
+        "role_id": "review",
+        "preflight_status": "BLOCKED",
+        "must_include_rule_ids": ["review.check.common"],
+        "must_not_include_rule_ids": ["review.check.frontend", "review.check.backend"]
+      }
+    },
+    {
+      "scenario_id": "unbound-context",
+      "raw_request": "修正 Lunch 前端訂單列表的付款狀態。",
+      "expected": {
+        "role_id": "developer",
+        "targets": ["frontend"],
+        "module_id": "lunch",
+        "preflight_status": "BLOCKED",
+        "must_not_select_context": true,
+        "selected_context_ids": [],
+        "blocker": "unbound-module-context"
+      }
+    }
+  ]
+}

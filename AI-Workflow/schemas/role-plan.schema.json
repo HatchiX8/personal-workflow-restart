@@ -1,0 +1,92 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://controlled-agent-workflow.local/schemas/role-plan.schema.json",
+  "title": "角色規劃結果",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "task_id",
+    "role_id",
+    "action",
+    "planner_entry",
+    "facts",
+    "skill_selectors",
+    "validation_profiles",
+    "context_requirements",
+    "unresolved",
+    "status"
+  ],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schema_version": { "const": "1.0" },
+    "task_id": { "type": "string", "minLength": 1 },
+    "role_id": { "type": "string", "minLength": 1 },
+    "action": { "enum": ["develop", "review", "analyze"] },
+    "planner_entry": { "$ref": "#/$defs/workflowRelativePath" },
+    "facts": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/fact" }
+    },
+    "skill_selectors": {
+      "type": "array",
+      "items": { "type": "string", "pattern": "^[a-z][a-z0-9-]*=.+$" },
+      "uniqueItems": true
+    },
+    "validation_profiles": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "uniqueItems": true
+    },
+    "context_requirements": {
+      "type": "array",
+      "items": { "enum": ["project", "module"] },
+      "uniqueItems": true
+    },
+    "unresolved": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "uniqueItems": true
+    },
+    "status": { "enum": ["planned", "needs-resolution"] }
+  },
+  "$defs": {
+    "workflowRelativePath": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^(?![A-Za-z]:)(?!/)(?!\\\\\\\\)(?!.*(?:^|/)\\.\\.(?:/|$)).+$"
+    },
+    "fact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["fact_id", "values", "source", "confidence", "evidence"],
+      "properties": {
+        "fact_id": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
+        "values": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "source": {
+          "enum": ["manifest", "config", "registry", "repository-evidence", "inference"]
+        },
+        "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+        "evidence": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "status": { "const": "needs-resolution" } } },
+      "then": { "properties": { "unresolved": { "minItems": 1 } } }
+    },
+    {
+      "if": { "properties": { "status": { "const": "planned" } } },
+      "then": { "properties": { "unresolved": { "maxItems": 0 } } }
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "$schema": "../../../schemas/task-manifest.schema.json",
+  "schema_version": "1.0",
+  "task_id": "fixture-invalid-action",
+  "created_at": "2026-07-30T09:00:00Z",
+  "raw_request": "Ship the workflow.",
+  "action": "ship",
+  "task_type": "bugfix",
+  "role_id": "developer",
+  "skill_ids": [],
+  "targets": ["frontend"],
+  "target_mode": "single",
+  "project": {
+    "project_id": "controlled-agent-workflow",
+    "project_root": ".",
+    "config_path": ".ai-workflow/project.config.json"
+  },
+  "modules": [],
+  "scope": {
+    "summary": "Invalid action fixture.",
+    "include_paths": [],
+    "exclude_paths": [],
+    "change_source": "request"
+  },
+  "routing_triggers": [],
+  "review_mode": null,
+  "analysis_mode": null,
+  "provenance": {
+    "action": {"source": "explicit", "confidence": 1.0, "evidence": ["Ship"], "candidates": ["ship"]},
+    "task_type": {"source": "inference", "confidence": 0.95, "evidence": ["fixture"], "candidates": ["bugfix"]},
+    "role_id": {"source": "explicit", "confidence": 1.0, "evidence": ["fixture"], "candidates": ["developer"]},
+    "skill_ids": {"source": "registry", "confidence": 1.0, "evidence": ["No skills"], "candidates": []},
+    "targets": {"source": "explicit", "confidence": 1.0, "evidence": ["fixture"], "candidates": ["frontend"]},
+    "modules": {"source": "inference", "confidence": 1.0, "evidence": ["No modules"], "candidates": []},
+    "scope": {"source": "inference", "confidence": 1.0, "evidence": ["fixture"], "candidates": ["request"]},
+    "routing_triggers": {"source": "inference", "confidence": 1.0, "evidence": ["No triggers"], "candidates": []},
+    "review_mode": {"source": "inference", "confidence": 1.0, "evidence": ["fixture"], "candidates": []},
+    "analysis_mode": {"source": "inference", "confidence": 1.0, "evidence": ["fixture"], "candidates": []}
+  },
+  "unresolved": [],
+  "status": "analyzed"
+}

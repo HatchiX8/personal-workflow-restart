@@ -1,0 +1,8 @@
+{
+  "scenario_id": "environment-entry",
+  "host_adapter_source": "<PROJECT_ROOT>/AGENTS.md",
+  "workflow_root_source": "host-adapter-bootstrap-parent",
+  "loaded_bootstrap": "<AGENTS_ABSOLUTE_BOOTSTRAP_PATH>",
+  "project_config": "<PROJECT_ROOT>/.ai-workflow/project.config.json",
+  "raw_request": "修正訂單列表問題。"
+}

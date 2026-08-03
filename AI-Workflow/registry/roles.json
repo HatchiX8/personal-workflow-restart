@@ -1,0 +1,156 @@
+{
+  "$schema": "../schemas/registry.schema.json",
+  "schema_version": "1.0",
+  "registry_id": "roles",
+  "source": {
+    "type": "canonical-inventory",
+    "inventory_version": "1.0",
+    "source_paths": [
+      "roles/developer/entry.md",
+      "roles/developer/planner.md",
+      "roles/review/entry.md",
+      "roles/review/planner.md",
+      "roles/project-analyst/entry.md",
+      "roles/project-analyst/planner.md",
+      "roles/module-analyst/entry.md",
+      "roles/module-analyst/planner.md"
+    ]
+  },
+  "source_snapshot": {
+    "algorithm": "sha256",
+    "files": [
+      {
+        "path": "roles/developer/entry.md",
+        "kind": "file",
+        "content_hash": "sha256:9fc062978178c8f6d3e2d56a6c91375c45a18a60c68c827088db515d4084ac34"
+      },
+      {
+        "path": "roles/developer/planner.md",
+        "kind": "file",
+        "content_hash": "sha256:85159f0e93642d1599439ee5a075a854c49585e959171ef9992b80af24bf5a36"
+      },
+      {
+        "path": "roles/module-analyst/entry.md",
+        "kind": "file",
+        "content_hash": "sha256:059330ac6410ddcff10d96bc34e3c1b33a871e192e23bd2397f68a866c87c945"
+      },
+      {
+        "path": "roles/module-analyst/planner.md",
+        "kind": "file",
+        "content_hash": "sha256:1f5e3f7c7234d9901507c2b8511270fb4e22e82808d010ec8e19c56192b2a99d"
+      },
+      {
+        "path": "roles/project-analyst/entry.md",
+        "kind": "file",
+        "content_hash": "sha256:628387ee534fed5b88bc2759c887243ec75e3ce8792c7f83e9c9f500d72005a4"
+      },
+      {
+        "path": "roles/project-analyst/planner.md",
+        "kind": "file",
+        "content_hash": "sha256:d6a21c3b8cedf0b8e0ef7fc66fdcb4b5129b929fb32dd451a2a440658b1f48b1"
+      },
+      {
+        "path": "roles/review/entry.md",
+        "kind": "file",
+        "content_hash": "sha256:34855a9492f26fd94fb357c13d2a5f7bdf9fa32b26677ef532abac1f571312c1"
+      },
+      {
+        "path": "roles/review/planner.md",
+        "kind": "file",
+        "content_hash": "sha256:9e661d2fff8923aeb5329bbfc5a4608dc1ae9a5abb2feeec3d647a217cbd1cd5"
+      }
+    ],
+    "fingerprint": "sha256:2146598e560660a8d1fe970a46347ff91a20671b851fab05666bf337b55b3d88"
+  },
+  "path_contract": "Every entry and bundle path is relative to the AI-Workflow root.",
+  "roles": [
+    {
+      "role_id": "developer",
+      "display_name": "Developer",
+      "action": "develop",
+      "entry": "roles/developer/entry.md",
+      "planner": "roles/developer/planner.md",
+      "status": "active",
+      "aliases": [
+        "Developer"
+      ],
+      "required_bundle_ids": [
+        "common.workflow-mode",
+        "developer.base"
+      ],
+      "optional_bundle_ids": [],
+      "skill_namespace": "developer",
+      "source": "roles/developer/entry.md"
+    },
+    {
+      "role_id": "review",
+      "display_name": "Review",
+      "action": "review",
+      "entry": "roles/review/entry.md",
+      "planner": "roles/review/planner.md",
+      "status": "active",
+      "aliases": [
+        "Review",
+        "Reviewer"
+      ],
+      "required_bundle_ids": [
+        "common.workflow-mode",
+        "review.base",
+        "review.common-check"
+      ],
+      "optional_bundle_ids": [
+        "review.change",
+        "review.feature"
+      ],
+      "modes": [
+        {
+          "mode_id": "change",
+          "entry": "roles/review/modes/change/entry.md",
+          "status": "active"
+        },
+        {
+          "mode_id": "feature",
+          "entry": "roles/review/modes/feature/entry.md",
+          "status": "active"
+        }
+      ],
+      "source": "roles/review/entry.md"
+    },
+    {
+      "role_id": "project-analyst",
+      "display_name": "Project Analyst",
+      "action": "analyze",
+      "entry": "roles/project-analyst/entry.md",
+      "planner": "roles/project-analyst/planner.md",
+      "status": "active",
+      "aliases": [
+        "Project Analyst"
+      ],
+      "required_bundle_ids": [
+        "common.workflow-mode",
+        "project-analyst.base"
+      ],
+      "optional_bundle_ids": [],
+      "analysis_mode": "project",
+      "source": "roles/project-analyst/entry.md"
+    },
+    {
+      "role_id": "module-analyst",
+      "display_name": "Module Analyst",
+      "action": "analyze",
+      "entry": "roles/module-analyst/entry.md",
+      "planner": "roles/module-analyst/planner.md",
+      "status": "active",
+      "aliases": [
+        "Module Analyst"
+      ],
+      "required_bundle_ids": [
+        "common.workflow-mode",
+        "module-analyst.base"
+      ],
+      "optional_bundle_ids": [],
+      "analysis_mode": "module",
+      "source": "roles/module-analyst/entry.md"
+    }
+  ]
+}

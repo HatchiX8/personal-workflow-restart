@@ -1,0 +1,33 @@
+{
+  "purpose": "Model-produced Task Analysis assertions; this fixture does not parse free text in JavaScript.",
+  "cases": [
+    {
+      "scenario_id": "natural-language-develop",
+      "manifest": "AI-Workflow/tests/expected/phase-3/natural-language-develop.task-manifest.json",
+      "assertions": {
+        "action": "develop",
+        "task_type": "bugfix",
+        "targets": ["frontend"],
+        "module_id": "lunch",
+        "provenance": {
+          "action": {"source": "inference", "evidence_includes": "修正"},
+          "modules": {"source": "registry", "evidence_includes": "Lunch"}
+        }
+      }
+    },
+    {
+      "scenario_id": "explicit-role-skill",
+      "manifest": "AI-Workflow/tests/expected/phase-3/explicit-role-skill.task-manifest.json",
+      "assertions": {
+        "role_id": "developer",
+        "skill_ids": ["developer.language.typescript"],
+        "targets": ["frontend"],
+        "provenance": {
+          "role_id": {"source": "explicit", "evidence_includes": "角色：developer"},
+          "skill_ids": {"source": "explicit", "evidence_includes": "Skill：developer.language.typescript"},
+          "targets": {"source": "inference", "evidence_includes": "TypeScript 前端訂單列表元件"}
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,1221 @@
+{
+  "$schema": "../schemas/registry.schema.json",
+  "schema_version": "1.0",
+  "registry_id": "rule-bundles",
+  "source": {
+    "type": "canonical-inventory",
+    "inventory_version": "1.0",
+    "source_paths": [
+      "bootstrap.md",
+      "policies/analysis-safety.md",
+      "policies/evidence-confidence.md",
+      "policies/report-file-policy.md",
+      "policies/secret-handling.md",
+      "roles/developer/core.md",
+      "roles/developer/entry.md",
+      "roles/developer/output.md",
+      "roles/developer/restrictions.md",
+      "roles/developer/validation.md",
+      "roles/developer/workflow.md",
+      "roles/module-analyst/entry.md",
+      "roles/module-analyst/output.md",
+      "roles/module-analyst/report.md",
+      "roles/module-analyst/restrictions.md",
+      "roles/module-analyst/workflow.md",
+      "roles/project-analyst/entry.md",
+      "roles/project-analyst/identify-project.md",
+      "roles/project-analyst/output.md",
+      "roles/project-analyst/restrictions.md",
+      "roles/project-analyst/team-style.md",
+      "roles/project-analyst/workflow.md",
+      "roles/review/checks/common.md",
+      "roles/review/entry.md",
+      "roles/review/modes/change/entry.md",
+      "roles/review/modes/change/pass-conditions.md",
+      "roles/review/modes/change/report.md",
+      "roles/review/modes/change/restrictions.md",
+      "roles/review/modes/change/workflow.md",
+      "roles/review/modes/feature/entry.md",
+      "roles/review/modes/feature/pass-conditions.md",
+      "roles/review/modes/feature/report.md",
+      "roles/review/modes/feature/restrictions.md",
+      "roles/review/modes/feature/workflow.md",
+      "roles/review/output.md",
+      "roles/review/pass-conditions.md",
+      "roles/review/restrictions.md",
+      "roles/review/workflow.md",
+      "workflow/common.md"
+    ]
+  },
+  "source_snapshot": {
+    "algorithm": "sha256",
+    "files": [
+      {
+        "path": "bootstrap.md",
+        "kind": "file",
+        "content_hash": "sha256:859ed8f3a91ea8a0fc82a69f2db54a8bb341d7618e197cac04b3d43a3e3f3516"
+      },
+      {
+        "path": "policies/analysis-safety.md",
+        "kind": "file",
+        "content_hash": "sha256:ecda74092ec0dd1db18445a7b97be987df3ab7cb055acc063a3425cc6919e2df"
+      },
+      {
+        "path": "policies/evidence-confidence.md",
+        "kind": "file",
+        "content_hash": "sha256:018c8e6193b237fe3c9c5740814c9d9f606a25c00d84d1a42862949d48b4aade"
+      },
+      {
+        "path": "policies/report-file-policy.md",
+        "kind": "file",
+        "content_hash": "sha256:a6e4aa3eb7b5b238485885eaa4d6d991f63442387599e8263a22a46f2c8be28d"
+      },
+      {
+        "path": "policies/secret-handling.md",
+        "kind": "file",
+        "content_hash": "sha256:ae6c46d31e269fe4abd8364121a4f6805b03e6aa60f9b6b6995bb7828e56bb67"
+      },
+      {
+        "path": "roles/developer/core.md",
+        "kind": "file",
+        "content_hash": "sha256:1e2e1b6d033eb241a9f4cb9b1156592a5301293a0a5319cda6f9cb92748d9684"
+      },
+      {
+        "path": "roles/developer/entry.md",
+        "kind": "file",
+        "content_hash": "sha256:9fc062978178c8f6d3e2d56a6c91375c45a18a60c68c827088db515d4084ac34"
+      },
+      {
+        "path": "roles/developer/output.md",
+        "kind": "file",
+        "content_hash": "sha256:82a75cb187e5629164f984d87aa795f4f5f7bdef9ce225ed7acc9f7ba4aa24db"
+      },
+      {
+        "path": "roles/developer/restrictions.md",
+        "kind": "file",
+        "content_hash": "sha256:e273a84334959a1f6e33a1823f6ac7a0690bc86022ea71969d71e6694a4a1609"
+      },
+      {
+        "path": "roles/developer/validation.md",
+        "kind": "file",
+        "content_hash": "sha256:a37b229a8ec6a3f7fe0872bff181b5add657ec4240c9541dc7ed5472db0215b4"
+      },
+      {
+        "path": "roles/developer/workflow.md",
+        "kind": "file",
+        "content_hash": "sha256:8d424556ae858fed61754229e590dcda1b60614b62d4a17d570c6819e82cf145"
+      },
+      {
+        "path": "roles/module-analyst/entry.md",
+        "kind": "file",
+        "content_hash": "sha256:059330ac6410ddcff10d96bc34e3c1b33a871e192e23bd2397f68a866c87c945"
+      },
+      {
+        "path": "roles/module-analyst/output.md",
+        "kind": "file",
+        "content_hash": "sha256:4b00e391161ba0f81a39b344e38cae532460ca11cb7be431a7461bc5a158c088"
+      },
+      {
+        "path": "roles/module-analyst/report.md",
+        "kind": "file",
+        "content_hash": "sha256:0af0bc659452123b56cf466cb741cd8f300149c637e09942f8f93aa6dc573af1"
+      },
+      {
+        "path": "roles/module-analyst/restrictions.md",
+        "kind": "file",
+        "content_hash": "sha256:5a3b9ae2b82d4e1f57917e968697368e9253f3c36de2cd86783e88de2110325e"
+      },
+      {
+        "path": "roles/module-analyst/workflow.md",
+        "kind": "file",
+        "content_hash": "sha256:58be84058bb38331dcec5120593656928056ea5c80565722c19c69f0ff9dd00e"
+      },
+      {
+        "path": "roles/project-analyst/entry.md",
+        "kind": "file",
+        "content_hash": "sha256:628387ee534fed5b88bc2759c887243ec75e3ce8792c7f83e9c9f500d72005a4"
+      },
+      {
+        "path": "roles/project-analyst/identify-project.md",
+        "kind": "file",
+        "content_hash": "sha256:b11336644915958197db1eedef2693e0e8d874ca6906532a7125b13fffb4f50e"
+      },
+      {
+        "path": "roles/project-analyst/output.md",
+        "kind": "file",
+        "content_hash": "sha256:239c2c65b33534843db28c160b7e07e1f7dff625a741571b46489997625807c1"
+      },
+      {
+        "path": "roles/project-analyst/restrictions.md",
+        "kind": "file",
+        "content_hash": "sha256:bf9599a6d0b4fbf1a25b36ffec4319928723d8a1f579a5e6b69e6c3086381d25"
+      },
+      {
+        "path": "roles/project-analyst/team-style.md",
+        "kind": "file",
+        "content_hash": "sha256:734e48e2111193346407050c5946d139a23e366ae0028c1a13f9166a14686957"
+      },
+      {
+        "path": "roles/project-analyst/workflow.md",
+        "kind": "file",
+        "content_hash": "sha256:c91dc968794d0c8a103fdba4de2bbcbd667c849a05662b28723b3173ecb50dd3"
+      },
+      {
+        "path": "roles/review/checks/common.md",
+        "kind": "file",
+        "content_hash": "sha256:be1eb890506dc6715977234c80344e5a2fceae231448eefbf2652e657e429c4f"
+      },
+      {
+        "path": "roles/review/entry.md",
+        "kind": "file",
+        "content_hash": "sha256:34855a9492f26fd94fb357c13d2a5f7bdf9fa32b26677ef532abac1f571312c1"
+      },
+      {
+        "path": "roles/review/modes/change/entry.md",
+        "kind": "file",
+        "content_hash": "sha256:eac9a3fb871ad3983028a98477bbb3133daaf08d559993b093a39012b5c07306"
+      },
+      {
+        "path": "roles/review/modes/change/pass-conditions.md",
+        "kind": "file",
+        "content_hash": "sha256:85be81fb7c9782db871ff617eb87ade54860e02faef8fba1b46f6e8bcc6745ce"
+      },
+      {
+        "path": "roles/review/modes/change/report.md",
+        "kind": "file",
+        "content_hash": "sha256:6d535b3f12b31088fb7aa5b58a6c8b81ec6810b300c597e1d57a8fcf388fc367"
+      },
+      {
+        "path": "roles/review/modes/change/restrictions.md",
+        "kind": "file",
+        "content_hash": "sha256:334fb08af57e7ba119f92d9a3871f0f4d7f6d725ac39513b8946e5d2dcccdaff"
+      },
+      {
+        "path": "roles/review/modes/change/workflow.md",
+        "kind": "file",
+        "content_hash": "sha256:a611f4e248ea30f6fba4da881373a3a158bdfa43944eb137fa3c7f874b199891"
+      },
+      {
+        "path": "roles/review/modes/feature/entry.md",
+        "kind": "file",
+        "content_hash": "sha256:14750d86c6ce16ef3448e8112a6547cb9dd7500ec8164324203ff82d5f553344"
+      },
+      {
+        "path": "roles/review/modes/feature/pass-conditions.md",
+        "kind": "file",
+        "content_hash": "sha256:c8c51e5b144ae5664be27acf3df8c59e1c45ce6eeee664462c191d09d42e6279"
+      },
+      {
+        "path": "roles/review/modes/feature/report.md",
+        "kind": "file",
+        "content_hash": "sha256:5bfaebd78368e90ebab9b71602681d3d354dc5990653f8fb7c4511f6e02801bb"
+      },
+      {
+        "path": "roles/review/modes/feature/restrictions.md",
+        "kind": "file",
+        "content_hash": "sha256:d7a3ad386555994bac9caea54b018e118c40daae50da0c261f00b9e75d2ed57c"
+      },
+      {
+        "path": "roles/review/modes/feature/workflow.md",
+        "kind": "file",
+        "content_hash": "sha256:9fb2747de462f43a4298e32f288744b869f32308e7413e93d365dc85dd9905b8"
+      },
+      {
+        "path": "roles/review/output.md",
+        "kind": "file",
+        "content_hash": "sha256:d41bf14b7e762d0885c5aead41dd1cc9c15d76c14f7693c40709a3bccea3a542"
+      },
+      {
+        "path": "roles/review/pass-conditions.md",
+        "kind": "file",
+        "content_hash": "sha256:e2cba617b5fd888b01816674f289f9f625155debb5aa0444167eb399927ac773"
+      },
+      {
+        "path": "roles/review/restrictions.md",
+        "kind": "file",
+        "content_hash": "sha256:ba75babc9e8ad0aa167b975d417d8fbb74cbb7431a92f59829d45ef4ac84003a"
+      },
+      {
+        "path": "roles/review/workflow.md",
+        "kind": "file",
+        "content_hash": "sha256:41f5bd3abe03f81b418e30bfc972f608e119306ea63a6c29e897755bda899b98"
+      },
+      {
+        "path": "workflow/common.md",
+        "kind": "file",
+        "content_hash": "sha256:6c6488c2e1e45dbc5b92dd9c4f768b44389f032a0ea508cdf60e638b99fb298b"
+      }
+    ],
+    "fingerprint": "sha256:91b04c20d020bbcb9f589a42e0307d1faa90017ccf18372070975872f3ef3323"
+  },
+  "path_contract": "所有規則路徑皆相對於 AI-Workflow Root；核心規則只由 Bundle 與相依關係選取，不可猜測檔名。",
+  "dependency_contract": {
+    "dependencies": "inclusion only; a selected item recursively includes these IDs",
+    "load_order": "以相依圖計算固定載入順序。",
+    "precedence": "conflict arbitration only; it never changes inclusion or load order",
+    "default_trigger_mode": "any"
+  },
+  "readme_policy": {
+    "default": "documentation-only",
+    "documentation_files_routable": false
+  },
+  "rules": [
+    {
+      "rule_id": "bootstrap.entry",
+      "path": "bootstrap.md",
+      "category": "bootstrap",
+      "status": "active",
+      "load_policy": "host-entry",
+      "role_ids": [],
+      "required": true,
+      "triggers": [
+        "every-task"
+      ],
+      "dependencies": [],
+      "precedence": {
+        "source": "bootstrap.md",
+        "rank": 0
+      }
+    },
+    {
+      "rule_id": "common.workflow-mode",
+      "path": "workflow/common.md",
+      "category": "common",
+      "status": "active",
+      "load_policy": "required",
+      "role_ids": [
+        "developer",
+        "review",
+        "project-analyst",
+        "module-analyst"
+      ],
+      "required": true,
+      "triggers": [
+        "resolved-role"
+      ],
+      "dependencies": [],
+      "precedence": {
+        "source": "workflow/common.md",
+        "rank": 0
+      }
+    },
+    {
+      "rule_id": "policy.report-file",
+      "path": "policies/report-file-policy.md",
+      "category": "common",
+      "status": "active",
+      "load_policy": "required",
+      "role_ids": [
+        "developer",
+        "review",
+        "project-analyst",
+        "module-analyst"
+      ],
+      "required": true,
+      "triggers": [],
+      "dependencies": [],
+      "precedence": {
+        "source": "policies/report-file-policy.md",
+        "rank": 0
+      }
+    },
+    {
+      "rule_id": "policy.analysis-safety",
+      "path": "policies/analysis-safety.md",
+      "category": "common",
+      "status": "active",
+      "load_policy": "required",
+      "role_ids": [
+        "project-analyst",
+        "module-analyst"
+      ],
+      "required": true,
+      "triggers": [],
+      "dependencies": [],
+      "precedence": {
+        "source": "policies/analysis-safety.md",
+        "rank": 0
+      }
+    },
+    {
+      "rule_id": "policy.evidence-confidence",
+      "path": "policies/evidence-confidence.md",
+      "category": "common",
+      "status": "active",
+      "load_policy": "required",
+      "role_ids": [
+        "project-analyst",
+        "module-analyst"
+      ],
+      "required": true,
+      "triggers": [],
+      "dependencies": [],
+      "precedence": {
+        "source": "policies/evidence-confidence.md",
+        "rank": 0
+      }
+    },
+    {
+      "rule_id": "policy.secret-handling",
+      "path": "policies/secret-handling.md",
+      "category": "common",
+      "status": "active",
+      "load_policy": "required",
+      "role_ids": [
+        "project-analyst",
+        "module-analyst"
+      ],
+      "required": true,
+      "triggers": [],
+      "dependencies": [],
+      "precedence": {
+        "source": "policies/secret-handling.md",
+        "rank": 0
+      }
+    },
+    {
+      "rule_id": "developer.entry",
+      "path": "roles/developer/entry.md",
+      "category": "role",
+      "status": "active",
+      "load_policy": "required",
+      "role_ids": [
+        "developer"
+      ],
+      "required": true,
+      "triggers": [
+        "role=developer"
+      ],
+      "dependencies": [
+        "common.workflow-mode"
+      ],
+      "precedence": {
+        "source": "roles/developer/entry.md",
+        "rank": 0
+      }
+    },
+    {
+      "rule_id": "developer.restrictions",
+      "path": "roles/developer/restrictions.md",
+      "category": "role",
+      "status": "active",
+      "load_policy": "required",
+      "role_ids": [
+        "developer"
+      ],
+      "required": true,
+      "triggers": [
+        "role=developer"
+      ],
+      "dependencies": [],
+      "precedence": {
+        "source": "roles/developer/restrictions.md",
+        "rank": 1
+      }
+    },
+    {
+      "rule_id": "developer.core",
+      "path": "roles/developer/core.md",
+      "category": "role",
+      "status": "active",
+      "load_policy": "required",
+      "role_ids": [
+        "developer"
+      ],
+      "required": true,
+      "triggers": [
+        "role=developer"
+      ],
+      "dependencies": [
+        "developer.restrictions"
+      ],
+      "precedence": {
+        "source": "roles/developer/core.md",
+        "rank": 4
+      }
+    },
+    {
+      "rule_id": "developer.workflow",
+      "path": "roles/developer/workflow.md",
+      "category": "role",
+      "status": "active",
+      "load_policy": "required",
+      "role_ids": [
+        "developer"
+      ],
+      "required": true,
+      "triggers": [
+        "role=developer"
+      ],
+      "dependencies": [
+        "developer.core",
+        "developer.restrictions"
+      ],
+      "precedence": {
+        "source": "roles/developer/workflow.md",
+        "rank": 5
+      }
+    },
+    {
+      "rule_id": "developer.self-review",
+      "path": "roles/developer/validation.md",
+      "category": "output",
+      "status": "active",
+      "load_policy": "required",
+      "role_ids": [
+        "developer"
+      ],
+      "required": true,
+      "triggers": [
+        "role=developer"
+      ],
+      "dependencies": [
+        "developer.workflow"
+      ],
+      "precedence": {
+        "source": "roles/developer/validation.md",
+        "rank": 7
+      }
+    },
+    {
+      "rule_id": "developer.output",
+      "path": "roles/developer/output.md",
+      "category": "output",
+      "status": "active",
+      "load_policy": "required",
+      "role_ids": [
+        "developer"
+      ],
+      "required": true,
+      "triggers": [
+        "role=developer"
+      ],
+      "dependencies": [
+        "developer.workflow",
+        "developer.self-review"
+      ],
+      "precedence": {
+        "source": "roles/developer/output.md",
+        "rank": 8
+      }
+    },
+    {
+      "rule_id": "review.entry",
+      "path": "roles/review/entry.md",
+      "category": "role",
+      "status": "active",
+      "load_policy": "required",
+      "role_ids": [
+        "review"
+      ],
+      "required": true,
+      "triggers": [
+        "role=review"
+      ],
+      "dependencies": [
+        "common.workflow-mode"
+      ],
+      "precedence": {
+        "source": "roles/review/entry.md",
+        "rank": 0
+      }
+    },
+    {
+      "rule_id": "review.workflow",
+      "path": "roles/review/workflow.md",
+      "category": "reviewer",
+      "status": "active",
+      "load_policy": "required",
+      "role_ids": [
+        "review"
+      ],
+      "required": true,
+      "triggers": [
+        "role=review"
+      ],
+      "dependencies": [],
+      "precedence": {
+        "source": "roles/review/workflow.md",
+        "rank": 1
+      }
+    },
+    {
+      "rule_id": "review.restrictions",
+      "path": "roles/review/restrictions.md",
+      "category": "reviewer",
+      "status": "active",
+      "load_policy": "required",
+      "role_ids": [
+        "review"
+      ],
+      "required": true,
+      "triggers": [
+        "role=review"
+      ],
+      "dependencies": [],
+      "precedence": {
+        "source": "roles/review/restrictions.md",
+        "rank": 1
+      }
+    },
+    {
+      "rule_id": "review.pass",
+      "path": "roles/review/pass-conditions.md",
+      "category": "reviewer",
+      "status": "active",
+      "load_policy": "required",
+      "role_ids": [
+        "review"
+      ],
+      "required": true,
+      "triggers": [
+        "role=review"
+      ],
+      "dependencies": [
+        "review.workflow"
+      ],
+      "precedence": {
+        "source": "roles/review/pass-conditions.md",
+        "rank": 3
+      }
+    },
+    {
+      "rule_id": "review.output",
+      "path": "roles/review/output.md",
+      "category": "output",
+      "status": "active",
+      "load_policy": "required",
+      "role_ids": [
+        "review"
+      ],
+      "required": true,
+      "triggers": [
+        "role=review"
+      ],
+      "dependencies": [
+        "review.workflow",
+        "policy.report-file"
+      ],
+      "precedence": {
+        "source": "roles/review/output.md",
+        "rank": 4
+      }
+    },
+    {
+      "rule_id": "review.check.common",
+      "path": "roles/review/checks/common.md",
+      "category": "reviewer",
+      "status": "active",
+      "load_policy": "required",
+      "role_ids": [
+        "review"
+      ],
+      "required": true,
+      "triggers": [
+        "role=review"
+      ],
+      "dependencies": [],
+      "precedence": {
+        "source": "roles/review/checks/common.md",
+        "rank": 2
+      }
+    },
+    {
+      "rule_id": "review.change.entry",
+      "path": "roles/review/modes/change/entry.md",
+      "category": "reviewer",
+      "status": "active",
+      "load_policy": "required",
+      "role_ids": [
+        "review"
+      ],
+      "required": true,
+      "triggers": [
+        "review_mode=change"
+      ],
+      "dependencies": [],
+      "precedence": {
+        "source": "roles/review/modes/change/entry.md",
+        "rank": 2
+      }
+    },
+    {
+      "rule_id": "review.change.workflow",
+      "path": "roles/review/modes/change/workflow.md",
+      "category": "reviewer",
+      "status": "active",
+      "load_policy": "required",
+      "role_ids": [
+        "review"
+      ],
+      "required": true,
+      "triggers": [
+        "review_mode=change"
+      ],
+      "dependencies": [],
+      "precedence": {
+        "source": "roles/review/modes/change/workflow.md",
+        "rank": 2
+      }
+    },
+    {
+      "rule_id": "review.change.restrictions",
+      "path": "roles/review/modes/change/restrictions.md",
+      "category": "reviewer",
+      "status": "active",
+      "load_policy": "required",
+      "role_ids": [
+        "review"
+      ],
+      "required": true,
+      "triggers": [
+        "review_mode=change"
+      ],
+      "dependencies": [],
+      "precedence": {
+        "source": "roles/review/modes/change/restrictions.md",
+        "rank": 2
+      }
+    },
+    {
+      "rule_id": "review.change.report",
+      "path": "roles/review/modes/change/report.md",
+      "category": "output",
+      "status": "active",
+      "load_policy": "required",
+      "role_ids": [
+        "review"
+      ],
+      "required": true,
+      "triggers": [
+        "review_mode=change"
+      ],
+      "dependencies": [],
+      "precedence": {
+        "source": "roles/review/modes/change/report.md",
+        "rank": 2
+      }
+    },
+    {
+      "rule_id": "review.change.pass",
+      "path": "roles/review/modes/change/pass-conditions.md",
+      "category": "reviewer",
+      "status": "active",
+      "load_policy": "required",
+      "role_ids": [
+        "review"
+      ],
+      "required": true,
+      "triggers": [
+        "review_mode=change"
+      ],
+      "dependencies": [],
+      "precedence": {
+        "source": "roles/review/modes/change/pass-conditions.md",
+        "rank": 2
+      }
+    },
+    {
+      "rule_id": "review.feature.entry",
+      "path": "roles/review/modes/feature/entry.md",
+      "category": "reviewer",
+      "status": "active",
+      "load_policy": "required",
+      "role_ids": [
+        "review"
+      ],
+      "required": true,
+      "triggers": [
+        "review_mode=feature"
+      ],
+      "dependencies": [],
+      "precedence": {
+        "source": "roles/review/modes/feature/entry.md",
+        "rank": 2
+      }
+    },
+    {
+      "rule_id": "review.feature.workflow",
+      "path": "roles/review/modes/feature/workflow.md",
+      "category": "reviewer",
+      "status": "active",
+      "load_policy": "required",
+      "role_ids": [
+        "review"
+      ],
+      "required": true,
+      "triggers": [
+        "review_mode=feature"
+      ],
+      "dependencies": [],
+      "precedence": {
+        "source": "roles/review/modes/feature/workflow.md",
+        "rank": 2
+      }
+    },
+    {
+      "rule_id": "review.feature.restrictions",
+      "path": "roles/review/modes/feature/restrictions.md",
+      "category": "reviewer",
+      "status": "active",
+      "load_policy": "required",
+      "role_ids": [
+        "review"
+      ],
+      "required": true,
+      "triggers": [
+        "review_mode=feature"
+      ],
+      "dependencies": [],
+      "precedence": {
+        "source": "roles/review/modes/feature/restrictions.md",
+        "rank": 2
+      }
+    },
+    {
+      "rule_id": "review.feature.report",
+      "path": "roles/review/modes/feature/report.md",
+      "category": "output",
+      "status": "active",
+      "load_policy": "required",
+      "role_ids": [
+        "review"
+      ],
+      "required": true,
+      "triggers": [
+        "review_mode=feature"
+      ],
+      "dependencies": [],
+      "precedence": {
+        "source": "roles/review/modes/feature/report.md",
+        "rank": 2
+      }
+    },
+    {
+      "rule_id": "review.feature.pass",
+      "path": "roles/review/modes/feature/pass-conditions.md",
+      "category": "reviewer",
+      "status": "active",
+      "load_policy": "required",
+      "role_ids": [
+        "review"
+      ],
+      "required": true,
+      "triggers": [
+        "review_mode=feature"
+      ],
+      "dependencies": [],
+      "precedence": {
+        "source": "roles/review/modes/feature/pass-conditions.md",
+        "rank": 2
+      }
+    },
+    {
+      "rule_id": "project.entry",
+      "path": "roles/project-analyst/entry.md",
+      "category": "role",
+      "status": "active",
+      "load_policy": "required",
+      "role_ids": [
+        "project-analyst"
+      ],
+      "required": true,
+      "triggers": [
+        "role=project-analyst"
+      ],
+      "dependencies": [
+        "common.workflow-mode"
+      ],
+      "precedence": {
+        "source": "roles/project-analyst/entry.md",
+        "rank": 0
+      }
+    },
+    {
+      "rule_id": "project.restrictions",
+      "path": "roles/project-analyst/restrictions.md",
+      "category": "role",
+      "status": "active",
+      "load_policy": "required",
+      "role_ids": [
+        "project-analyst"
+      ],
+      "required": true,
+      "triggers": [
+        "role=project-analyst"
+      ],
+      "dependencies": [
+        "policy.analysis-safety",
+        "policy.evidence-confidence",
+        "policy.secret-handling"
+      ],
+      "precedence": {
+        "source": "roles/project-analyst/restrictions.md",
+        "rank": 1
+      }
+    },
+    {
+      "rule_id": "project.workflow",
+      "path": "roles/project-analyst/workflow.md",
+      "category": "role",
+      "status": "active",
+      "load_policy": "required",
+      "role_ids": [
+        "project-analyst"
+      ],
+      "required": true,
+      "triggers": [
+        "role=project-analyst"
+      ],
+      "dependencies": [
+        "project.restrictions"
+      ],
+      "precedence": {
+        "source": "roles/project-analyst/workflow.md",
+        "rank": 2
+      }
+    },
+    {
+      "rule_id": "project.identify",
+      "path": "roles/project-analyst/identify-project.md",
+      "category": "role",
+      "status": "active",
+      "load_policy": "required",
+      "role_ids": [
+        "project-analyst"
+      ],
+      "required": true,
+      "triggers": [
+        "role=project-analyst"
+      ],
+      "dependencies": [
+        "project.workflow"
+      ],
+      "precedence": {
+        "source": "roles/project-analyst/identify-project.md",
+        "rank": 3
+      }
+    },
+    {
+      "rule_id": "project.team-style",
+      "path": "roles/project-analyst/team-style.md",
+      "category": "role",
+      "status": "active",
+      "load_policy": "required",
+      "role_ids": [
+        "project-analyst"
+      ],
+      "required": true,
+      "triggers": [
+        "role=project-analyst"
+      ],
+      "dependencies": [
+        "project.identify"
+      ],
+      "precedence": {
+        "source": "roles/project-analyst/team-style.md",
+        "rank": 4
+      }
+    },
+    {
+      "rule_id": "project.output",
+      "path": "roles/project-analyst/output.md",
+      "category": "output",
+      "status": "active",
+      "load_policy": "required",
+      "role_ids": [
+        "project-analyst"
+      ],
+      "required": true,
+      "triggers": [
+        "role=project-analyst"
+      ],
+      "dependencies": [
+        "project.workflow",
+        "policy.report-file"
+      ],
+      "precedence": {
+        "source": "roles/project-analyst/output.md",
+        "rank": 5
+      }
+    },
+    {
+      "rule_id": "module.entry",
+      "path": "roles/module-analyst/entry.md",
+      "category": "role",
+      "status": "active",
+      "load_policy": "required",
+      "role_ids": [
+        "module-analyst"
+      ],
+      "required": true,
+      "triggers": [
+        "role=module-analyst"
+      ],
+      "dependencies": [
+        "common.workflow-mode"
+      ],
+      "precedence": {
+        "source": "roles/module-analyst/entry.md",
+        "rank": 0
+      }
+    },
+    {
+      "rule_id": "module.restrictions",
+      "path": "roles/module-analyst/restrictions.md",
+      "category": "role",
+      "status": "active",
+      "load_policy": "required",
+      "role_ids": [
+        "module-analyst"
+      ],
+      "required": true,
+      "triggers": [
+        "role=module-analyst"
+      ],
+      "dependencies": [
+        "policy.analysis-safety",
+        "policy.evidence-confidence",
+        "policy.secret-handling"
+      ],
+      "precedence": {
+        "source": "roles/module-analyst/restrictions.md",
+        "rank": 1
+      }
+    },
+    {
+      "rule_id": "module.workflow",
+      "path": "roles/module-analyst/workflow.md",
+      "category": "role",
+      "status": "active",
+      "load_policy": "required",
+      "role_ids": [
+        "module-analyst"
+      ],
+      "required": true,
+      "triggers": [
+        "role=module-analyst"
+      ],
+      "dependencies": [
+        "module.restrictions"
+      ],
+      "precedence": {
+        "source": "roles/module-analyst/workflow.md",
+        "rank": 2
+      }
+    },
+    {
+      "rule_id": "module.output",
+      "path": "roles/module-analyst/output.md",
+      "category": "output",
+      "status": "active",
+      "load_policy": "required",
+      "role_ids": [
+        "module-analyst"
+      ],
+      "required": true,
+      "triggers": [
+        "role=module-analyst"
+      ],
+      "dependencies": [
+        "module.workflow",
+        "policy.report-file"
+      ],
+      "precedence": {
+        "source": "roles/module-analyst/output.md",
+        "rank": 5
+      }
+    },
+    {
+      "rule_id": "module.report",
+      "path": "roles/module-analyst/report.md",
+      "category": "output",
+      "status": "active",
+      "load_policy": "required",
+      "role_ids": [
+        "module-analyst"
+      ],
+      "required": true,
+      "triggers": [
+        "role=module-analyst"
+      ],
+      "dependencies": [
+        "module.output",
+        "policy.report-file"
+      ],
+      "precedence": {
+        "source": "roles/module-analyst/report.md",
+        "rank": 6
+      }
+    }
+  ],
+  "bundles": [
+    {
+      "bundle_id": "common.workflow-mode",
+      "status": "active",
+      "selection": "all",
+      "triggers": [
+        "resolved-role"
+      ],
+      "rule_ids": [
+        "common.workflow-mode"
+      ],
+      "dependencies": [],
+      "source": "workflow/common.md"
+    },
+    {
+      "bundle_id": "developer.base",
+      "status": "active",
+      "selection": "all",
+      "triggers": [
+        "role=developer"
+      ],
+      "rule_ids": [
+        "developer.entry",
+        "developer.restrictions",
+        "developer.core",
+        "developer.workflow",
+        "developer.self-review",
+        "developer.output"
+      ],
+      "dependencies": [
+        "common.workflow-mode"
+      ],
+      "source": "roles/developer/entry.md"
+    },
+    {
+      "bundle_id": "review.base",
+      "status": "active",
+      "selection": "all",
+      "triggers": [
+        "role=review"
+      ],
+      "rule_ids": [
+        "review.entry",
+        "review.workflow",
+        "review.restrictions",
+        "review.pass",
+        "review.output"
+      ],
+      "dependencies": [
+        "common.workflow-mode"
+      ],
+      "source": "roles/review/entry.md"
+    },
+    {
+      "bundle_id": "review.common-check",
+      "status": "active",
+      "selection": "all",
+      "triggers": [
+        "role=review"
+      ],
+      "rule_ids": [
+        "review.check.common"
+      ],
+      "dependencies": [
+        "review.base"
+      ],
+      "source": "roles/review/checks/common.md"
+    },
+    {
+      "bundle_id": "review.change",
+      "status": "active",
+      "selection": "all",
+      "triggers": [
+        "review_mode=change"
+      ],
+      "rule_ids": [
+        "review.change.entry",
+        "review.change.workflow",
+        "review.change.restrictions",
+        "review.change.report",
+        "review.change.pass"
+      ],
+      "dependencies": [
+        "review.common-check"
+      ],
+      "source": "roles/review/modes/change/entry.md"
+    },
+    {
+      "bundle_id": "review.feature",
+      "status": "active",
+      "selection": "all",
+      "triggers": [
+        "review_mode=feature"
+      ],
+      "rule_ids": [
+        "review.feature.entry",
+        "review.feature.workflow",
+        "review.feature.restrictions",
+        "review.feature.report",
+        "review.feature.pass"
+      ],
+      "dependencies": [
+        "review.common-check"
+      ],
+      "source": "roles/review/modes/feature/entry.md"
+    },
+    {
+      "bundle_id": "project-analyst.base",
+      "status": "active",
+      "selection": "all",
+      "triggers": [
+        "role=project-analyst"
+      ],
+      "rule_ids": [
+        "project.entry",
+        "project.restrictions",
+        "project.workflow",
+        "project.identify",
+        "project.team-style",
+        "project.output"
+      ],
+      "dependencies": [
+        "common.workflow-mode"
+      ],
+      "source": "roles/project-analyst/entry.md"
+    },
+    {
+      "bundle_id": "module-analyst.base",
+      "status": "active",
+      "selection": "all",
+      "triggers": [
+        "role=module-analyst"
+      ],
+      "rule_ids": [
+        "module.entry",
+        "module.restrictions",
+        "module.workflow",
+        "module.output",
+        "module.report"
+      ],
+      "dependencies": [
+        "common.workflow-mode"
+      ],
+      "source": "roles/module-analyst/entry.md"
+    }
+  ],
+  "documentation_files": [
+    {
+      "path": "roles/developer/README.md",
+      "status": "documentation",
+      "routable": false
+    },
+    {
+      "path": "roles/review/README.md",
+      "status": "documentation",
+      "routable": false
+    },
+    {
+      "path": "roles/project-analyst/README.md",
+      "status": "documentation",
+      "routable": false
+    },
+    {
+      "path": "roles/module-analyst/README.md",
+      "status": "documentation",
+      "routable": false
+    }
+  ],
+  "unresolved": []
+}

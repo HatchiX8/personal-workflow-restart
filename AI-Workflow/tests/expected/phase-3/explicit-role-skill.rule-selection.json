@@ -1,0 +1,20 @@
+{
+  "scenario_id": "explicit-role-skill",
+  "expected_status": "resolved",
+  "selected_rule_ids": [
+    "common.workflow-mode",
+    "developer.entry",
+    "developer.restrictions",
+    "developer.core",
+    "developer.workflow",
+    "developer.frontend.base",
+    "developer.language.typescript",
+    "developer.self-review",
+    "developer.output"
+  ],
+  "selected_context_ids": [],
+  "reasons": {
+    "developer.language.typescript": "explicit skill developer.language.typescript",
+    "developer.frontend.base": "Role Plan selector target=frontend"
+  }
+}

@@ -1,0 +1,65 @@
+{
+  "$schema": "../schemas/registry.schema.json",
+  "schema_version": "1.0",
+  "registry_id": "modules",
+  "source": {
+    "type": "canonical-inventory",
+    "inventory_version": "1.0",
+    "source_paths": [
+      "module-context"
+    ]
+  },
+  "source_snapshot": {
+    "algorithm": "sha256",
+    "files": [
+      {
+        "path": "module-context",
+        "kind": "directory",
+        "content_hash": "sha256:1d9b4a1821f0d6981795c97b58311d760f5ff769c8d485d3a42d4176921a5f91"
+      }
+    ],
+    "fingerprint": "sha256:6126003e057e8a39743fd2eb3c2e1f7507af07ee36b00d4cb5c6dfcab6e8209e"
+  },
+  "path_contract": "Context paths are relative to the AI-Workflow root. A context can be automatically selected only when project_id, module_id, target, and current_context are all confirmed.",
+  "modules": [
+    {
+      "module_id": "lunch",
+      "display_name": "Lunch",
+      "aliases": [
+        "lunch",
+        "午餐"
+      ],
+      "status": "unresolved",
+      "project_bindings": [],
+      "context_selection": {
+        "current_context": null,
+        "auto_resolution": "blocked",
+        "reason": "Existing contexts have no confirmed project_id or current pointer."
+      },
+      "context_candidates": [
+        {
+          "context_id": "module-context.lunch.frontend.20260728-1425",
+          "path": "module-context/frontend/20260728-1425-lunch-module.md",
+          "target": "frontend",
+          "project_id": null,
+          "status": "partial",
+          "tracked": false,
+          "current": false,
+          "binding_status": "unbound",
+          "load_policy": "manual_review"
+        },
+        {
+          "context_id": "module-context.lunch.backend.20260728-1438",
+          "path": "module-context/backend/20260728-1438-lunch.md",
+          "target": "backend",
+          "project_id": null,
+          "status": "ready",
+          "tracked": false,
+          "current": false,
+          "binding_status": "unbound",
+          "load_policy": "manual_review"
+        }
+      ]
+    }
+  ]
+}

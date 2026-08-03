@@ -1,0 +1,75 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://controlled-agent-workflow.local/schemas/workflow-config.schema.json",
+  "title": "Workflow Config",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "workflow_id",
+    "workflow_version",
+    "bootstrap",
+    "orchestration",
+    "registries",
+    "schemas",
+    "confidence_policy",
+    "runtime_policy"
+  ],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schema_version": { "const": "1.0" },
+    "workflow_id": { "type": "string", "minLength": 1 },
+    "workflow_version": { "type": "string", "minLength": 1 },
+    "bootstrap": { "$ref": "#/$defs/workflowRelativePath" },
+    "orchestration": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["dispatcher", "task_analysis", "role_planner", "rule_resolution", "context_resolution", "preflight", "executor_adapter", "role_entry_contract"],
+      "properties": {
+        "dispatcher": { "$ref": "#/$defs/workflowRelativePath" },
+        "task_analysis": { "$ref": "#/$defs/workflowRelativePath" },
+        "role_planner": { "$ref": "#/$defs/workflowRelativePath" },
+        "rule_resolution": { "$ref": "#/$defs/workflowRelativePath" },
+        "context_resolution": { "$ref": "#/$defs/workflowRelativePath" },
+        "preflight": { "$ref": "#/$defs/workflowRelativePath" },
+        "executor_adapter": { "$ref": "#/$defs/workflowRelativePath" },
+        "role_entry_contract": { "$ref": "#/$defs/workflowRelativePath" }
+      }
+    },
+    "registries": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["roles", "skills", "rule_bundles", "modules"],
+      "properties": {
+        "roles": { "$ref": "#/$defs/workflowRelativePath" },
+        "skills": { "$ref": "#/$defs/workflowRelativePath" },
+        "rule_bundles": { "$ref": "#/$defs/workflowRelativePath" },
+        "modules": { "$ref": "#/$defs/workflowRelativePath" }
+      }
+    },
+    "schemas": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": { "$ref": "#/$defs/workflowRelativePath" }
+    },
+    "confidence_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["high_threshold", "medium_threshold", "candidate_gap_threshold", "required_routing_minimum"],
+      "properties": {
+        "high_threshold": { "type": "number", "minimum": 0, "maximum": 1 },
+        "medium_threshold": { "type": "number", "minimum": 0, "maximum": 1 },
+        "candidate_gap_threshold": { "type": "number", "minimum": 0, "maximum": 1 },
+        "required_routing_minimum": { "const": "high" }
+      }
+    },
+    "runtime_policy": { "type": "object" }
+  },
+  "$defs": {
+    "workflowRelativePath": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^(?![A-Za-z]:)(?!/)(?!\\\\)(?!.*(?:^|/)\\.\\.(?:/|$)).+$"
+    }
+  }
+}

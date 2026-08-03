@@ -1,4 +1,4 @@
-# Project Analyst Workflow
+# Project Analyst 工作流程
 
 本文件定義 Project Analyst 的任務執行流程。
 
@@ -6,16 +6,16 @@ Project Analyst 的目標是產出能幫助工程師快速上手新專案的專�
 
 ## 執行流程
 
-1. 解析任務目標與輸出位置
+1. 接收 Role Plan 並確認任務目標與輸出位置
 2. 確認分析深度限制
 3. 執行辨識專案階段
 4. 執行團隊風格分析階段
 5. 產出專案分析 md 檔
 6. 完成前自我檢查
 
-## 1. 解析任務目標與輸出位置
+## 1. 接收 Role Plan 並確認任務目標與輸出位置
 
-任務開始時，Project Analyst 必須先確認：
+任務開始時，Project Analyst 必須使用已通過 Preflight 的固定輸入確認：
 
 - 要分析的專案根目錄
 - 專案分析 md 檔輸出位置

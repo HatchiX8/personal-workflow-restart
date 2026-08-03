@@ -1,0 +1,7 @@
+{
+  "scenario_id": "cross-project-blocked",
+  "status": "BLOCKED",
+  "contexts": [],
+  "warnings": [],
+  "blockers": ["Context ctx.synthetic-b.orders.frontend.current belongs to synthetic-b, not verified project synthetic-a."]
+}

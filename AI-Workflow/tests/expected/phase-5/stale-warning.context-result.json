@@ -1,0 +1,9 @@
+{
+  "scenario_id": "stale-warning",
+  "status": "RESOLVED_WITH_WARNINGS",
+  "contexts": [
+    {"context_id": "ctx.synthetic-a.project.stale", "type": "project", "project_id": "synthetic-a", "module_id": null, "targets": ["docs"], "path_base": "workflow_root", "path": "tests/fixtures/phase-5/context-files/synthetic-a-project-stale.md", "required": false, "status": "stale", "reason": "explicit current Project Context is optional for this low-risk Project Analysis"}
+  ],
+  "warnings": ["Project Context ctx.synthetic-a.project.stale is stale but optional for this low-risk request."],
+  "blockers": []
+}

@@ -1,0 +1,9 @@
+{
+  "scenario_id": "current-alias-success",
+  "status": "RESOLVED",
+  "contexts": [
+    {"context_id": "ctx.synthetic-a.orders.frontend.current", "type": "module", "project_id": "synthetic-a", "module_id": "orders", "targets": ["frontend"], "path_base": "workflow_root", "path": "tests/fixtures/phase-5/context-files/synthetic-a-orders-frontend-current.md", "required": true, "status": "current", "reason": "module alias order resolved to orders; explicit current frontend pointer matches verified project"}
+  ],
+  "warnings": [],
+  "blockers": []
+}

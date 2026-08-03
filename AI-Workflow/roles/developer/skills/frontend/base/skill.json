@@ -1,0 +1,37 @@
+{
+  "$schema": "https://controlled-agent-workflow.local/schemas/skill-package.schema.json",
+  "schema_version": "1.0",
+  "skill_id": "developer.frontend.base",
+  "display_name": "Developer 前端基礎規則",
+  "version": "1.0.0",
+  "owner": "workflow-team",
+  "role_id": "developer",
+  "category": "capability",
+  "status": "active",
+  "entry": "rules.md",
+  "rule_language": "zh-TW",
+  "load_policy": "conditional",
+  "aliases": [],
+  "selectors": {
+    "all": [
+      "target=frontend"
+    ],
+    "any": [],
+    "none": []
+  },
+  "scopes": {
+    "project_ids": [],
+    "module_ids": []
+  },
+  "dependencies": [
+    "developer.restrictions"
+  ],
+  "conflicts": [],
+  "precedence": 6,
+  "compatibility": {
+    "minimum_workflow_version": "1.1.0",
+    "maximum_workflow_major": 1
+  },
+  "tests": [],
+  "notes": []
+}

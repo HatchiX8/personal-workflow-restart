@@ -1,0 +1,5 @@
+{
+  "scenario_id": "explicit-role-skill",
+  "raw_request": "角色：developer\nSkill：developer.language.typescript\n請調整 TypeScript 前端訂單列表元件的資料型別。",
+  "project_config_path": ".ai-workflow/project.config.json"
+}

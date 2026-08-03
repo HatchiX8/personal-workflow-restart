@@ -1,0 +1,49 @@
+{
+  "$schema": "../../../schemas/task-manifest.schema.json",
+  "schema_version": "1.0",
+  "task_id": "phase3-ambiguous-blocking",
+  "created_at": "2026-07-30T09:33:00Z",
+  "raw_request": "請處理 Lunch 的問題。",
+  "action": "unknown",
+  "task_type": "unknown",
+  "role_id": null,
+  "skill_ids": [],
+  "targets": [],
+  "target_mode": "unknown",
+  "project": {
+    "project_id": "controlled-agent-workflow",
+    "project_root": ".",
+    "config_path": ".ai-workflow/project.config.json"
+  },
+  "modules": [
+    {
+      "module_id": "lunch",
+      "name": "Lunch",
+      "aliases": ["lunch"],
+      "candidate_paths": []
+    }
+  ],
+  "scope": {
+    "summary": "Handle an unspecified Lunch problem.",
+    "include_paths": [],
+    "exclude_paths": [],
+    "change_source": "request"
+  },
+  "routing_triggers": [],
+  "review_mode": null,
+  "analysis_mode": null,
+  "provenance": {
+    "action": {"source": "inference", "confidence": 0.45, "evidence": ["處理"], "candidates": ["develop", "review", "analyze"]},
+    "task_type": {"source": "inference", "confidence": 0.2, "evidence": ["問題"], "candidates": ["bugfix", "change", "analysis"]},
+    "role_id": {"source": "inference", "confidence": 0.0, "evidence": ["action unresolved"], "candidates": []},
+    "skill_ids": {"source": "registry", "confidence": 1.0, "evidence": ["No explicit skill"], "candidates": []},
+    "targets": {"source": "inference", "confidence": 0.1, "evidence": ["No target evidence"], "candidates": ["frontend", "backend"]},
+    "modules": {"source": "registry", "confidence": 1.0, "evidence": ["Exact module alias Lunch"], "candidates": ["lunch"]},
+    "scope": {"source": "inference", "confidence": 0.4, "evidence": ["處理 Lunch 的問題"], "candidates": ["request"]},
+    "routing_triggers": {"source": "inference", "confidence": 1.0, "evidence": ["No deterministic trigger"], "candidates": []},
+    "review_mode": {"source": "inference", "confidence": 0.0, "evidence": ["action unresolved"], "candidates": []},
+    "analysis_mode": {"source": "inference", "confidence": 0.0, "evidence": ["action unresolved"], "candidates": []}
+  },
+  "unresolved": ["action candidates are ambiguous", "role cannot be mapped", "target is required for a potential Develop task", "Lunch Context is unbound"],
+  "status": "needs-resolution"
+}

@@ -1,0 +1,7 @@
+{
+  "scenario_id": "unbound-blocked",
+  "status": "BLOCKED",
+  "contexts": [],
+  "warnings": [],
+  "blockers": ["Module lunch has no verified project binding or explicit current frontend Context pointer."]
+}

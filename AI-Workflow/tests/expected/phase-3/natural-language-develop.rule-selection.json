@@ -1,0 +1,22 @@
+{
+  "scenario_id": "natural-language-develop",
+  "expected_status": "incomplete",
+  "selected_rule_ids": [
+    "common.workflow-mode",
+    "developer.entry",
+    "developer.restrictions",
+    "developer.core",
+    "developer.workflow",
+    "developer.frontend.base",
+    "developer.self-review",
+    "developer.output"
+  ],
+  "selected_context_ids": [],
+  "unresolved": ["module-context:lunch: current_context is null and project binding is unconfirmed"],
+  "forbidden_routing_sources": [
+    "roles/developer/README.md",
+    "roles/developer/skills/README.md",
+    "module-context/frontend/20260728-1425-lunch-module.md",
+    "module-context/backend/20260728-1438-lunch.md"
+  ]
+}

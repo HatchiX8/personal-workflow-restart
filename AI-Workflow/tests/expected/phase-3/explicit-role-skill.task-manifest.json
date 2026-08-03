@@ -1,0 +1,42 @@
+{
+  "$schema": "../../../schemas/task-manifest.schema.json",
+  "schema_version": "1.0",
+  "task_id": "phase3-explicit-role-skill",
+  "created_at": "2026-07-30T09:32:00Z",
+  "raw_request": "角色：developer\nSkill：developer.language.typescript\n請調整 TypeScript 前端訂單列表元件的資料型別。",
+  "action": "develop",
+  "task_type": "change",
+  "role_id": "developer",
+  "skill_ids": ["developer.language.typescript"],
+  "targets": ["frontend"],
+  "target_mode": "single",
+  "project": {
+    "project_id": "controlled-agent-workflow",
+    "project_root": ".",
+    "config_path": ".ai-workflow/project.config.json"
+  },
+  "modules": [],
+  "scope": {
+    "summary": "Adjust TypeScript types for the frontend order-list component.",
+    "include_paths": [],
+    "exclude_paths": [],
+    "change_source": "request"
+  },
+  "routing_triggers": ["language=typescript"],
+  "review_mode": null,
+  "analysis_mode": null,
+  "provenance": {
+    "action": {"source": "inference", "confidence": 0.95, "evidence": ["調整"], "candidates": ["develop"]},
+    "task_type": {"source": "inference", "confidence": 0.91, "evidence": ["調整"], "candidates": ["change"]},
+    "role_id": {"source": "explicit", "confidence": 1.0, "evidence": ["角色：developer"], "candidates": ["developer"]},
+    "skill_ids": {"source": "explicit", "confidence": 1.0, "evidence": ["Skill：developer.language.typescript"], "candidates": ["developer.language.typescript"]},
+    "targets": {"source": "inference", "confidence": 0.95, "evidence": ["TypeScript 前端訂單列表元件"], "candidates": ["frontend"]},
+    "modules": {"source": "inference", "confidence": 1.0, "evidence": ["No module requested"], "candidates": []},
+    "scope": {"source": "inference", "confidence": 0.95, "evidence": ["訂單列表元件的資料型別"], "candidates": ["request"]},
+    "routing_triggers": {"source": "inference", "confidence": 0.99, "evidence": ["TypeScript"], "candidates": ["language=typescript"]},
+    "review_mode": {"source": "inference", "confidence": 1.0, "evidence": ["action is develop"], "candidates": []},
+    "analysis_mode": {"source": "inference", "confidence": 1.0, "evidence": ["action is develop"], "candidates": []}
+  },
+  "unresolved": [],
+  "status": "analyzed"
+}

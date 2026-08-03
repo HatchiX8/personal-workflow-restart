@@ -1,0 +1,16 @@
+{
+  "$schema": "../../../schemas/preflight-result.schema.json",
+  "schema_version": "1.0",
+  "task_id": "phase3-natural-language-develop",
+  "resolution_id": "phase3-natural-language-develop-resolution",
+  "checked_at": "2026-07-30T09:31:00Z",
+  "status": "BLOCKED",
+  "can_execute": false,
+  "checks": [
+    {"check_id": "task-manifest", "status": "pass", "subject": "phase3-natural-language-develop", "message": "Task routing fields are high confidence.", "path": null},
+    {"check_id": "module-context-current", "status": "failed", "subject": "lunch", "message": "No project-bound current Module Context exists.", "path": null}
+  ],
+  "blockers": ["Module Context for lunch is required by this module-scoped Develop task but cannot be selected."],
+  "warnings": [],
+  "execution_contract": null
+}

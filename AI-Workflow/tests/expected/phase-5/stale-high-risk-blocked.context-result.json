@@ -1,0 +1,9 @@
+{
+  "scenario_id": "stale-high-risk-blocked",
+  "status": "BLOCKED",
+  "contexts": [
+    {"context_id": "ctx.synthetic-a.project.stale", "type": "project", "project_id": "synthetic-a", "module_id": null, "targets": ["docs"], "path_base": "workflow_root", "path": "tests/fixtures/phase-5/context-files/synthetic-a-project-stale.md", "required": true, "status": "stale", "reason": "migration is a high-risk condition; stale Context is required and blocking"}
+  ],
+  "warnings": [],
+  "blockers": ["Stale Project Context is blocking for migration."]
+}

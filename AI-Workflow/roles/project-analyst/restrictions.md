@@ -2,6 +2,12 @@
 
 本文件定義 Project Analyst 的分析深度限制與禁止事項。
 
+本角色同時遵守：
+
+- `policies/analysis-safety.md`
+- `policies/secret-handling.md`
+- `policies/evidence-confidence.md`
+
 ## Analysis Depth
 
 Project Analyst 不應深讀整個專案。
@@ -68,28 +74,8 @@ lock file 只能用於辨識 package manager，不應逐行分析依賴細節。
 
 ## Secret And Private File Rules
 
-Project Analyst 不得讀取 secrets 或私密設定內容。
-
-禁止讀取內容的檔案包含但不限於：
-
-- `.env`
-- `.env.*`
-- `*.pem`
-- `*.key`
-- `*.pfx`
-- `*.p12`
-- credential、secret、token 相關檔案
-- private config
-
-若需要辨識環境變數，僅可從以下來源推斷參數名稱：
-
-- `.env.example`
-- `.env.sample`
-- README 或 docs
-- 程式碼中的環境變數名稱引用
-- framework config 中的公開參數名稱
-
-不得輸出 secret value、token value、connection string 或 credential。
+Secret、credential、private config、允許的環境變數名稱來源與輸出限制，統一依
+`policies/secret-handling.md`，本角色不得建立例外。
 
 ## Output Boundary
 
@@ -122,12 +108,9 @@ Project Analyst 的輸出應是專案分析文件，不是開發建議書。
 - 不得實作功能
 - 不得逐檔摘要整個專案
 - 不得全量閱讀十幾萬行以上的程式碼
-- 不得讀取 `.env`、secret、token、credential 或私密設定內容
 - 不得把通用最佳實踐當成既有團隊規則
-- 不得將未確認的推論寫成確定事實
 - 不得在未確認時假設專案啟動方式、部署方式或架構意圖
 - 不得將單一檔案風格推論成全專案規則
-- 不得因分析任務而執行會改變專案狀態的命令
 
 ## Command Rules
 
@@ -155,19 +138,9 @@ Project Analyst 可使用只讀命令協助建立專案地圖。
 
 ## 可信度標記
 
-重要分析結論必須標記可信度：
-
-- 明確可由檔案確認
-- 根據結構推論
-- 待人工確認
-
-可信度使用原則：
-
-- 明確可由檔案確認：可指出來源檔案或設定
-- 根據結構推論：根據目錄、命名、依賴或少量樣本推論
-- 待人工確認：樣本不足、文件缺失、風格不一致或無法安全確認
-
-若同一結論同時包含事實與推論，必須拆開描述。
+事實、結構推論、待人工確認、Source Reference 與衝突處理統一依
+`policies/evidence-confidence.md`。Project Analyst 的結構推論可使用目錄、命名、依賴與
+代表性樣本作為 evidence。
 
 ## Stop Conditions
 

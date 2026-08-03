@@ -1,0 +1,33 @@
+{
+  "$schema": "https://controlled-agent-workflow.local/schemas/skill-package.schema.json",
+  "schema_version": "1.0",
+  "skill_id": "developer.refactor.general",
+  "display_name": "Developer General Refactor",
+  "version": "1.0.0",
+  "owner": "workflow-team",
+  "role_id": "developer",
+  "category": "task-technique",
+  "status": "active",
+  "entry": "rules.md",
+  "rule_language": "zh-TW",
+  "load_policy": "conditional",
+  "aliases": ["general-refactor.md", "General Refactor"],
+  "selectors": {
+    "all": ["task-type=refactor"],
+    "any": [],
+    "none": []
+  },
+  "scopes": {
+    "project_ids": [],
+    "module_ids": []
+  },
+  "dependencies": ["developer.restrictions", "developer.self-review"],
+  "conflicts": [],
+  "precedence": 2,
+  "compatibility": {
+    "minimum_workflow_version": "1.1.0",
+    "maximum_workflow_major": 1
+  },
+  "tests": [],
+  "notes": []
+}

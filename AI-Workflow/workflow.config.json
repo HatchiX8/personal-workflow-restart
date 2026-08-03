@@ -1,0 +1,45 @@
+{
+  "$schema": "schemas/workflow-config.schema.json",
+  "schema_version": "1.0",
+  "workflow_id": "controlled-agent-workflow",
+  "workflow_version": "1.1.0",
+  "bootstrap": "bootstrap.md",
+  "orchestration": {
+    "dispatcher": "orchestration/dispatcher.md",
+    "task_analysis": "orchestration/task-analysis.md",
+    "role_planner": "orchestration/role-planner.md",
+    "rule_resolution": "orchestration/rule-resolution.md",
+    "context_resolution": "orchestration/context-resolution.md",
+    "preflight": "orchestration/preflight.md",
+    "executor_adapter": "orchestration/executor-adapter.md",
+    "role_entry_contract": "orchestration/role-entry-contract.md"
+  },
+  "registries": {
+    "roles": "registry/roles.json",
+    "skills": "registry/skills.json",
+    "rule_bundles": "registry/rule-bundles.json",
+    "modules": "registry/modules.json"
+  },
+  "schemas": {
+    "workflow_config": "schemas/workflow-config.schema.json",
+    "project_config": "schemas/project-config.schema.json",
+    "task_manifest": "schemas/task-manifest.schema.json",
+    "role_plan": "schemas/role-plan.schema.json",
+    "skill_package": "schemas/skill-package.schema.json",
+    "resolved_rule_set": "schemas/resolved-rule-set.schema.json",
+    "preflight_result": "schemas/preflight-result.schema.json",
+    "registry": "schemas/registry.schema.json"
+  },
+  "confidence_policy": {
+    "high_threshold": 0.9,
+    "medium_threshold": 0.7,
+    "candidate_gap_threshold": 0.1,
+    "required_routing_minimum": "high"
+  },
+  "runtime_policy": {
+    "runtime_artifacts": "in_memory",
+    "require_preflight_pass": true,
+    "require_rule_set_fingerprint_match": true,
+    "path_contract": "All paths in this file and every workflow registry are relative to the AI-Workflow root."
+  }
+}

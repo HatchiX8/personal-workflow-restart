@@ -1,0 +1,9 @@
+{
+  "scenario_id": "bootstrap-health-check",
+  "host_adapter_source": "<PROJECT_ROOT>/AGENTS.md",
+  "loaded_bootstrap": "<AGENTS_ABSOLUTE_BOOTSTRAP_PATH>",
+  "workflow_root_source": "host-adapter-bootstrap-parent",
+  "workflow_validation": "passed",
+  "project_config_validation": "passed",
+  "raw_request": "測試 AI Workflow 規則運作"
+}

@@ -1,5 +1,7 @@
 # Project Analysis Output
 
+本文件同時遵守 `policies/evidence-confidence.md` 與 `policies/secret-handling.md`。
+
 本階段負責產出專案分析 md 檔。
 
 ## 目標
@@ -31,7 +33,7 @@ PROJECT_ANALYSIS.md
 - 避免過長背景說明
 - 避免逐檔摘要
 - 避免未經確認的架構評價
-- 不輸出 secret value 或 private config
+- 遵守 `policies/secret-handling.md`，不輸出任何私密值
 - 不把改善建議混入既有狀態描述
 
 若需要提出改善觀察，必須放在獨立區塊，且只有在使用者明確要求時輸出。
@@ -159,35 +161,11 @@ PROJECT_ANALYSIS.md
 
 ## 可信度標記
 
-文件中的重要結論應標記可信度：
-
-- 明確可由檔案確認
-- 根據結構推論
-- 待人工確認
-
-建議標記格式：
-
-```txt
-可信度：明確可由檔案確認
-可信度：根據結構推論
-可信度：待人工確認
-```
-
-若使用表格，可使用 `可信度` 欄位。
+所有重要結論依 `policies/evidence-confidence.md` 標記為明確事實、結構推論或待人工確認。角色專屬範例與表格可以保留，但不得改變共用分類意義。
 
 ## Source References
 
-重要結論應盡量附上來源路徑。
-
-來源路徑應指向檔案或資料夾，不需要引用大量程式碼。
-
-範例：
-
-```txt
-來源：package.json
-來源：src/app/
-來源：apps/web/package.json
-```
+來源引用、證據衝突與推論邊界依 `policies/evidence-confidence.md`。重要事實仍必須提供檔案或資料夾路徑。
 
 ## Content To Avoid
 

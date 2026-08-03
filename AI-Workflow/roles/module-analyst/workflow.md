@@ -1,4 +1,4 @@
-# Module Analyst Workflow
+# Module Analyst 工作流程
 
 本文件定義 Module Analyst 的任務執行流程。
 
@@ -6,8 +6,8 @@ Module Analyst 的目標是在修改單一模組前，先產出可供後續 agen
 
 ## 執行流程
 
-1. 解析模組範圍與輸出位置
-2. 判斷任務類型
+1. 接收 Role Plan 並確認模組範圍與輸出位置
+2. 確認已選 Target Analysis Skills
 3. 套用分析限制
 4. 判斷模組規模與切片策略
 5. 建立模組邊界
@@ -16,9 +16,9 @@ Module Analyst 的目標是在修改單一模組前，先產出可供後續 agen
 8. 產出 module context md 檔
 9. 完成前自我檢查
 
-## 1. 解析模組範圍與輸出位置
+## 1. 接收 Role Plan 並確認模組範圍與輸出位置
 
-任務開始時，Module Analyst 必須先確認：
+任務開始時，Module Analyst 必須使用已通過 Preflight 的固定輸入確認：
 
 - 要分析的單一模組名稱或路徑
 - 模組所屬專案或 package
@@ -34,22 +34,18 @@ AI-Workflow/module-context/<task-type>/<YYYYMMDD-HHmm>-<module-slug>.md
 
 若模組範圍不明確，應先用只讀方式找出候選入口與檔案，再在輸出中標記範圍可信度。不得自行擴大成全專案分析。
 
-## 2. 判斷任務類型
+## 2. 確認已選 Target Analysis Skills
 
-Module Analyst 沿用既有任務類型：
+Module Analyst 沿用既有 Target：
 
 - 前端任務
 - 後端任務
 
-若任務明確指定為前端任務，或分析範圍主要涉及 Vue component、React component、UI modules、frontend state、frontend route，讀取：
+Frontend 或 Backend Target 必須已由 Role Planner 產生 selectors，並由 Rule Resolution 選取
+對應 Analysis Skill。若同一模組跨 Frontend 與 Backend，Resolved Rule Set 必須同時包含兩個
+Skill，輸出中仍須分開標示兩種邊界。
 
-- AI-Workflow/roles/module-analyst/frontend.md
-
-若任務明確指定為後端任務，或分析範圍主要涉及 API、database、service logic、backend job、server route，讀取：
-
-- AI-Workflow/roles/module-analyst/backend.md
-
-若同一模組跨前端與後端，必須同時讀取 frontend 與 backend 規則，並在輸出中分開標示前端邊界與後端邊界。
+缺少必要 Target Skill 時回傳 `reroute-required`，本 Workflow 不得自行補載。
 
 ## 3. 套用分析限制
 

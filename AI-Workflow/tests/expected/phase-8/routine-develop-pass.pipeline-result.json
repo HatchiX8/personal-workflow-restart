@@ -1,0 +1,25 @@
+{
+  "scenario_id": "routine-develop-pass",
+  "preflight_status": "PASS",
+  "can_execute": true,
+  "selected_rule_ids": [
+    "common.workflow-mode",
+    "developer.entry",
+    "developer.restrictions",
+    "developer.core",
+    "developer.workflow",
+    "developer.self-review",
+    "developer.output"
+  ],
+  "load_order_rule_ids": [
+    "common.workflow-mode",
+    "developer.entry",
+    "developer.restrictions",
+    "developer.core",
+    "developer.workflow",
+    "developer.self-review",
+    "developer.output"
+  ],
+  "selected_context_ids": [],
+  "require_real_sha256": true
+}

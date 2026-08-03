@@ -1,4 +1,4 @@
-# Core Rules
+# Developer 核心規則
 
 - 優先考慮可維護性
 - 優先考慮可閱讀性
