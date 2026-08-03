@@ -199,6 +199,8 @@ const topologicalOrder = (selected, dependencies) => {
 };
 
 const contextRequired = (projectConfig, manifest, context) => {
+  const moduleAnalysis = manifest.action === 'analyze' && manifest.analysis_mode === 'module';
+  if (moduleAnalysis) return false;
   const policy = projectConfig.context_policy ?? {};
   const highRisk = new Set(policy.high_risk_conditions ?? []);
   const riskFacts = new Set([
@@ -218,6 +220,7 @@ const contextRequired = (projectConfig, manifest, context) => {
 
 export function resolveContexts({ manifest, projectConfig, modulesRegistry, roots, projectContexts = null }) {
   const result = { contexts: [], warnings: [], blockers: [] };
+  const moduleAnalysis = manifest.action === 'analyze' && manifest.analysis_mode === 'module';
   const verifiedProjectId = projectConfig.project_id;
   if (manifest.project?.project_id !== verifiedProjectId) {
     result.blockers.push('project-id-mismatch');
@@ -262,7 +265,7 @@ export function resolveContexts({ manifest, projectConfig, modulesRegistry, root
     const riskFacts = new Set([manifest.task_type, ...(manifest.routing_triggers ?? []), ...(manifest.targets ?? [])]);
     const risky = [...riskFacts].some((fact) => highRisk.has(fact));
     if (['stale', 'partial', 'unknown'].includes(context.status)) {
-      if (context.required || risky) result.blockers.push(`context-status-blocked:${context.context_id}:${context.status}`);
+      if (context.required || (risky && !moduleAnalysis)) result.blockers.push(`context-status-blocked:${context.context_id}:${context.status}`);
       else result.warnings.push(`context-status-warning:${context.context_id}:${context.status}`);
     }
     result.contexts.push(context);
@@ -287,32 +290,32 @@ export function resolveContexts({ manifest, projectConfig, modulesRegistry, root
     }
     const module = aliases[0];
     if (!(module.project_bindings ?? []).includes(verifiedProjectId)) {
-      result.blockers.push(`module-unbound:${module.module_id}`);
+      (moduleAnalysis ? result.warnings : result.blockers).push(`module-unbound:${module.module_id}`);
       continue;
     }
     const pointer = module.context_selection?.current_context;
     if (!pointer || typeof pointer !== 'object') {
-      result.blockers.push(`module-current-context-missing:${module.module_id}`);
+      (moduleAnalysis ? result.warnings : result.blockers).push(`module-current-context-missing:${module.module_id}`);
       continue;
     }
     for (const target of manifest.targets ?? []) {
       const contextId = pointer[target];
       const candidates = (module.context_candidates ?? []).filter((candidate) => candidate.context_id === contextId);
       if (candidates.length !== 1) {
-        result.blockers.push(`module-context-pointer-conflict:${module.module_id}:${target}`);
+        (moduleAnalysis ? result.warnings : result.blockers).push(`module-context-pointer-conflict:${module.module_id}:${target}`);
         continue;
       }
       const candidate = candidates[0];
       if (candidate.project_id !== verifiedProjectId) {
-        result.blockers.push(`context-cross-project:${candidate.context_id}`);
+        (moduleAnalysis ? result.warnings : result.blockers).push(`context-cross-project:${candidate.context_id}`);
         continue;
       }
       if (candidate.module_id && candidate.module_id !== module.module_id) {
-        result.blockers.push(`context-module-mismatch:${candidate.context_id}`);
+        (moduleAnalysis ? result.warnings : result.blockers).push(`context-module-mismatch:${candidate.context_id}`);
         continue;
       }
       if (candidate.target !== target || candidate.current !== true || candidate.binding_status !== 'bound') {
-        result.blockers.push(`context-not-current-or-compatible:${candidate.context_id}`);
+        (moduleAnalysis ? result.warnings : result.blockers).push(`context-not-current-or-compatible:${candidate.context_id}`);
         continue;
       }
       addContext(candidate, 'module', module.module_id);
@@ -350,6 +353,13 @@ export function runReferencePipeline(manifest, roots, providedRolePlan = null) {
     const item = ruleById.get(id) ?? skillById.get(id);
     if (!item || item.status !== 'active') {
       unresolved.push(`inactive-or-missing:${id}`);
+      return;
+    }
+    if (skillById.has(id) && item.role_id !== manifest.role_id) {
+      const parentId = trail.at(-1);
+      unresolved.push(parentId && skillById.has(parentId)
+        ? `skill-dependency-role-incompatible:${parentId}:${id}`
+        : `skill-role-incompatible:${id}`);
       return;
     }
     if (ruleById.has(id) && /(^|\/)readme\.md$/i.test(item.path)) {
@@ -394,6 +404,7 @@ export function runReferencePipeline(manifest, roots, providedRolePlan = null) {
   for (const skill of skills.skills ?? []) {
     if (
       skill.status !== 'active' ||
+      skill.role_id !== manifest.role_id ||
       !['conditional', 'explicit_or_conditional'].includes(skill.load_policy)
     ) continue;
     if (selectorsMatch(skill, rolePlan, manifest)) {
@@ -457,6 +468,17 @@ export function preflightReferencePipeline({ manifest, resolution, context, root
   const checks = [];
   const blockers = [...resolution.unresolved, ...context.blockers];
   const warnings = [...context.warnings];
+  try {
+    const workflowConfig = readJson(path.join(roots.workflowRoot, 'workflow.config.json'));
+    const skillRegistry = readJson(path.join(roots.workflowRoot, workflowConfig.registries.skills));
+    const skillById = new Map((skillRegistry.skills ?? []).map((skill) => [skill.skill_id, skill]));
+    for (const rule of resolution.rules.filter((item) => item.category === 'skill')) {
+      const skill = skillById.get(rule.rule_id);
+      if (!skill || skill.role_id !== resolution.role_id) blockers.push(`skill-role-mismatch:${rule.rule_id}`);
+    }
+  } catch {
+    blockers.push('skill-registry-unavailable');
+  }
   const verifyResource = (resource, pathBase, label) => {
     try {
       const absolutePath = resolveResourcePath(roots, pathBase, resource.path);

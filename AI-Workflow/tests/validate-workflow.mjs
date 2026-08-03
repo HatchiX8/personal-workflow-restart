@@ -161,6 +161,7 @@ function checkDependencies() {
 
   const roleIds = new Set((roles.roles ?? []).map((item) => item.role_id));
   const skillIds = new Set((skills.skills ?? []).map((item) => item.skill_id));
+  const skillById = new Map((skills.skills ?? []).map((item) => [item.skill_id, item]));
   const ruleIds = new Set((bundles.rules ?? []).map((item) => item.rule_id));
   const ruleById = new Map((bundles.rules ?? []).map((item) => [item.rule_id, item]));
   const bundleIds = new Set((bundles.bundles ?? []).map((item) => item.bundle_id));
@@ -199,6 +200,15 @@ function checkDependencies() {
       assert(skill.status !== 'active', `Manual-review Skill cannot be active: ${skill.skill_id}`);
     }
     addDependencies(skill.skill_id, skill.dependencies, `skill:${skill.skill_id}`);
+    for (const dependencyId of skill.dependencies ?? []) {
+      const dependencySkill = skillById.get(dependencyId);
+      if (dependencySkill) {
+        assert(
+          dependencySkill.role_id === skill.role_id,
+          `Cross-role Skill dependency: ${skill.skill_id} (${skill.role_id}) -> ${dependencyId} (${dependencySkill.role_id})`
+        );
+      }
+    }
     assert(arrayOfStrings(skill.selectors?.all), `Skill all selectors are invalid: ${skill.skill_id}`);
     assert(arrayOfStrings(skill.selectors?.any), `Skill any selectors are invalid: ${skill.skill_id}`);
     assert(arrayOfStrings(skill.selectors?.none), `Skill none selectors are invalid: ${skill.skill_id}`);
@@ -670,6 +680,104 @@ function checkReferencePipeline() {
   ]) {
     assert(explicitRuleIds.has(requiredId), `Explicit Role/Skill pipeline did not select ${requiredId}.`);
   }
+
+  const selectedSkillIds = (runResult) => runResult.resolution.rules
+    .filter((rule) => rule.category === 'skill')
+    .map((rule) => rule.rule_id)
+    .sort();
+  const assertRoleSkills = (runResult, roleId, expectedSkillIds, label) => {
+    const registrySkills = new Map((runResult.registries.skills.skills ?? []).map((skill) => [skill.skill_id, skill]));
+    const actualSkillIds = selectedSkillIds(runResult);
+    assert(JSON.stringify(actualSkillIds) === JSON.stringify([...expectedSkillIds].sort()), `${label}: selected Skill IDs mismatch.`);
+    for (const skillId of actualSkillIds) {
+      assert(registrySkills.get(skillId)?.role_id === roleId, `${label}: cross-role Skill selected: ${skillId}`);
+    }
+  };
+
+  const developerManifest = {
+    ...manifest,
+    task_id: 'acceptance-developer-fullstack',
+    raw_request: 'Vue TypeScript frontend and Node.js TypeScript backend refactor',
+    action: 'develop',
+    task_type: 'refactor',
+    role_id: 'developer',
+    targets: ['frontend', 'backend'],
+    target_mode: 'fullstack',
+    modules: [],
+    routing_triggers: ['framework=vue', 'runtime=node-js', 'language=typescript'],
+    review_mode: null,
+    analysis_mode: null,
+    unresolved: [],
+    status: 'analyzed'
+  };
+  const developerRun = runReferencePipeline(developerManifest, roots);
+  const developerPreflight = preflightReferencePipeline({ manifest: developerManifest, resolution: developerRun.resolution, context: developerRun.context, roots });
+  assertRoleSkills(developerRun, 'developer', [
+    'developer.backend.base',
+    'developer.frontend.base',
+    'developer.frontend.vue',
+    'developer.language.typescript',
+    'developer.refactor.general',
+    'developer.runtime.node-js'
+  ], 'Developer fullstack isolation');
+  assert(developerPreflight.status === 'PASS' && developerPreflight.can_execute === true, 'Developer fullstack without required Project Context must pass.');
+
+  const reviewManifest = {
+    ...manifest,
+    task_id: 'acceptance-review-feature-fullstack',
+    raw_request: 'Review completed frontend and backend feature',
+    action: 'review',
+    task_type: 'feature',
+    role_id: 'review',
+    targets: ['frontend', 'backend'],
+    target_mode: 'fullstack',
+    modules: [],
+    routing_triggers: ['framework=vue', 'runtime=node-js'],
+    review_mode: 'feature',
+    analysis_mode: null,
+    unresolved: [],
+    status: 'analyzed'
+  };
+  const reviewRun = runReferencePipeline(reviewManifest, roots);
+  const reviewPreflight = preflightReferencePipeline({ manifest: reviewManifest, resolution: reviewRun.resolution, context: reviewRun.context, roots });
+  assertRoleSkills(reviewRun, 'review', ['review.check.backend', 'review.check.frontend'], 'Review feature isolation');
+  assert(reviewPreflight.status === 'PASS' && reviewPreflight.can_execute === true, 'Feature Review fullstack routing must pass.');
+
+  const moduleManifest = {
+    ...manifest,
+    task_id: 'acceptance-module-analysis-fullstack',
+    raw_request: 'Analyze Lunch frontend and backend module',
+    action: 'analyze',
+    task_type: 'analysis',
+    role_id: 'module-analyst',
+    targets: ['frontend', 'backend'],
+    target_mode: 'fullstack',
+    modules: [{ module_id: 'lunch', name: 'Lunch', aliases: ['lunch', '午餐'], candidate_paths: [] }],
+    routing_triggers: [],
+    review_mode: null,
+    analysis_mode: 'module',
+    unresolved: [],
+    status: 'analyzed'
+  };
+  const moduleRun = runReferencePipeline(moduleManifest, roots);
+  const modulePreflight = preflightReferencePipeline({ manifest: moduleManifest, resolution: moduleRun.resolution, context: moduleRun.context, roots });
+  assertRoleSkills(moduleRun, 'module-analyst', ['module-analyst.backend', 'module-analyst.frontend'], 'Module Analyst isolation');
+  assert(modulePreflight.status === 'PASS_WITH_WARNINGS' && modulePreflight.can_execute === true, 'Module Analysis with unbound optional Context must pass with warnings.');
+
+  const incompatibleManifest = {
+    ...reviewManifest,
+    task_id: 'acceptance-explicit-cross-role-skill',
+    skill_ids: ['developer.language.typescript']
+  };
+  const incompatibleRun = runReferencePipeline(incompatibleManifest, roots);
+  const incompatiblePreflight = preflightReferencePipeline({ manifest: incompatibleManifest, resolution: incompatibleRun.resolution, context: incompatibleRun.context, roots });
+  assert(incompatibleRun.resolution.unresolved.includes('skill-role-incompatible:developer.language.typescript'), 'Explicit cross-role Skill must be unresolved.');
+  assert(incompatiblePreflight.status === 'BLOCKED' && incompatiblePreflight.can_execute === false, 'Explicit cross-role Skill must be blocked.');
+
+  const developerSkillRule = developerRun.resolution.rules.find((rule) => rule.rule_id === 'developer.language.typescript');
+  const contaminatedResolution = { ...reviewRun.resolution, rules: [...reviewRun.resolution.rules, developerSkillRule] };
+  const contaminatedPreflight = preflightReferencePipeline({ manifest: reviewManifest, resolution: contaminatedResolution, context: reviewRun.context, roots });
+  assert(contaminatedPreflight.blockers.includes('skill-role-mismatch:developer.language.typescript'), 'Preflight must independently block a cross-role Skill.');
 }
 
 function checkGitignore() {

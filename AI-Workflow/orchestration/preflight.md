@@ -12,6 +12,7 @@ Preflight 驗證 Task Manifest、Role Plan 與已凍結的 Resolved Rule Set 是
 4. Action、Role、review／analysis mode 與明確 Skill 都已解析、為 active 且彼此相容。
 5. routing 必要欄位具有高信心，且沒有未解析的必要候選或明確控制欄位衝突。
 6. 每個已選的必要規則都存在於 Workflow Root 下、可用 UTF-8 讀取、content hash 未改變，且其 dependency 已選取。
+   每個 `category=skill` 項目都必須回查 Skill Registry，且 Registry 的 `role_id` 必須等於 Resolved Rule Set 的 Role；不符合時以 `skill-role-mismatch:<skill-id>` 阻擋。
 7. 每個已選 Context 都存在於宣告的 canonical `path_base` 下、未超出該基準、符合 project／module／target，保留 Context Resolution 的 required／optional reason，並符合 Context policy。
 8. Rule Set 沒有衝突、狀態為 `resolved`，且重新計算的 fingerprint 與提供的 fingerprint 相同。
 9. Develop 已解析出 Target；Module 範圍任務具有唯一 Module。Develop 與 Review 的
@@ -30,6 +31,7 @@ Preflight 驗證 Task Manifest、Role Plan 與已凍結的 Resolved Rule Set 是
 
 - Workflow Config 或 Project Config 缺少／無效、Workflow Root 與已載入 Bootstrap 不一致，或 Registry 無效。
 - Action／Role 未知、明確 Role／Skill 不存在於 Registry，或明確 Role／Action 不相容。
+- 明確或自動選取的 Skill 不屬於目前 Role，或 Skill dependency 指向其他角色 Skill。
 - Role Planner entry 不符合 Role Registry、Role Plan 不是 `planned`，或仍有 unresolved。
 - 缺少必要 Rule、Skill、Context、dependency、hash 或 fingerprint match。
 - routing 必要的 Target／Module 存在歧義，包括候選分數差距低於政策門檻。

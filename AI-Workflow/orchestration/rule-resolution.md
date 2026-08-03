@@ -19,12 +19,12 @@ Rule Resolution 將 Task Manifest 與 Role Plan 轉換為符合 `schemas/resolve
 1. Task Manifest 與 Role Plan 必須具有相同 Task ID、Role 與 Action，且 Role Plan 必須為 `status=planned`。
 2. 必須存在 active `role_id`；否則輸出 `status=incomplete` 與 `role-unresolved`。
 3. 選取 Role 的 `required_bundle_ids`，再遞迴選取其 Registry dependency。
-4. Optional bundle 與 Skill selectors 只能根據已正規化的 Manifest 欄位及 Role Plan 高信心 facts 判斷。
+4. Optional bundle 與 Skill selectors 只能根據已正規化的 Manifest 欄位及 Role Plan 高信心 facts 判斷。Skill 進入 selector 候選集合前，`skill.role_id` 必須精確等於 Task Manifest 與 Role Plan 的 `role_id`；其他角色 Skill 必須直接排除。
 5. Registry 登錄的 standalone rule 只有在 trigger 可確定成立時才能加入。
-6. 明確 `skill_ids` 必須以精確 Skill ID 解析，不得使用 alias。Conditional Skill 必須由 Role Plan 的高信心 `skill_selectors` 完整符合 Skill Manifest selectors；`manual_review`、`deprecated` 與 `legacy` Skill 永遠不得自動載入。
+6. 明確 `skill_ids` 必須以精確 Skill ID 解析，不得使用 alias，且 `skill.role_id` 必須等於目前 Role；不相容時輸出 `skill-role-incompatible:<skill-id>`。Conditional Skill 必須由 Role Plan 的高信心 `skill_selectors` 完整符合 Skill Manifest selectors；`manual_review`、`deprecated` 與 `legacy` Skill 永遠不得自動載入。
 7. 每個已選 Skill 都必須使用 Registry 路徑、dependency 與數值 `precedence` 建立 Rule Set rule，不得從 Skill 名稱推導路徑。
 8. 使用已驗證的 Project 身分、Module 候選、Targets、任務風險事實與 Context policy 呼叫 `context-resolution.md`。Rule Set 只能加入該契約回傳的 Context record、required flag、reason 與 diagnostic。Timestamp 順序永遠不得作為選取規則。
-9. 依 `rule_id` 去重、遞迴解析 inclusion dependency，並偵測循環。`load_order` 必須使用確定性的 topological order 計算；只有同時 ready 的節點才能依 rule ID 決定先後。`precedence_rank` 只保留供衝突裁決，不得影響 inclusion 或 `load_order`。
+9. 依 `rule_id` 去重、遞迴解析 inclusion dependency，並偵測循環。Skill 可以依賴同角色 Skill 或 Common Rule；若 Skill dependency 指向其他角色 Skill，輸出 `skill-dependency-role-incompatible:<skill-id>:<dependency-id>`。`load_order` 必須使用確定性的 topological order 計算；只有同時 ready 的節點才能依 rule ID 決定先後。`precedence_rank` 只保留供衝突裁決，不得影響 inclusion 或 `load_order`。
 
 每個已選項目都必須有可供工程師閱讀的 `reason`，例如 `role=developer selected developer.base` 或 `explicit skill developer.language.typescript`。`registry_source` 必須指出實際使用的 Registry record。README 一律是工程文件，不得納入 Rule Set 或參與 routing。
 
