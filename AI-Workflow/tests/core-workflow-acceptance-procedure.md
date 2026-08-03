@@ -16,7 +16,7 @@
 
 - 從待驗收專案根目錄啟動 Agent。
 - 確認專案根目錄 `AGENTS.md` 已設定可讀取的 Bootstrap 絕對路徑。
-- 專案根目錄具有 `AGENTS.md` 與 `.ai-workflow/project.config.json`。
+- 專案根目錄具有 `AGENTS.md` 與 `project.config.json`。
 - 每個情境使用全新任務，避免上一個情境的 Context 影響結果。
 
 ## 驗收用 Prompt 外框

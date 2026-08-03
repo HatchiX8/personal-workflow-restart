@@ -326,7 +326,7 @@ export function resolveContexts({ manifest, projectConfig, modulesRegistry, root
 
 export function runReferencePipeline(manifest, roots, providedRolePlan = null) {
   const workflowConfig = readJson(path.join(roots.workflowRoot, 'workflow.config.json'));
-  const projectConfig = readJson(path.join(roots.projectRoot, '.ai-workflow', 'project.config.json'));
+  const projectConfig = readJson(path.join(roots.projectRoot, 'project.config.json'));
   const roles = readJson(path.join(roots.workflowRoot, workflowConfig.registries.roles));
   const skills = readJson(path.join(roots.workflowRoot, workflowConfig.registries.skills));
   const bundles = readJson(path.join(roots.workflowRoot, workflowConfig.registries.rule_bundles));

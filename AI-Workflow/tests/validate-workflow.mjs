@@ -83,7 +83,13 @@ function walkJsonFiles(directory) {
 }
 
 function checkAllJsonParses() {
-  for (const absolutePath of [...walkJsonFiles(workflowRoot), ...walkJsonFiles(path.join(projectRoot, '.ai-workflow'))]) {
+  const projectConfigPath = path.join(projectRoot, 'project.config.json');
+  const jsonPaths = [
+    ...walkJsonFiles(workflowRoot),
+    ...walkJsonFiles(path.join(projectRoot, '.ai-workflow')),
+    ...(fs.existsSync(projectConfigPath) ? [projectConfigPath] : [])
+  ];
+  for (const absolutePath of jsonPaths) {
     const relativePath = path.relative(projectRoot, absolutePath);
     readJson(relativePath);
   }
@@ -92,7 +98,7 @@ function checkAllJsonParses() {
 
 function checkConfigReferences() {
   const workflowConfig = readWorkflowJson('workflow.config.json');
-  const projectConfig = readJson('.ai-workflow/project.config.json');
+  const projectConfig = readJson('project.config.json');
   if (!workflowConfig || !projectConfig) return;
 
   const workflowReferences = [
@@ -784,7 +790,6 @@ function checkGitignore() {
   const gitignore = readText('.gitignore');
   if (gitignore === null) return;
   assert(/\.ai-workflow\/runtime\/?/.test(gitignore) || /AI-Workflow\/runtime\/?/.test(gitignore), '.gitignore must ignore runtime artifacts.');
-  assert(!/^\s*\.ai-workflow\/project\.config\.json\s*$/m.test(gitignore), '.gitignore must not ignore .ai-workflow/project.config.json.');
   assert(!/^\s*project\.config\.json\s*$/m.test(gitignore), '.gitignore must not ignore project.config.json.');
 }
 

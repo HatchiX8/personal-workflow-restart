@@ -39,7 +39,7 @@ Bootstrap 只能驗證路徑與解析設定。Registry 內容、作業規則內�
 Project Root 是目前生效之專案根目錄 `AGENTS.md` 所在目錄。Bootstrap 必須讀取：
 
 ```text
-<PROJECT_ROOT>/.ai-workflow/project.config.json
+<PROJECT_ROOT>/project.config.json
 ```
 
 Project Config 必須是可讀取的 UTF-8 JSON，並通過 Workflow Root 中 `schemas/project-config.schema.json` 的驗證。Project Config 不得宣告或覆寫 Workflow Root。

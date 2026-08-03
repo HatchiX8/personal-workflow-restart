@@ -17,7 +17,7 @@
 
 `AGENTS.md` 中的絕對 Bootstrap 路徑是唯一入口。Workflow Root 是已載入 `bootstrap.md` 的
 所在目錄；後續 Workflow 路徑都相對於此 Root。Project Config 固定由專案根目錄的
-`.ai-workflow/project.config.json` 提供。入口驗證失敗時，Workflow 必須停止。
+`project.config.json` 提供。入口驗證失敗時，Workflow 必須停止。
 
 ## 專案邊界
 
@@ -25,8 +25,7 @@
 <PROJECT_ROOT>/
   AGENTS.md
   CLAUDE.md
-  .ai-workflow/
-    project.config.json
+  project.config.json
 ```
 
 專案只保存 Host Adapter、Project Config 與專案專屬 Context。集中式 Workflow Root 保存 Bootstrap、Orchestration、Registry、Schema、Role 與 Skill 規則。

@@ -53,7 +53,7 @@
       {
         "path": "bootstrap.md",
         "kind": "file",
-        "content_hash": "sha256:859ed8f3a91ea8a0fc82a69f2db54a8bb341d7618e197cac04b3d43a3e3f3516"
+        "content_hash": "sha256:03dbe287c6fdd12debd55321b839f735cefcaf872a9847252b6ce636b09c7770"
       },
       {
         "path": "policies/analysis-safety.md",
@@ -246,7 +246,7 @@
         "content_hash": "sha256:6c6488c2e1e45dbc5b92dd9c4f768b44389f032a0ea508cdf60e638b99fb298b"
       }
     ],
-    "fingerprint": "sha256:91b04c20d020bbcb9f589a42e0307d1faa90017ccf18372070975872f3ef3323"
+    "fingerprint": "sha256:1d4a0ea5f3bba6bd92c9896cb78ebf695c085ee3ee0af6075f06f008cbf1bf63"
   },
   "path_contract": "所有規則路徑皆相對於 AI-Workflow Root；核心規則只由 Bundle 與相依關係選取，不可猜測檔名。",
   "dependency_contract": {

@@ -13,7 +13,7 @@
   "project": {
     "project_id": "controlled-agent-workflow",
     "project_root": ".",
-    "config_path": ".ai-workflow/project.config.json"
+    "config_path": "project.config.json"
   },
   "modules": [
     {

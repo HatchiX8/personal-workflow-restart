@@ -4,7 +4,7 @@
   "project_id": "controlled-agent-workflow",
   "project_root": ".",
   "workflow_compatibility": {
-    "minimum_version": "1.0.0",
+    "minimum_version": "1.1.0",
     "maximum_major_version": 1
   },
   "project_contexts": [],

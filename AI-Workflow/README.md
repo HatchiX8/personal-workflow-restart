@@ -1,6 +1,6 @@
 # AI Workflow
 
-AI Workflow 採集中式安裝。每個應用程式專案的根目錄只保留 `AGENTS.md` 與 `.ai-workflow/project.config.json`；Host Adapter 以唯一絕對路徑載入集中式 `bootstrap.md`。一般任務只需要描述需求，Workflow 會依序完成任務分析、規則推導與 Preflight。
+AI Workflow 採集中式安裝。每個應用程式專案的根目錄只保留 `AGENTS.md` 與 `project.config.json`；Host Adapter 以唯一絕對路徑載入集中式 `bootstrap.md`。一般任務只需要描述需求，Workflow 會依序完成任務分析、規則推導與 Preflight。
 
 ## 最簡單的用法
 
@@ -43,7 +43,7 @@ Bootstrap
 Workflow Root 是 Host Adapter 實際載入之 `bootstrap.md` 的所在目錄。只有專案根目錄
 `AGENTS.md` 保存絕對 Bootstrap 路徑；其餘 Workflow 路徑都相對於 Workflow Root。Bootstrap
 不搜尋 Git Root 下的規則副本，也不接受 Prompt、環境變數或 Project Config 提供替代路徑。
-Project Config 固定從生效之專案根目錄的 `.ai-workflow/project.config.json` 讀取。
+Project Config 固定從生效之專案根目錄的 `project.config.json` 讀取。
 
 ## 停止條件
 
