@@ -1,6 +1,6 @@
 {
   "scenario_id": "natural-language-develop",
-  "expected_status": "incomplete",
+  "expected_status": "resolved",
   "selected_rule_ids": [
     "common.workflow-mode",
     "developer.entry",
@@ -13,7 +13,7 @@
     "developer.output"
   ],
   "selected_context_ids": [],
-  "unresolved": ["module-context:lunch: current_context is null and project binding is unconfirmed"],
+  "unresolved": [],
   "forbidden_routing_sources": [
     "roles/developer/README.md",
     "roles/developer/skills/README.md",

@@ -46,11 +46,14 @@ Planner 可以依已確認事實提出 validation profile：
 依 `orchestration.result_reporting` 共用政策，使用已確認的 Task Type、Target、Risk 與 Scope mode
 產生 `result_reporting`。資訊不足時最低層級為 Level 2；不得因開發任務看似簡短就省略風險判定。
 
-## Context 需求
+## Context 選取需求
 
-- Module 範圍或跨模組開發需要 `module` Context。
-- Architecture、Migration、Database、Full Stack 或 Cross-module 任務需要 `project` Context。
-- Routine Develop 不得僅因角色是 Developer 就要求 Project Context。
+- Module 範圍或跨模組開發可以提出 `module` Context selector；有相符 current Context 時載入。
+- Architecture、Migration、Database、Full Stack 或 Cross-module 任務可以提出 `project` Context
+  selector；Context 不存在時不得僅因風險類型阻擋。
+- Project／Module Context 預設為 optional。只有 Project Config 或 Context metadata 明確要求目前
+  Action 時，Planner 才能將該 Context 視為 required。
+- Routine Develop 不得僅因角色是 Developer 就要求任何 Context。
 
 ## 禁止事項
 

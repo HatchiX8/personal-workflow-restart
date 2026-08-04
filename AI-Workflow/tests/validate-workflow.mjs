@@ -521,7 +521,8 @@ function checkPhase5Fixtures() {
       assert((candidate?.project_id ?? fixture.verified_project?.project_id) === context.project_id, `Phase 5 selected Context project mismatch: ${id}/${context.context_id}`);
     }
     if (id.includes('unbound') || id.includes('cross-project')) assert((expected.contexts ?? []).length === 0, `Phase 5 ${id} must not select a Context.`);
-    if (id.includes('unbound')) assert(expected.status === 'BLOCKED', `Phase 5 unbound scenario must block: ${id}`);
+    if (id === 'unbound-optional-warning') assert(expected.status === 'RESOLVED_WITH_WARNINGS', `Phase 5 optional unbound Context must only warn: ${id}`);
+    if (id === 'required-module-missing-blocked') assert(expected.status === 'BLOCKED', `Phase 5 explicitly required Module Context must block: ${id}`);
   }
 }
 

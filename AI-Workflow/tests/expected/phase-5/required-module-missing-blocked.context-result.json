@@ -1,0 +1,7 @@
+{
+  "scenario_id": "required-module-missing-blocked",
+  "status": "BLOCKED",
+  "contexts": [],
+  "warnings": [],
+  "blockers": ["project.config.json 明確要求 develop 必須載入 Module Context，因此未綁定時停止。"]
+}

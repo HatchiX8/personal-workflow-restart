@@ -38,23 +38,27 @@ Project Context 必須使用符合 Project Config Schema 的結構化項目；�
 
 `current_context` 可以是 null，或由 Target 名稱對應 Context ID 的物件。若為 null、缺少 Target key、存在重複 mapping、alias 衝突或有多個符合候選，不得用較新的 timestamp 自動解決。這些情況必須產生 diagnostic；Context 為 required 時必須阻擋。
 
-來自其他 Project 的候選永遠為 `BLOCKED`，即使標記為 current。`project_id=null`、`binding_status=unbound` 或 `current=false` 的候選永遠不得自動載入。
+來自其他 Project 的候選永遠不得載入，即使標記為 current。`project_id=null`、
+`binding_status=unbound` 或 `current=false` 的候選也不得自動載入。這些候選只有在 Context 被明確
+設定為 required 時才阻擋任務；optional Context 應產生 warning 並視為未載入。
 
 ## Required、Optional 與 Status Policy
 
 Rule Resolution 建立 Resolved Rule Set 前，每個回傳的 Context record 都必須標記 `required` 與非空白 `reason`。
 
-- Module 範圍的 Develop 與 Review 需求必須有相符 Module Context，除非 Project Config 明確將
-  該 Context 設為 optional。
+- Project Context 與 Module Context 預設都是 optional。存在符合 Project、Module、Target、current
+  與 status 條件的 Context 時自動載入；不存在、未綁定或不相容時，任務仍可執行並產生 warning。
+- 只有 Project Config 的 `require_project_context_for`、`require_module_context_for`，或特定 Context
+  的 `required_for` 明確包含目前 Action 時，該 Context 才是 required。
 - Module Analysis 不要求既有 Module Context。若存在符合身分、Target 且明確標記 current 的
   Context，可以作為 optional 參考；缺少、未綁定或不是 current 時不得阻擋 Rule Resolution。
-- 一般 Develop 與 Review 不會只因有效 Project Config 的 `project_contexts` 為空就要求 Project Context。即使任務具有 high-risk fact，完全不存在 optional Project Context 也不構成 blocker；是否必須存在 Project Context，只依明確的 `require_project_context_for` 與各 Context 的 `required_for` metadata 判斷。
+- Develop 與 Review 不會因任務屬於 Module Scope 或具有 high-risk fact，就自動把 Context 升級為
+  required。是否必須存在 Context，只依前述明確 required 設定判斷。
 - Current Context 不產生 status warning。
 - Context 為 optional 時，`stale`、`partial` 與 `unknown` 依 `context_policy.status_policy` 處理：可以產生 warning，但仍只有明確標記 current 時才能選取。
 - 缺少或 status 為 stale、partial、unknown 的 required Context 依 `required_context_failure` 處理；設定要求阻擋時回傳 `BLOCKED`。
-- Develop 或 Review 任務具有 `architecture`、`database`、`migration`、`fullstack` 或
-  `cross-module` 風險事實時，只有已存在且被選為候選的 stale、partial 或 unknown Context
-  會成為 blocking failure；不得把「沒有 optional Context」改判為缺少 required Context。
-  Module Analysis 不因這些分析範圍而要求既有 Context。
+- optional Context 即使為 stale、partial 或 unknown，也只能依 status policy 產生 warning，不得因
+  architecture、database、migration、fullstack 或 cross-module 風險自動成為 blocker。
+- required Context 缺少、無法讀取、跨 Project、不相容或 status 不受允許時，仍必須阻擋。
 
 結果必須保留所有被拒絕候選，以及每個 warning 或 blocker 的精確原因。Rule Resolution 將已選 Context 複製到 `Resolved Rule Set.contexts`；Preflight 只驗證其路徑、status、Project 身分、hash、reason 與 required flag，不選擇替代項目。

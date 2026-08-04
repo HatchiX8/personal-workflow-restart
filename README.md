@@ -114,15 +114,17 @@ project.config.json
 Project Config 中所有 Context 與 Module Registry 路徑都相對於 Project Root，不得填入集中式
 Workflow 的安裝路徑。
 
-## 加入 Project Context
+## 加入 Project／Module Context
 
-Project Context 不是啟動 Workflow 的必要條件。新專案可以先使用：
+Project Context 與 Module Context 預設都是選用資訊，不是啟動或執行 Workflow 的必要條件。
+新專案可以先使用：
 
 ```json
 "project_contexts": []
 ```
 
-一般 Developer／Review 任務不會只因陣列為空而停止。需要建立專案共用背景時，先在專案內建立
+一般 Developer／Review／Analyze 任務不會只因 Context 不存在、未綁定或已過期而停止；Workflow
+會提出警告，並在沒有該 Context 的情況下繼續執行。需要建立專案共用背景時，先在專案內建立
 Context 文件，再將它登錄到 `project_contexts`：
 
 ```json
@@ -137,9 +139,20 @@ Context 文件，再將它登錄到 `project_contexts`：
 ]
 ```
 
-只有 `current=true`、身分相符且 Target 相容的 Context 可以自動載入。需要強制特定 Action
-必須具備 Project Context 時，再調整 `context_policy.require_project_context_for`；預設範本不
-強制任何 Action。
+只有 `current=true`、身分相符且 Target 相容的 Context 可以自動載入。Module Context 另須完成
+project、module、target 與 current pointer 綁定；不相容或跨專案的 Context 不會載入。
+
+只有專案確實需要嚴格模式時，才在 `context_policy` 明確列出必填 Action：
+
+```json
+"context_policy": {
+  "require_project_context_for": [],
+  "require_module_context_for": []
+}
+```
+
+可使用的 Action 為 `develop`、`review`、`analyze`。預設空陣列代表 Context 缺失只警告、不阻擋；
+例如將 `develop` 加入 `require_module_context_for` 後，開發任務缺少 Module Context 才會停止。
 
 ## 專案安裝檢查
 

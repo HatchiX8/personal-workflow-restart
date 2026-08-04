@@ -1,5 +1,5 @@
 {
-  "scenario_id": "unbound-blocked",
+  "scenario_id": "unbound-optional-warning",
   "verified_project": {
     "project_id": "synthetic-a",
     "canonical_root": "C:/synthetic/project-a",
@@ -7,6 +7,7 @@
   },
   "context_policy": {
     "require_project_context_for": [],
+    "require_module_context_for": [],
     "status_policy": {"current": "pass", "stale": "warning", "partial": "warning", "unknown": "warning", "required_context_failure": "blocked"},
     "high_risk_conditions": ["architecture", "database", "migration", "fullstack", "cross-module"]
   },

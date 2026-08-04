@@ -1,5 +1,5 @@
 {
-  "scenario_id": "stale-high-risk-blocked",
+  "scenario_id": "required-module-missing-blocked",
   "verified_project": {
     "project_id": "synthetic-a",
     "canonical_root": "C:/synthetic/project-a",
@@ -7,20 +7,25 @@
   },
   "context_policy": {
     "require_project_context_for": [],
+    "require_module_context_for": ["develop"],
     "status_policy": {"current": "pass", "stale": "warning", "partial": "warning", "unknown": "warning", "required_context_failure": "blocked"},
     "high_risk_conditions": ["architecture", "database", "migration", "fullstack", "cross-module"]
   },
   "query": {
-    "action": "analyze",
-    "analysis_mode": "project",
-    "task_type": "migration",
+    "action": "develop",
     "project_id": "synthetic-a",
     "canonical_root": "C:/synthetic/project-a",
-    "targets": ["docs"],
-    "risk_facts": ["migration"]
+    "module_reference": "lunch",
+    "targets": ["frontend"],
+    "risk_facts": []
   },
-  "project_contexts": [
-    {"context_id": "ctx.synthetic-a.project.stale", "path_base": "workflow_root", "path": "tests/fixtures/phase-5/context-files/synthetic-a-project-stale.md", "status": "stale", "current": true, "targets": ["docs"], "required_for": []}
-  ],
-  "modules": []
+  "modules": [
+    {
+      "module_id": "lunch",
+      "aliases": ["lunch"],
+      "project_bindings": [],
+      "context_selection": {"current_context": null},
+      "context_candidates": []
+    }
+  ]
 }

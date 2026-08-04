@@ -4,13 +4,23 @@
   "task_id": "phase3-natural-language-develop",
   "resolution_id": "phase3-natural-language-develop-resolution",
   "checked_at": "2026-07-30T09:31:00Z",
-  "status": "BLOCKED",
-  "can_execute": false,
+  "status": "PASS_WITH_WARNINGS",
+  "can_execute": true,
   "checks": [
     {"check_id": "task-manifest", "status": "pass", "subject": "phase3-natural-language-develop", "message": "Task routing fields are high confidence.", "path": null},
-    {"check_id": "module-context-current", "status": "failed", "subject": "lunch", "message": "No project-bound current Module Context exists.", "path": null}
+    {"check_id": "module-context-current", "status": "warning", "subject": "lunch", "message": "No project-bound current Module Context exists; execution may continue without it.", "path": null}
   ],
-  "blockers": ["Module Context for lunch is required by this module-scoped Develop task but cannot be selected."],
-  "warnings": [],
-  "execution_contract": null
+  "blockers": [],
+  "warnings": ["Lunch Module Context is unavailable and will not be loaded."],
+  "execution_contract": {
+    "role_id": "developer",
+    "executor_entry": "roles/developer/executor.md",
+    "rule_set_fingerprint": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+    "allowed_action": "develop",
+    "result_reporting": {
+      "minimum_level": 2,
+      "reasons": ["一般開發任務"],
+      "upward_escalation": true
+    }
+  }
 }

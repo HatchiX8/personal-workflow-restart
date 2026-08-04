@@ -20,14 +20,8 @@
   },
   "context_policy": {
     "require_project_context_for": [],
+    "require_module_context_for": [],
     "allow_project_analysis_without_context": true,
-    "block_on_unbound_module_context": true,
-    "block_on_stale_context_for": [
-      "architecture",
-      "database",
-      "migration",
-      "fullstack"
-    ],
     "status_policy": {
       "current": "pass",
       "stale": "warning",

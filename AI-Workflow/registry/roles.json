@@ -27,7 +27,7 @@
       {
         "path": "roles/developer/planner.md",
         "kind": "file",
-        "content_hash": "sha256:f1d2f02e2e253697c904ec1462eabb19fe2e6b14d1f86b86ab1b920571733a4c"
+        "content_hash": "sha256:520612cbaaf890ed1f6942acc8cd797bcfb98fec8c46045c2764fdba283487b9"
       },
       {
         "path": "roles/module-analyst/entry.md",
@@ -60,7 +60,7 @@
         "content_hash": "sha256:49f52d1290827e779d5005c7d825a1833a5016030feca4b545ba6f0bae53bc3f"
       }
     ],
-    "fingerprint": "sha256:85d5b952112e9fc5e2f67b9e6d5837402c383da731dec3dd0ba06c477f5a74de"
+    "fingerprint": "sha256:f2384d1b833211d1ebb19d0abd39a1a468d1e9d7ec348b3c2ce144bf492e3a33"
   },
   "path_contract": "Every entry and bundle path is relative to the AI-Workflow root.",
   "roles": [

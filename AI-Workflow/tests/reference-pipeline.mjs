@@ -251,29 +251,20 @@ const topologicalOrder = (selected, dependencies) => {
   return ordered;
 };
 
-const contextRequired = (projectConfig, manifest, context) => {
-  const moduleAnalysis = manifest.action === 'analyze' && manifest.analysis_mode === 'module';
-  if (moduleAnalysis) return false;
+const contextRequired = (projectConfig, manifest, candidate, type) => {
   const policy = projectConfig.context_policy ?? {};
-  const highRisk = new Set(policy.high_risk_conditions ?? []);
-  const riskFacts = new Set([
-    manifest.task_type,
-    ...(manifest.routing_triggers ?? []),
-    ...(manifest.targets ?? []),
-    ...(manifest.modules ?? []).length > 1 ? ['cross-module'] : []
-  ]);
-  const isHighRisk = [...riskFacts].some((fact) => highRisk.has(fact));
-  if (isHighRisk) return true;
-  if (context.type === 'module') {
-    return ['develop', 'review'].includes(manifest.action) || manifest.analysis_mode === 'module';
-  }
-  return (policy.require_project_context_for ?? []).includes(manifest.action)
-    || (context.required_for ?? []).includes(manifest.action);
+  const requiredActions = type === 'module'
+    ? policy.require_module_context_for ?? []
+    : policy.require_project_context_for ?? [];
+  return requiredActions.includes(manifest.action)
+    || (candidate.required_for ?? []).includes(manifest.action);
 };
 
 export function resolveContexts({ manifest, projectConfig, modulesRegistry, roots, projectContexts = null }) {
   const result = { contexts: [], warnings: [], blockers: [] };
-  const moduleAnalysis = manifest.action === 'analyze' && manifest.analysis_mode === 'module';
+  const policy = projectConfig.context_policy ?? {};
+  const projectMustExist = (policy.require_project_context_for ?? []).includes(manifest.action);
+  const moduleMustExist = (policy.require_module_context_for ?? []).includes(manifest.action);
   const verifiedProjectId = projectConfig.project_id;
   if (manifest.project?.project_id !== verifiedProjectId) {
     result.blockers.push('project-id-mismatch');
@@ -285,16 +276,17 @@ export function resolveContexts({ manifest, projectConfig, modulesRegistry, root
   }
 
   const addContext = (candidate, type, moduleId = null) => {
+    const required = contextRequired(projectConfig, manifest, candidate, type);
     const pathBase = candidate.path_base ?? (type === 'project' ? 'project_root' : 'workflow_root');
     let absolutePath;
     try {
       absolutePath = resolveResourcePath(roots, pathBase, candidate.path);
     } catch (error) {
-      result.blockers.push(`context-path-invalid:${candidate.context_id}`);
+      (required ? result.blockers : result.warnings).push(`context-path-invalid:${candidate.context_id}`);
       return;
     }
     if (!fs.existsSync(absolutePath)) {
-      result.blockers.push(`context-path-missing:${candidate.context_id}`);
+      (required ? result.blockers : result.warnings).push(`context-path-missing:${candidate.context_id}`);
       return;
     }
     const context = {
@@ -305,20 +297,16 @@ export function resolveContexts({ manifest, projectConfig, modulesRegistry, root
       targets: candidate.targets ?? (candidate.target ? [candidate.target] : []),
       path_base: pathBase,
       path: candidate.path,
-      required: false,
+      required,
       status: candidate.status,
       reason: '',
       content_hash: sha256(fs.readFileSync(absolutePath))
     };
-    context.required = contextRequired(projectConfig, manifest, context);
     context.reason = context.required
-      ? `${type} Context is required by explicit policy or task risk`
+      ? `${type} Context is required by explicit policy`
       : `${type} Context is an explicit current optional Context`;
-    const highRisk = new Set(projectConfig.context_policy?.high_risk_conditions ?? []);
-    const riskFacts = new Set([manifest.task_type, ...(manifest.routing_triggers ?? []), ...(manifest.targets ?? [])]);
-    const risky = [...riskFacts].some((fact) => highRisk.has(fact));
     if (['stale', 'partial', 'unknown'].includes(context.status)) {
-      if (context.required || (risky && !moduleAnalysis)) result.blockers.push(`context-status-blocked:${context.context_id}:${context.status}`);
+      if (context.required) result.blockers.push(`context-status-blocked:${context.context_id}:${context.status}`);
       else result.warnings.push(`context-status-warning:${context.context_id}:${context.status}`);
     }
     result.contexts.push(context);
@@ -328,8 +316,7 @@ export function resolveContexts({ manifest, projectConfig, modulesRegistry, root
   const eligibleProjectContexts = configuredProjectContexts
     .filter((context) => context && typeof context === 'object' && context.current === true)
     .filter((context) => !Array.isArray(context.targets) || context.targets.length === 0 || context.targets.some((target) => (manifest.targets ?? []).includes(target)));
-  const projectMustExist = (projectConfig.context_policy?.require_project_context_for ?? []).includes(manifest.action);
-  if (eligibleProjectContexts.length > 1) result.blockers.push('project-context-conflict');
+  if (eligibleProjectContexts.length > 1) (projectMustExist ? result.blockers : result.warnings).push('project-context-conflict');
   else if (eligibleProjectContexts.length === 1) addContext(eligibleProjectContexts[0], 'project');
   else if (projectMustExist) result.blockers.push('required-project-context-missing');
 
@@ -343,32 +330,33 @@ export function resolveContexts({ manifest, projectConfig, modulesRegistry, root
     }
     const module = aliases[0];
     if (!(module.project_bindings ?? []).includes(verifiedProjectId)) {
-      (moduleAnalysis ? result.warnings : result.blockers).push(`module-unbound:${module.module_id}`);
+      (moduleMustExist ? result.blockers : result.warnings).push(`module-unbound:${module.module_id}`);
       continue;
     }
     const pointer = module.context_selection?.current_context;
     if (!pointer || typeof pointer !== 'object') {
-      (moduleAnalysis ? result.warnings : result.blockers).push(`module-current-context-missing:${module.module_id}`);
+      (moduleMustExist ? result.blockers : result.warnings).push(`module-current-context-missing:${module.module_id}`);
       continue;
     }
     for (const target of manifest.targets ?? []) {
       const contextId = pointer[target];
       const candidates = (module.context_candidates ?? []).filter((candidate) => candidate.context_id === contextId);
       if (candidates.length !== 1) {
-        (moduleAnalysis ? result.warnings : result.blockers).push(`module-context-pointer-conflict:${module.module_id}:${target}`);
+        (moduleMustExist ? result.blockers : result.warnings).push(`module-context-pointer-conflict:${module.module_id}:${target}`);
         continue;
       }
       const candidate = candidates[0];
+      const candidateRequired = contextRequired(projectConfig, manifest, candidate, 'module');
       if (candidate.project_id !== verifiedProjectId) {
-        (moduleAnalysis ? result.warnings : result.blockers).push(`context-cross-project:${candidate.context_id}`);
+        (candidateRequired ? result.blockers : result.warnings).push(`context-cross-project:${candidate.context_id}`);
         continue;
       }
       if (candidate.module_id && candidate.module_id !== module.module_id) {
-        (moduleAnalysis ? result.warnings : result.blockers).push(`context-module-mismatch:${candidate.context_id}`);
+        (candidateRequired ? result.blockers : result.warnings).push(`context-module-mismatch:${candidate.context_id}`);
         continue;
       }
       if (candidate.target !== target || candidate.current !== true || candidate.binding_status !== 'bound') {
-        (moduleAnalysis ? result.warnings : result.blockers).push(`context-not-current-or-compatible:${candidate.context_id}`);
+        (candidateRequired ? result.blockers : result.warnings).push(`context-not-current-or-compatible:${candidate.context_id}`);
         continue;
       }
       addContext(candidate, 'module', module.module_id);

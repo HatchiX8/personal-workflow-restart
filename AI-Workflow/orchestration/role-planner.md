@@ -24,7 +24,8 @@ Role Plan 必須包含：
 - 可供 Registry selector 比對的標準化 facts。
 - 由 facts 產生的 `skill_selectors`，不得直接猜測 Skill ID。
 - 依 `orchestration.result_reporting` 共用政策產生 `result_reporting`，包含最低回覆層級與理由。
-- 本角色需要的 validation profiles 與 Context 類型。
+- 本角色需要的 validation profiles，以及應嘗試選取的 Context 類型。Context 類型本身不代表
+  required；required 狀態只由 Project Config 與 Context metadata 決定。
 - Planner 無法安全判斷的 unresolved 項目。
 
 使用者明確指定的 Skill ID 保留在 Task Manifest，由 Rule Resolution 驗證；Role Planner

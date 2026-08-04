@@ -15,9 +15,9 @@ Preflight 驗證 Task Manifest、Role Plan 與已凍結的 Resolved Rule Set 是
    每個 `category=skill` 項目都必須回查 Skill Registry，且 Registry 的 `role_id` 必須等於 Resolved Rule Set 的 Role；不符合時以 `skill-role-mismatch:<skill-id>` 阻擋。
 7. 每個已選 Context 都存在於宣告的 canonical `path_base` 下、未超出該基準、符合 project／module／target，保留 Context Resolution 的 required／optional reason，並符合 Context policy。
 8. Rule Set 沒有衝突、狀態為 `resolved`，且重新計算的 fingerprint 與提供的 fingerprint 相同。
-9. Develop 已解析出 Target；Module 範圍任務具有唯一 Module。Develop 與 Review 的
-   architecture、database、migration、fullstack 與 cross-module 任務必須套用更嚴格的
-   Context policy；Module Analysis 不要求既有 Context。
+9. Develop 已解析出 Target；Module 範圍任務具有唯一 Module。Project／Module Context 預設為
+   optional；只有 Project Config 或 Context metadata 明確標記 required 時，缺少或無效 Context
+   才能阻擋。Module Analysis 不要求既有 Context。
 10. Role Plan 必須包含符合 Result Reporting 政策的 `result_reporting`；最低層級、理由與允許向上
     提升的設定必須完整，且 Level 3 風險不得被判定為較低層級。
 
@@ -27,7 +27,9 @@ Preflight 驗證 Task Manifest、Role Plan 與已凍結的 Resolved Rule Set 是
 - `PASS_WITH_WARNINGS`：沒有 blocker，只有政策允許的 warning，`can_execute=true`。
 - `BLOCKED`：任何阻擋性檢查失敗，`can_execute=false`。
 
-只有下列情況允許 warning：Target 未知但只使用 common checks 的 Review、沒有 Project Context 的 Project Analyst onboarding、缺少 optional Context、非 contract Context 已過期、刻意未載入的非必要 Skill，或缺少 optional output directory。
+只有下列情況允許 warning：Target 未知但只使用 common checks 的 Review、沒有 Project Context
+的 Project Analyst onboarding、optional Context 缺少／未綁定／不相容／已過期、刻意未載入的
+非必要 Skill，或缺少 optional output directory。
 
 ## 必須阻擋的情況
 
@@ -38,8 +40,9 @@ Preflight 驗證 Task Manifest、Role Plan 與已凍結的 Resolved Rule Set 是
 - `result_reporting` 缺少、Schema 無效、理由為空，或違反 Level 3 最低層級條件。
 - 缺少必要 Rule、Skill、Context、dependency、hash 或 fingerprint match。
 - routing 必要的 Target／Module 存在歧義，包括候選分數差距低於政策門檻。
-- Module 範圍的 Develop 或 Review 任務，其必要 Module Context 未綁定或不是 current。
-- Context 屬於其他 Project、Context status 不受支援，或嚴格任務類型使用 stale Context。
+- 明確 required 的 Project／Module Context 缺少、未綁定、不是 current、不相容或 status 不受支援。
+- 已選 Context 屬於其他 Project、路徑越界，或 hash 不一致；optional 的跨 Project 候選不得載入，
+  但只產生 warning。
 - `Resolved Rule Set.status=incomplete`、仍有未解析必要項目、存在衝突，或 Resolution 後內容已變更。
 - 在取得 PASS 類結果前要求修改程式碼或規則。
 

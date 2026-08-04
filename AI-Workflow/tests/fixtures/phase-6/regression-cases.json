@@ -11,7 +11,7 @@
         "task_type": "bugfix",
         "targets": ["frontend"],
         "module_id": "lunch",
-        "preflight_status": "BLOCKED",
+        "preflight_status": "PASS_WITH_WARNINGS",
         "must_include_rule_ids": ["developer.frontend.base", "developer.self-review"],
         "must_not_select_context": true,
         "selected_context_ids": []
@@ -101,10 +101,10 @@
         "role_id": "developer",
         "targets": ["frontend"],
         "module_id": "lunch",
-        "preflight_status": "BLOCKED",
+        "preflight_status": "PASS_WITH_WARNINGS",
         "must_not_select_context": true,
         "selected_context_ids": [],
-        "blocker": "unbound-module-context"
+        "warning": "unbound-module-context"
       }
     }
   ]

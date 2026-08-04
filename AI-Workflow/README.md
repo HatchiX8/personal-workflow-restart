@@ -52,12 +52,15 @@ Workflow 遇到下列情況會停止，並回報原因，不會直接使用模�
 
 - Workflow Root、Workflow Config 或 Project Config 無法唯一解析。
 - Action、Role、明確 Skill、Target 或 Module 無法安全解析。
-- Required Rule、Required Skill 或 Required Context 不存在、無法讀取或版本不符合。
-- Module Context 沒有確認的 `project_id`、`current` 指標或唯一 Target 對應。
+- Required Rule、Required Skill 或由 Project Config 明確要求的 Required Context 不存在、無法讀取或版本不符合。
+- 明確要求的 Module Context 沒有確認的 `project_id`、`current` 指標或唯一 Target 對應。
 - Registry 存在重複 ID、無效路徑、dangling dependency 或循環依賴。
 - Rule Set 在 Preflight 後內容 Hash 或 fingerprint 改變。
 
 Review 在 Target 未知時可以只載入 Common Checks，但若其他必要資訊缺失，仍會被 Preflight 阻擋。
+Project／Module Context 預設為選用；未設定、未綁定、不相容或已過期時只提出警告並繼續執行。
+只有 `context_policy.require_project_context_for`、`context_policy.require_module_context_for` 或
+Context candidate 的 `required_for` 明確要求本次 Action 時，Context 驗證失敗才會阻擋。
 
 ## 規則來源
 

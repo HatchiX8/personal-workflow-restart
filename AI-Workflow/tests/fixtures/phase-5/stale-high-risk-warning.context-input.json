@@ -1,5 +1,5 @@
 {
-  "scenario_id": "stale-warning",
+  "scenario_id": "stale-high-risk-warning",
   "verified_project": {
     "project_id": "synthetic-a",
     "canonical_root": "C:/synthetic/project-a",
@@ -14,10 +14,11 @@
   "query": {
     "action": "analyze",
     "analysis_mode": "project",
+    "task_type": "migration",
     "project_id": "synthetic-a",
     "canonical_root": "C:/synthetic/project-a",
     "targets": ["docs"],
-    "risk_facts": []
+    "risk_facts": ["migration"]
   },
   "project_contexts": [
     {"context_id": "ctx.synthetic-a.project.stale", "path_base": "workflow_root", "path": "tests/fixtures/phase-5/context-files/synthetic-a-project-stale.md", "status": "stale", "current": true, "targets": ["docs"], "required_for": []}
