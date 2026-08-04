@@ -23,7 +23,7 @@ Result Reporting 層級，並至少把 Project Analysis 狀態與實際路徑合
 若使用者未指定輸出位置，建議使用：
 
 ```txt
-PROJECT_ANALYSIS.md
+agent-workspaces/project-analysis/PROJECT_ANALYSIS.md
 ```
 
 若專案已有既有分析文件，應優先更新既有文件；若不確定是否要覆蓋，應先詢問使用者。

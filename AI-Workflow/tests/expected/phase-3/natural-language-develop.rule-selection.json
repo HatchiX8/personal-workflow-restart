@@ -9,6 +9,7 @@
     "developer.workflow",
     "developer.frontend.base",
     "developer.self-review",
+    "policy.result-reporting",
     "developer.output"
   ],
   "selected_context_ids": [],
@@ -16,7 +17,7 @@
   "forbidden_routing_sources": [
     "roles/developer/README.md",
     "roles/developer/skills/README.md",
-    "module-context/frontend/20260728-1425-lunch-module.md",
-    "module-context/backend/20260728-1438-lunch.md"
+    "agent-workspaces/module-context/frontend/20260728-1425-lunch-module.md",
+    "agent-workspaces/module-context/backend/20260728-1438-lunch.md"
   ]
 }

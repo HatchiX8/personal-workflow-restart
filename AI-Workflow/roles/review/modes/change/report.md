@@ -5,7 +5,7 @@
 ## 預設檔案
 
 ```text
-AI-Workflow/reviews/change/<YYYYMMDD-HHmm>-<task-slug>.md
+agent-workspaces/reviews/change/<YYYYMMDD-HHmm>-<task-slug>.md
 ```
 
 - task slug 由任務名稱或 staged changes 的主要目的產生。

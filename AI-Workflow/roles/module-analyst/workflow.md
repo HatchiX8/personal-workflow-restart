@@ -29,7 +29,7 @@ Module Analyst 的目標是在修改單一模組前，先產出可供後續 agen
 若使用者未指定輸出位置，建議輸出到：
 
 ```txt
-AI-Workflow/module-context/<task-type>/<YYYYMMDD-HHmm>-<module-slug>.md
+agent-workspaces/module-context/<task-type>/<YYYYMMDD-HHmm>-<module-slug>.md
 ```
 
 若模組範圍不明確，應先用只讀方式找出候選入口與檔案，再在輸出中標記範圍可信度。不得自行擴大成全專案分析。

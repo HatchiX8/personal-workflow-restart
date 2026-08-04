@@ -837,6 +837,29 @@ function checkGitignore() {
   if (gitignore === null) return;
   assert(/\.ai-workflow\/runtime\/?/.test(gitignore) || /AI-Workflow\/runtime\/?/.test(gitignore), '.gitignore must ignore runtime artifacts.');
   assert(!/^\s*project\.config\.json\s*$/m.test(gitignore), '.gitignore must not ignore project.config.json.');
+  assert(/agent-workspaces\/reviews\/\*/.test(gitignore), '.gitignore must ignore generated Review reports.');
+  assert(/agent-workspaces\/module-context\/\*/.test(gitignore), '.gitignore must ignore generated Module Context files.');
+  assert(!/^\s*AI-Workflow\/(?:reviews|module-context)\/?\s*$/m.test(gitignore), '.gitignore must not preserve legacy Workflow output directories.');
+}
+
+function checkProjectArtifactPaths() {
+  const outputRules = [
+    'roles/review/modes/change/report.md',
+    'roles/review/modes/feature/report.md',
+    'roles/module-analyst/output.md',
+    'roles/module-analyst/report.md',
+    'roles/project-analyst/output.md'
+  ];
+  for (const rulePath of outputRules) {
+    const content = readWorkflowText(rulePath);
+    assert(content?.includes('agent-workspaces/'), `Project artifact path is not under agent-workspaces: ${rulePath}`);
+    assert(!content?.includes('AI-Workflow/reviews/'), `Review output still targets Workflow Root: ${rulePath}`);
+    assert(!content?.includes('AI-Workflow/module-context/'), `Module output still targets Workflow Root: ${rulePath}`);
+  }
+  assert(
+    readWorkflowText('roles/project-analyst/output.md')?.includes('agent-workspaces/project-analysis/PROJECT_ANALYSIS.md'),
+    'Project Analysis output path is not canonical.'
+  );
 }
 
 function main() {
@@ -857,6 +880,7 @@ function main() {
   checkRolePlannerCases();
   checkReferencePipeline();
   checkGitignore();
+  checkProjectArtifactPaths();
 
   if (failures.length > 0) {
     console.error(`Workflow validation failed with ${failures.length} issue(s):`);

@@ -75,12 +75,36 @@ Rule Set 與通過 Preflight 的 Execution Contract。Execution Contract 會凍�
 最低層級；執行後只能依驗證失敗或新風險向上提升。新增 Role、Skill 或 Context 時，應先更新對應
 Manifest 或 Registry 契約，再建立回歸 fixture。
 
+## Catalog 與 Module Registry
+
+`catalog/modules.json` 只保存集中式 Workflow 可辨識的 Module ID、顯示名稱與 aliases；Agent
+routing 實際讀取的是 `registry/modules.json`。Project Analysis、Module Context、Review report、
+Project 綁定與 current pointer 都不得寫入 Catalog，應由各專案的 `project.config.json`、專案
+Module Registry 或 `agent-workspaces/` 維護。
+
+目前 Module Registry 尚未自動從 Catalog 生成，修改 Module 時必須同步兩份檔案並更新 Registry
+snapshot。詳細步驟見 `catalog/README.md`。
+
 ## 任務完成回覆
 
 `policies/result-reporting.md` 將對話完成回覆分為三層：微小修改使用 Level 1、一般任務預設
 Level 2、高風險或大範圍任務使用 Level 3。這個層級只控制完成回覆的詳細程度，不會縮減 Review
 report、Project Analysis 或 Module Context 等正式產物。沒有風險、限制或後續事項時，Agent 必須
 省略對應區塊。
+
+## 專案產物
+
+集中式 Workflow Root 只保存規則、Schema、Registry 與測試，不保存個別專案產生的 Markdown。
+未指定輸出位置時，正式產物統一寫入：
+
+```text
+<PROJECT_ROOT>/agent-workspaces/
+├─ project-analysis/PROJECT_ANALYSIS.md
+├─ module-context/<frontend|backend|fullstack|unknown>/
+└─ reviews/<change|feature>/
+```
+
+所有路徑以 Project Root 為基準。使用者指定的輸出位置優先；Agent 完成時仍須回報實際路徑。
 
 ## 選填控制欄位
 

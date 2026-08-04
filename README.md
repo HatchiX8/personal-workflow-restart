@@ -154,6 +154,21 @@ Context 文件，再將它登錄到 `project_contexts`：
 若使用 Claude Code，再加入同層的 `CLAUDE.md`。`AGENTS.md` 是唯一保存集中式 Bootstrap
 絕對路徑的檔案；`project.config.json` 不得宣告或覆寫 Workflow Root。
 
+## Agent 產物目錄
+
+Review、Module Context 與 Project Analysis 統一寫入專案根目錄下的 `agent-workspaces/`：
+
+```text
+<PROJECT_ROOT>/agent-workspaces/
+  project-analysis/PROJECT_ANALYSIS.md
+  module-context/<frontend|backend|fullstack|unknown>/
+  reviews/<change|feature>/
+```
+
+預設路徑一律相對於 Project Root，不會把專案產物寫入集中式 `AI-Workflow/`。使用者明確指定
+其他位置時仍以指定位置為準。`project-analysis` 與 `module-context` 只有完成 Project Config 或
+Module Registry 登錄後才會成為可自動載入的 Context。
+
 ## 使用方式
 
 一般情況只需要描述任務。Workflow 會自動推導 Action、Role、Target、Scope 與適用 Skill。

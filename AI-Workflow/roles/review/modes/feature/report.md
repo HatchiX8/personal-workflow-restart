@@ -5,7 +5,7 @@
 ## 預設檔案
 
 ```text
-AI-Workflow/reviews/feature/<YYYYMMDD-HHmm>-<feature-slug>.md
+agent-workspaces/reviews/feature/<YYYYMMDD-HHmm>-<feature-slug>.md
 ```
 
 - feature slug 由頁面、模組、功能名稱或 Review Scope 產生。

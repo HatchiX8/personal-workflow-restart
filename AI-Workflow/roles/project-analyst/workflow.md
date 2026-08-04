@@ -22,7 +22,8 @@ Project Analyst 的目標是產出能幫助工程師快速上手新專案的專�
 - 是否有指定分析範圍
 - 是否有指定要優先關注的技術面向
 
-若使用者未指定輸出位置，先以專案根目錄下的專案分析 md 檔作為預設方向。
+若使用者未指定輸出位置，使用
+`<PROJECT_ROOT>/agent-workspaces/project-analysis/PROJECT_ANALYSIS.md`。
 
 ## 2. 確認分析深度限制
 

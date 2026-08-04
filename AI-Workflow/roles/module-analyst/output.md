@@ -24,7 +24,7 @@
 若使用者未指定輸出位置，建議使用：
 
 ```txt
-AI-Workflow/module-context/<task-type>/<YYYYMMDD-HHmm>-<module-slug>.md
+agent-workspaces/module-context/<task-type>/<YYYYMMDD-HHmm>-<module-slug>.md
 ```
 
 實際路徑與檔名規則以 `AI-Workflow/roles/module-analyst/report.md` 為準。

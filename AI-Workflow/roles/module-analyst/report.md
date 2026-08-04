@@ -9,10 +9,10 @@
 ## 預設位置
 
 ```text
-AI-Workflow/module-context/frontend/<YYYYMMDD-HHmm>-<module-slug>.md
-AI-Workflow/module-context/backend/<YYYYMMDD-HHmm>-<module-slug>.md
-AI-Workflow/module-context/fullstack/<YYYYMMDD-HHmm>-<module-slug>.md
-AI-Workflow/module-context/unknown/<YYYYMMDD-HHmm>-<module-slug>.md
+agent-workspaces/module-context/frontend/<YYYYMMDD-HHmm>-<module-slug>.md
+agent-workspaces/module-context/backend/<YYYYMMDD-HHmm>-<module-slug>.md
+agent-workspaces/module-context/fullstack/<YYYYMMDD-HHmm>-<module-slug>.md
+agent-workspaces/module-context/unknown/<YYYYMMDD-HHmm>-<module-slug>.md
 ```
 
 - Frontend Target：`frontend/`

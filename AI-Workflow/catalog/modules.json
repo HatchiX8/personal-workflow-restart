@@ -1,0 +1,10 @@
+{
+  "schema_version": "1.0",
+  "modules": [
+    {
+      "module_id": "lunch",
+      "display_name": "Lunch",
+      "aliases": ["lunch", "午餐"]
+    }
+  ]
+}
