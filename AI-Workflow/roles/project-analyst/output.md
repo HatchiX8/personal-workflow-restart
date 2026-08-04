@@ -1,8 +1,13 @@
 # Project Analysis Output
 
-本文件同時遵守 `policies/evidence-confidence.md` 與 `policies/secret-handling.md`。
+本文件同時遵守 `policies/evidence-confidence.md`、`policies/secret-handling.md` 與
+`policies/result-reporting.md`。
 
 本階段負責產出專案分析 md 檔。
+
+本文件是正式產物格式，不受 Result Reporting 的 Level 1～3 縮減。完成分析後的對話回覆才套用
+Result Reporting 層級，並至少把 Project Analysis 狀態與實際路徑合併到完成內容或任務摘要；
+不得為符合層級而省略正式文件的必要區塊。
 
 ## 目標
 

@@ -12,7 +12,8 @@ Executor Adapter 必須向 Role Entry 提供下列唯讀輸入：
 - `Task Manifest`：已解析的 Action、Role、Target、Module、Scope、Skill 與角色模式。
 - `Role Plan`：由該角色 Planner 產生的固定流程、Skill selectors、必要能力與輸出需求。
 - `Resolved Rule Set`：已選規則、Context、載入順序、優先級與 fingerprint。
-- `Preflight Result.execution_contract`：允許執行的 Role、Action、入口與 Rule Set fingerprint。
+- `Preflight Result.execution_contract`：允許執行的 Role、Action、入口、Rule Set fingerprint 與
+  Result Reporting 最低層級。
 
 Role Entry 只能使用 `Resolved Rule Set` 已列出的規則與 Context。未列出的檔案即使存在，也不得在
 Execute 階段自行載入。
@@ -26,7 +27,7 @@ Execute 階段自行載入。
 3. 驗證角色必要欄位已由 Task Manifest 與 Role Plan 固定。
 4. 依 `Resolved Rule Set.load_order` 使用已載入規則。
 5. 在 Task Manifest 的 Scope 內依 Role Plan 執行角色工作。
-6. 依輸出契約回傳執行結果。
+6. 依輸出契約與已載入的 Result Reporting 政策回傳執行結果。
 
 ## 禁止事項
 
@@ -37,6 +38,7 @@ Role Entry 不得：
 - 推導或變更 Role、Action、Task Type、Target、Module、Skill、review mode 或 analysis mode。
 - 掃描目錄、猜測檔名，或自行補載規則與 Context。
 - 改變 Rule Set 的載入順序、優先級、required／optional 狀態或 fingerprint。
+- 將完成回覆降低到 `execution_contract.result_reporting.minimum_level` 以下。
 - 修復 Task Analysis、Rule Resolution 或 Preflight 的缺漏。
 - 使用角色內 README 作為執行規則；README 一律只作為工程文件。
 
@@ -58,5 +60,6 @@ Role Entry 必須回傳下列其中一種狀態：
 - `blocked`：角色規則內的停止條件成立，且不需要改變 routing。
 - `reroute-required`：凍結輸入不足或不一致，必須交回 Dispatcher 從適當階段重新執行。
 
-輸出內容與落檔位置仍由已載入的角色 output／report 規則及使用者明確要求決定。Role Entry
+正式產物內容與落檔位置仍由已載入的角色 output／report 規則及使用者明確要求決定。對話中的
+任務完成回覆必須遵守已載入的 Result Reporting 政策；Role Entry 只能依執行結果向上提升層級，
 不得在 Execute 階段自行建立新的輸出政策。

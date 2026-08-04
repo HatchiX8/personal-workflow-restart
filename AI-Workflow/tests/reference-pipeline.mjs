@@ -95,6 +95,58 @@ const triggersMatch = (item, manifest, defaultMode = 'any') => {
   return (item.trigger_mode ?? defaultMode) === 'all' ? matches.every(Boolean) : matches.some(Boolean);
 };
 
+export function deriveResultReporting(manifest) {
+  const routingTriggers = new Set(
+    (manifest.routing_triggers ?? []).map((trigger) =>
+      trigger.startsWith('risk=') ? trigger.slice('risk='.length) : trigger
+    )
+  );
+  const includePaths = manifest.scope?.include_paths ?? [];
+  const moduleCount = manifest.modules?.length ?? 0;
+  const scopeMode = manifest.scope?.change_source === 'full-project'
+    ? 'full-project'
+    : moduleCount > 1
+      ? 'cross-module'
+      : moduleCount === 1
+        ? 'module'
+        : includePaths.length === 1
+          ? 'file'
+          : 'unknown';
+  const highRiskFacts = new Set([
+    'architecture', 'database', 'database-schema', 'data-migration', 'migration',
+    'public-api-contract', 'authentication', 'authorization', 'security',
+    'payment', 'monetary-flow', 'destructive-operation', 'file-delete', 'rollback'
+  ]);
+  const matchedHighRisks = [...routingTriggers].filter((risk) => highRiskFacts.has(risk));
+  const detailedReportRequested = /完整報告|詳細(?:報告|說明)|設計決策|風險評估|full report|design decisions|risk assessment/iu
+    .test(manifest.raw_request ?? '');
+  const level3Reasons = [];
+  if (['cross-module', 'full-project'].includes(scopeMode)) level3Reasons.push(`scope-mode=${scopeMode}`);
+  if (['fullstack', 'mixed'].includes(manifest.target_mode)) level3Reasons.push(`target-mode=${manifest.target_mode}`);
+  if (manifest.task_type === 'migration') level3Reasons.push('task-type=migration');
+  level3Reasons.push(...matchedHighRisks.map((risk) => `risk=${risk}`));
+  if (detailedReportRequested) level3Reasons.push('explicit-detailed-report-request');
+  if (level3Reasons.length > 0) {
+    return { minimum_level: 3, reasons: [...new Set(level3Reasons)], upward_escalation: true };
+  }
+
+  const level1TaskType = ['change', 'bugfix', 'maintenance'].includes(manifest.task_type);
+  const singleTarget = (manifest.targets ?? []).length === 1;
+  if (scopeMode === 'file' && singleTarget && level1TaskType) {
+    return {
+      minimum_level: 1,
+      reasons: ['scope-mode=file', `task-type=${manifest.task_type}`, 'single-target'],
+      upward_escalation: true
+    };
+  }
+
+  return {
+    minimum_level: 2,
+    reasons: [scopeMode === 'unknown' ? 'scope-size-not-confirmed' : 'default-general-task'],
+    upward_escalation: true
+  };
+}
+
 export function buildReferenceRolePlan(manifest, role) {
   const skillSelectors = new Set([
     `role=${manifest.role_id}`,
@@ -130,6 +182,7 @@ export function buildReferenceRolePlan(manifest, role) {
     planner_entry: role?.planner ?? 'unresolved',
     facts,
     skill_selectors: [...skillSelectors].sort(),
+    result_reporting: deriveResultReporting(manifest),
     validation_profiles: [],
     context_requirements: manifest.modules?.length ? ['module'] : [],
     unresolved,
@@ -464,10 +517,14 @@ export function runReferencePipeline(manifest, roots, providedRolePlan = null) {
   return { resolution, context: contextsResult, rolePlan, registries: { roles, skills, bundles, modules }, workflowConfig, projectConfig };
 }
 
-export function preflightReferencePipeline({ manifest, resolution, context, roots }) {
+export function preflightReferencePipeline({ manifest, rolePlan, resolution, context, roots }) {
   const checks = [];
   const blockers = [...resolution.unresolved, ...context.blockers];
   const warnings = [...context.warnings];
+  if (!rolePlan?.result_reporting) blockers.push('result-reporting-missing');
+  if (rolePlan && (rolePlan.role_id !== manifest.role_id || rolePlan.action !== manifest.action)) {
+    blockers.push('role-plan-routing-mismatch');
+  }
   try {
     const workflowConfig = readJson(path.join(roots.workflowRoot, 'workflow.config.json'));
     const skillRegistry = readJson(path.join(roots.workflowRoot, workflowConfig.registries.skills));
@@ -498,7 +555,8 @@ export function preflightReferencePipeline({ manifest, resolution, context, root
     role_id: resolution.role_id,
     executor_entry: resolution.executor_entry,
     rule_set_fingerprint: resolution.fingerprint,
-    allowed_action: manifest.action
+    allowed_action: manifest.action,
+    result_reporting: rolePlan.result_reporting
   };
   return {
     schema_version: '1.0',
@@ -514,9 +572,12 @@ export function preflightReferencePipeline({ manifest, resolution, context, root
   };
 }
 
-export function verifyExecutor({ resolution, preflight, roots, readBytes = fs.readFileSync }) {
+export function verifyExecutor({ resolution, preflight, rolePlan, roots, readBytes = fs.readFileSync }) {
   if (!preflight?.can_execute || !preflight.execution_contract) return { accepted: false, reason: 'preflight-not-executable' };
   if (preflight.execution_contract.rule_set_fingerprint !== resolution.fingerprint) return { accepted: false, reason: 'preflight-fingerprint-mismatch' };
+  if (JSON.stringify(preflight.execution_contract.result_reporting) !== JSON.stringify(rolePlan?.result_reporting)) {
+    return { accepted: false, reason: 'result-reporting-contract-mismatch' };
+  }
   const verifyResource = (resource, pathBase) => {
     try {
       const absolutePath = resolveResourcePath(roots, pathBase, resource.path);

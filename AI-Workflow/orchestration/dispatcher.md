@@ -15,7 +15,8 @@ Dispatcher 是 Workflow 的編排協調器，負責階段順序、產物交接�
 ## 必要順序
 
 1. 使用原始需求與不可變的 Config／Registry snapshot 呼叫 `task-analysis.md`。
-2. 依 Task Manifest 的 Role 呼叫 `roles/<role-id>/planner.md`，產生 Role Plan。
+2. 依 Task Manifest 的 Role 呼叫 `roles/<role-id>/planner.md`，並套用
+   `workflow.config.json` 設定的 `orchestration.result_reporting`，產生 Role Plan。
 3. 使用 Task Manifest、Role Plan 與相同 snapshot 呼叫 `rule-resolution.md`。
 4. 使用 Task Manifest、Role Plan、Resolved Rule Set 與 snapshot 呼叫 `preflight.md`。
 5. 只有 Preflight 回傳 `can_execute=true` 時，才能呼叫 `executor-adapter.md`。
@@ -40,6 +41,7 @@ Dispatcher 必須回傳造成阻擋的產物與原因，不得將被阻擋的結
 - 讀取 `roles/**` 或 README 來做 routing 決策。
 - 選擇 Role、Skill、Target、Module 或 Review mode。
 - 代替 Role Planner 推導 Role-specific facts。
+- 在 Role Planner 之外重算或覆寫 Result Reporting 最低層級。
 - 重新排序已選取的規則。
 - 為了做業務決策而讀取 project 或 application 程式碼。
 - 開始 Develop、Review 或 Analyze 工作。

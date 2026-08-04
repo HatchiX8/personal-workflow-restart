@@ -27,6 +27,7 @@ Workflow Root 只有一個權威來源：主機介接規則實際載入的 `boot
 - `orchestration.dispatcher`
 - `orchestration.task_analysis`
 - `orchestration.role_planner`
+- `orchestration.result_reporting`
 - `orchestration.rule_resolution`
 - `orchestration.context_resolution`
 - `orchestration.preflight`

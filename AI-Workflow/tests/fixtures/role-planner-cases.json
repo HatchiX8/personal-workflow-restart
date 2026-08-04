@@ -10,12 +10,15 @@
         "action": "develop",
         "task_type": "change",
         "targets": ["frontend"],
+        "target_mode": "single",
         "routing_triggers": [],
+        "scope": {"include_paths": ["src/orders/OrderList.vue"], "change_source": "request"},
         "modules": [],
         "project": {"project_id": "controlled-agent-workflow"}
       },
       "expected_planner": "roles/developer/planner.md",
-      "expected_selectors": ["role=developer", "action=develop", "task-type=change", "target=frontend"]
+      "expected_selectors": ["role=developer", "action=develop", "task-type=change", "target=frontend"],
+      "expected_result_level": 1
     },
     {
       "scenario_id": "review-explicit",
@@ -32,7 +35,8 @@
         "project": {"project_id": "controlled-agent-workflow"}
       },
       "expected_planner": "roles/review/planner.md",
-      "expected_selectors": ["role=review", "action=review", "review-mode=change", "target=frontend"]
+      "expected_selectors": ["role=review", "action=review", "review-mode=change", "target=frontend"],
+      "expected_result_level": 2
     },
     {
       "scenario_id": "project-analyst-explicit",
@@ -43,13 +47,16 @@
         "action": "analyze",
         "task_type": "analysis",
         "targets": ["docs"],
+        "target_mode": "single",
         "routing_triggers": [],
+        "scope": {"include_paths": [], "change_source": "full-project"},
         "analysis_mode": "project",
         "modules": [],
         "project": {"project_id": "controlled-agent-workflow"}
       },
       "expected_planner": "roles/project-analyst/planner.md",
-      "expected_selectors": ["role=project-analyst", "action=analyze", "analysis-mode=project"]
+      "expected_selectors": ["role=project-analyst", "action=analyze", "analysis-mode=project"],
+      "expected_result_level": 3
     },
     {
       "scenario_id": "module-analyst-explicit",
@@ -66,7 +73,8 @@
         "project": {"project_id": "controlled-agent-workflow"}
       },
       "expected_planner": "roles/module-analyst/planner.md",
-      "expected_selectors": ["role=module-analyst", "action=analyze", "analysis-mode=module", "target=backend"]
+      "expected_selectors": ["role=module-analyst", "action=analyze", "analysis-mode=module", "target=backend"],
+      "expected_result_level": 2
     },
     {
       "scenario_id": "developer-inferred-without-role-control",
@@ -82,7 +90,8 @@
         "project": {"project_id": "controlled-agent-workflow"}
       },
       "expected_planner": "roles/developer/planner.md",
-      "expected_selectors": ["role=developer", "action=develop", "task-type=change", "target=frontend"]
+      "expected_selectors": ["role=developer", "action=develop", "task-type=change", "target=frontend"],
+      "expected_result_level": 2
     }
   ]
 }

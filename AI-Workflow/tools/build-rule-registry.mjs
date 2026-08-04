@@ -71,6 +71,7 @@ const rules = [
   rule('bootstrap.entry', 'bootstrap.md', 'bootstrap', [], 0, [], ['every-task']),
   rule('common.workflow-mode', 'workflow/common.md', 'common', allRoles, 0, [], ['resolved-role']),
   rule('policy.report-file', 'policies/report-file-policy.md', 'common', allRoles, 0),
+  rule('policy.result-reporting', 'policies/result-reporting.md', 'common', allRoles, 0),
   rule(
     'policy.analysis-safety',
     'policies/analysis-safety.md',
@@ -144,7 +145,7 @@ const rules = [
     'output',
     ['developer'],
     8,
-    ['developer.workflow', 'developer.self-review'],
+    ['developer.workflow', 'developer.self-review', 'policy.result-reporting'],
     ['role=developer']
   ),
 
@@ -190,7 +191,7 @@ const rules = [
     'output',
     ['review'],
     4,
-    ['review.workflow', 'policy.report-file'],
+    ['review.workflow', 'policy.report-file', 'policy.result-reporting'],
     ['role=review']
   ),
   rule(
@@ -264,7 +265,7 @@ const rules = [
     'output',
     ['project-analyst'],
     5,
-    ['project.workflow', 'policy.report-file'],
+    ['project.workflow', 'policy.report-file', 'policy.result-reporting'],
     ['role=project-analyst']
   ),
 
@@ -301,7 +302,7 @@ const rules = [
     'output',
     ['module-analyst'],
     5,
-    ['module.workflow', 'policy.report-file'],
+    ['module.workflow', 'policy.report-file', 'policy.result-reporting'],
     ['role=module-analyst']
   ),
   rule(
@@ -318,7 +319,7 @@ const rules = [
 const bundles = [
   bundle(
     'common.workflow-mode',
-    ['common.workflow-mode'],
+    ['common.workflow-mode', 'policy.result-reporting'],
     [],
     'workflow/common.md',
     ['resolved-role']

@@ -24,11 +24,12 @@
     "orchestration": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["dispatcher", "task_analysis", "role_planner", "rule_resolution", "context_resolution", "preflight", "executor_adapter", "role_entry_contract"],
+      "required": ["dispatcher", "task_analysis", "role_planner", "result_reporting", "rule_resolution", "context_resolution", "preflight", "executor_adapter", "role_entry_contract"],
       "properties": {
         "dispatcher": { "$ref": "#/$defs/workflowRelativePath" },
         "task_analysis": { "$ref": "#/$defs/workflowRelativePath" },
         "role_planner": { "$ref": "#/$defs/workflowRelativePath" },
+        "result_reporting": { "$ref": "#/$defs/workflowRelativePath" },
         "rule_resolution": { "$ref": "#/$defs/workflowRelativePath" },
         "context_resolution": { "$ref": "#/$defs/workflowRelativePath" },
         "preflight": { "$ref": "#/$defs/workflowRelativePath" },

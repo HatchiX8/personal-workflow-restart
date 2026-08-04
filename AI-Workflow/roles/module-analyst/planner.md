@@ -33,6 +33,11 @@ Frontend／Backend Target 只能由 Task Manifest 與 repository evidence 確認
 - 使用者主動提供的背景資料、文件、限制與已知邊界必須保留為任務證據，供後續分析參考。
 - validation profile 固定包含 `analysis-evidence`、`boundary-review` 與 `output-review`。
 
+## 結果回報設定
+
+依 `orchestration.result_reporting` 共用政策，使用 Target、Scope mode、module size 與分析風險產生
+`result_reporting`。此層級只控制完成回覆，不得縮減 Module Context 正式文件。
+
 ## 禁止事項
 
 - 不得選取 Frontend／Backend Analysis Skill ID。

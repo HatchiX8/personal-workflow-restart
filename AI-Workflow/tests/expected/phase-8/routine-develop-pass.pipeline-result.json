@@ -9,6 +9,7 @@
     "developer.core",
     "developer.workflow",
     "developer.self-review",
+    "policy.result-reporting",
     "developer.output"
   ],
   "load_order_rule_ids": [
@@ -18,6 +19,7 @@
     "developer.core",
     "developer.workflow",
     "developer.self-review",
+    "policy.result-reporting",
     "developer.output"
   ],
   "selected_context_ids": [],

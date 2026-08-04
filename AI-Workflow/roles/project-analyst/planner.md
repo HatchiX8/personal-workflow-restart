@@ -31,6 +31,11 @@
 - Project Context 可作為 optional 輸入；不存在時依既有 onboarding warning 政策處理。
 - validation profile 固定包含 `analysis-evidence` 與 `output-review`。
 
+## 結果回報設定
+
+依 `orchestration.result_reporting` 共用政策，使用 Scope mode、Project shape、分析深度與已知風險
+產生 `result_reporting`。此層級只控制完成回覆，不得縮減 Project Analysis 正式文件。
+
 ## 禁止事項
 
 - 不得選取技術棧或分析 Profile Skill ID。

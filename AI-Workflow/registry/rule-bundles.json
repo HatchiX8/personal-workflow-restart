@@ -10,6 +10,7 @@
       "policies/analysis-safety.md",
       "policies/evidence-confidence.md",
       "policies/report-file-policy.md",
+      "policies/result-reporting.md",
       "policies/secret-handling.md",
       "roles/developer/core.md",
       "roles/developer/entry.md",
@@ -53,7 +54,7 @@
       {
         "path": "bootstrap.md",
         "kind": "file",
-        "content_hash": "sha256:03dbe287c6fdd12debd55321b839f735cefcaf872a9847252b6ce636b09c7770"
+        "content_hash": "sha256:5e96c45f7dbfeeb9151a9e9caec9c57306c2155dda4140baf2fe8292ec940003"
       },
       {
         "path": "policies/analysis-safety.md",
@@ -69,6 +70,11 @@
         "path": "policies/report-file-policy.md",
         "kind": "file",
         "content_hash": "sha256:a6e4aa3eb7b5b238485885eaa4d6d991f63442387599e8263a22a46f2c8be28d"
+      },
+      {
+        "path": "policies/result-reporting.md",
+        "kind": "file",
+        "content_hash": "sha256:8c0f48b69f1a984f43a2d6e5fd00d4dcaa7a79f699320b5ba083c844ac0f714e"
       },
       {
         "path": "policies/secret-handling.md",
@@ -88,7 +94,7 @@
       {
         "path": "roles/developer/output.md",
         "kind": "file",
-        "content_hash": "sha256:82a75cb187e5629164f984d87aa795f4f5f7bdef9ce225ed7acc9f7ba4aa24db"
+        "content_hash": "sha256:77e28c64e397becb15ca132d798fdc1771277188e8cb70181a15fd490827e6c2"
       },
       {
         "path": "roles/developer/restrictions.md",
@@ -113,7 +119,7 @@
       {
         "path": "roles/module-analyst/output.md",
         "kind": "file",
-        "content_hash": "sha256:4b00e391161ba0f81a39b344e38cae532460ca11cb7be431a7461bc5a158c088"
+        "content_hash": "sha256:42ff4f10808ed1e626fa55e0b82698393b4eef5d8d0f9a1ad4e49b29b86d293d"
       },
       {
         "path": "roles/module-analyst/report.md",
@@ -143,7 +149,7 @@
       {
         "path": "roles/project-analyst/output.md",
         "kind": "file",
-        "content_hash": "sha256:239c2c65b33534843db28c160b7e07e1f7dff625a741571b46489997625807c1"
+        "content_hash": "sha256:a533c8c24ceeec351c8f3867d6a8e42e8573867277c341dcf5a114d6c50f9657"
       },
       {
         "path": "roles/project-analyst/restrictions.md",
@@ -223,7 +229,7 @@
       {
         "path": "roles/review/output.md",
         "kind": "file",
-        "content_hash": "sha256:d41bf14b7e762d0885c5aead41dd1cc9c15d76c14f7693c40709a3bccea3a542"
+        "content_hash": "sha256:1fd579a32f5a28c48efba5f7e0cad9b1e9c06f9cb6c8eeb0a5eab060e0bd83da"
       },
       {
         "path": "roles/review/pass-conditions.md",
@@ -246,7 +252,7 @@
         "content_hash": "sha256:6c6488c2e1e45dbc5b92dd9c4f768b44389f032a0ea508cdf60e638b99fb298b"
       }
     ],
-    "fingerprint": "sha256:1d4a0ea5f3bba6bd92c9896cb78ebf695c085ee3ee0af6075f06f008cbf1bf63"
+    "fingerprint": "sha256:a1d295fa75a1308d2333931d034a0d75d6ff04eaf803fc7a1def4d3e4d315f69"
   },
   "path_contract": "所有規則路徑皆相對於 AI-Workflow Root；核心規則只由 Bundle 與相依關係選取，不可猜測檔名。",
   "dependency_contract": {
@@ -316,6 +322,26 @@
       "dependencies": [],
       "precedence": {
         "source": "policies/report-file-policy.md",
+        "rank": 0
+      }
+    },
+    {
+      "rule_id": "policy.result-reporting",
+      "path": "policies/result-reporting.md",
+      "category": "common",
+      "status": "active",
+      "load_policy": "required",
+      "role_ids": [
+        "developer",
+        "review",
+        "project-analyst",
+        "module-analyst"
+      ],
+      "required": true,
+      "triggers": [],
+      "dependencies": [],
+      "precedence": {
+        "source": "policies/result-reporting.md",
         "rank": 0
       }
     },
@@ -492,7 +518,8 @@
       ],
       "dependencies": [
         "developer.workflow",
-        "developer.self-review"
+        "developer.self-review",
+        "policy.result-reporting"
       ],
       "precedence": {
         "source": "roles/developer/output.md",
@@ -594,7 +621,8 @@
       ],
       "dependencies": [
         "review.workflow",
-        "policy.report-file"
+        "policy.report-file",
+        "policy.result-reporting"
       ],
       "precedence": {
         "source": "roles/review/output.md",
@@ -932,7 +960,8 @@
       ],
       "dependencies": [
         "project.workflow",
-        "policy.report-file"
+        "policy.report-file",
+        "policy.result-reporting"
       ],
       "precedence": {
         "source": "roles/project-analyst/output.md",
@@ -1019,7 +1048,8 @@
       ],
       "dependencies": [
         "module.workflow",
-        "policy.report-file"
+        "policy.report-file",
+        "policy.result-reporting"
       ],
       "precedence": {
         "source": "roles/module-analyst/output.md",
@@ -1058,7 +1088,8 @@
         "resolved-role"
       ],
       "rule_ids": [
-        "common.workflow-mode"
+        "common.workflow-mode",
+        "policy.result-reporting"
       ],
       "dependencies": [],
       "source": "workflow/common.md"

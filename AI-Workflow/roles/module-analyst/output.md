@@ -4,6 +4,10 @@
 
 本文件定義 Module Analyst 產出的 module context md 檔格式與內容要求。
 
+本文件是正式產物格式，不受 `policies/result-reporting.md` 的 Level 1～3 縮減。完成分析後的
+對話回覆才套用 Result Reporting 層級，並至少把 Module Context 狀態與實際路徑合併到完成內容
+或任務摘要；不得為符合層級而省略正式文件的必要區塊。
+
 ## 目標
 
 - 產出後續 agent 可直接閱讀並遵守的模組 context

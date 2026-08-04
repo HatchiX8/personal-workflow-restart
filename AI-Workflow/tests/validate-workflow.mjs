@@ -638,6 +638,14 @@ function checkRolePlannerCases() {
     for (const selector of testCase.expected_selectors ?? []) {
       assert(rolePlan.skill_selectors.includes(selector), `Role Plan selector missing: ${testCase.scenario_id}/${selector}`);
     }
+    assert(
+      rolePlan.result_reporting?.minimum_level === testCase.expected_result_level,
+      `Role Plan Result Reporting level mismatch: ${testCase.scenario_id}`
+    );
+    assert(
+      rolePlan.result_reporting?.upward_escalation === true && rolePlan.result_reporting?.reasons?.length > 0,
+      `Role Plan Result Reporting contract incomplete: ${testCase.scenario_id}`
+    );
   }
   notes.push(`Role Planner checked: ${fixture?.cases?.length ?? 0} cases`);
 }
@@ -648,7 +656,7 @@ function checkReferencePipeline() {
   if (!manifest || !expected) return;
   const roots = { workflowRoot, projectRoot };
   const run = runReferencePipeline(manifest, roots);
-  const preflight = preflightReferencePipeline({ manifest, resolution: run.resolution, context: run.context, roots });
+  const preflight = preflightReferencePipeline({ manifest, rolePlan: run.rolePlan, resolution: run.resolution, context: run.context, roots });
   assert(preflight.status === expected.preflight_status, 'Reference pipeline Preflight status mismatch.');
   assert(preflight.can_execute === expected.can_execute, 'Reference pipeline can_execute mismatch.');
   assert(JSON.stringify(run.resolution.rules.map((rule) => rule.rule_id)) === JSON.stringify(expected.selected_rule_ids), 'Reference pipeline selected Rule IDs mismatch.');
@@ -659,12 +667,49 @@ function checkReferencePipeline() {
   for (const context of run.resolution.contexts) assert(/^sha256:[a-f0-9]{64}$/.test(context.content_hash), `Reference pipeline missing real Context hash: ${context.context_id}`);
   assert(/^sha256:[a-f0-9]{64}$/.test(run.resolution.fingerprint), 'Reference pipeline missing real fingerprint.');
   assert(preflight.execution_contract?.rule_set_fingerprint === run.resolution.fingerprint, 'Passing Preflight must expose the frozen Rule Set fingerprint.');
-  const accepted = verifyExecutor({ resolution: run.resolution, preflight, roots });
+  assert(
+    JSON.stringify(preflight.execution_contract?.result_reporting) === JSON.stringify(run.rolePlan.result_reporting),
+    'Passing Preflight must freeze the Role Plan Result Reporting contract.'
+  );
+  const accepted = verifyExecutor({ resolution: run.resolution, preflight, rolePlan: run.rolePlan, roots });
   assert(accepted.accepted === true, `Executor must accept a fresh frozen Rule Set: ${accepted.reason}`);
+  const missingReportingPreflight = preflightReferencePipeline({
+    manifest,
+    resolution: run.resolution,
+    context: run.context,
+    roots
+  });
+  assert(
+    missingReportingPreflight.status === 'BLOCKED' &&
+      missingReportingPreflight.blockers.includes('result-reporting-missing'),
+    'Preflight must block a missing Result Reporting contract.'
+  );
+  const rewrittenReportingPreflight = {
+    ...preflight,
+    execution_contract: {
+      ...preflight.execution_contract,
+      result_reporting: {
+        minimum_level: 1,
+        reasons: ['rewritten-after-preflight'],
+        upward_escalation: true
+      }
+    }
+  };
+  const reportingMismatch = verifyExecutor({
+    resolution: run.resolution,
+    preflight: rewrittenReportingPreflight,
+    rolePlan: run.rolePlan,
+    roots
+  });
+  assert(
+    reportingMismatch.accepted === false && reportingMismatch.reason === 'result-reporting-contract-mismatch',
+    'Executor must reject a rewritten Result Reporting contract.'
+  );
   const firstRulePath = path.resolve(workflowRoot, run.resolution.rules[0].path);
   const tampered = verifyExecutor({
     resolution: run.resolution,
     preflight,
+    rolePlan: run.rolePlan,
     roots,
     readBytes: (absolutePath) => absolutePath === firstRulePath ? Buffer.from('tampered-bytes') : fs.readFileSync(absolutePath)
   });
@@ -717,7 +762,7 @@ function checkReferencePipeline() {
     status: 'analyzed'
   };
   const developerRun = runReferencePipeline(developerManifest, roots);
-  const developerPreflight = preflightReferencePipeline({ manifest: developerManifest, resolution: developerRun.resolution, context: developerRun.context, roots });
+  const developerPreflight = preflightReferencePipeline({ manifest: developerManifest, rolePlan: developerRun.rolePlan, resolution: developerRun.resolution, context: developerRun.context, roots });
   assertRoleSkills(developerRun, 'developer', [
     'developer.backend.base',
     'developer.frontend.base',
@@ -727,6 +772,7 @@ function checkReferencePipeline() {
     'developer.runtime.node-js'
   ], 'Developer fullstack isolation');
   assert(developerPreflight.status === 'PASS' && developerPreflight.can_execute === true, 'Developer fullstack without required Project Context must pass.');
+  assert(developerPreflight.execution_contract?.result_reporting?.minimum_level === 3, 'Developer fullstack must use Result Reporting Level 3.');
 
   const reviewManifest = {
     ...manifest,
@@ -745,7 +791,7 @@ function checkReferencePipeline() {
     status: 'analyzed'
   };
   const reviewRun = runReferencePipeline(reviewManifest, roots);
-  const reviewPreflight = preflightReferencePipeline({ manifest: reviewManifest, resolution: reviewRun.resolution, context: reviewRun.context, roots });
+  const reviewPreflight = preflightReferencePipeline({ manifest: reviewManifest, rolePlan: reviewRun.rolePlan, resolution: reviewRun.resolution, context: reviewRun.context, roots });
   assertRoleSkills(reviewRun, 'review', ['review.check.backend', 'review.check.frontend'], 'Review feature isolation');
   assert(reviewPreflight.status === 'PASS' && reviewPreflight.can_execute === true, 'Feature Review fullstack routing must pass.');
 
@@ -766,7 +812,7 @@ function checkReferencePipeline() {
     status: 'analyzed'
   };
   const moduleRun = runReferencePipeline(moduleManifest, roots);
-  const modulePreflight = preflightReferencePipeline({ manifest: moduleManifest, resolution: moduleRun.resolution, context: moduleRun.context, roots });
+  const modulePreflight = preflightReferencePipeline({ manifest: moduleManifest, rolePlan: moduleRun.rolePlan, resolution: moduleRun.resolution, context: moduleRun.context, roots });
   assertRoleSkills(moduleRun, 'module-analyst', ['module-analyst.backend', 'module-analyst.frontend'], 'Module Analyst isolation');
   assert(modulePreflight.status === 'PASS_WITH_WARNINGS' && modulePreflight.can_execute === true, 'Module Analysis with unbound optional Context must pass with warnings.');
 
@@ -776,13 +822,13 @@ function checkReferencePipeline() {
     skill_ids: ['developer.language.typescript']
   };
   const incompatibleRun = runReferencePipeline(incompatibleManifest, roots);
-  const incompatiblePreflight = preflightReferencePipeline({ manifest: incompatibleManifest, resolution: incompatibleRun.resolution, context: incompatibleRun.context, roots });
+  const incompatiblePreflight = preflightReferencePipeline({ manifest: incompatibleManifest, rolePlan: incompatibleRun.rolePlan, resolution: incompatibleRun.resolution, context: incompatibleRun.context, roots });
   assert(incompatibleRun.resolution.unresolved.includes('skill-role-incompatible:developer.language.typescript'), 'Explicit cross-role Skill must be unresolved.');
   assert(incompatiblePreflight.status === 'BLOCKED' && incompatiblePreflight.can_execute === false, 'Explicit cross-role Skill must be blocked.');
 
   const developerSkillRule = developerRun.resolution.rules.find((rule) => rule.rule_id === 'developer.language.typescript');
   const contaminatedResolution = { ...reviewRun.resolution, rules: [...reviewRun.resolution.rules, developerSkillRule] };
-  const contaminatedPreflight = preflightReferencePipeline({ manifest: reviewManifest, resolution: contaminatedResolution, context: reviewRun.context, roots });
+  const contaminatedPreflight = preflightReferencePipeline({ manifest: reviewManifest, rolePlan: reviewRun.rolePlan, resolution: contaminatedResolution, context: reviewRun.context, roots });
   assert(contaminatedPreflight.blockers.includes('skill-role-mismatch:developer.language.typescript'), 'Preflight must independently block a cross-role Skill.');
 }
 

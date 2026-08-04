@@ -27,7 +27,7 @@
       {
         "path": "roles/developer/planner.md",
         "kind": "file",
-        "content_hash": "sha256:85159f0e93642d1599439ee5a075a854c49585e959171ef9992b80af24bf5a36"
+        "content_hash": "sha256:f1d2f02e2e253697c904ec1462eabb19fe2e6b14d1f86b86ab1b920571733a4c"
       },
       {
         "path": "roles/module-analyst/entry.md",
@@ -37,7 +37,7 @@
       {
         "path": "roles/module-analyst/planner.md",
         "kind": "file",
-        "content_hash": "sha256:1f5e3f7c7234d9901507c2b8511270fb4e22e82808d010ec8e19c56192b2a99d"
+        "content_hash": "sha256:c2f82ea7694a89e0a9ea3442e044c0532ebd7dbb895a8d90910286899d5a4d39"
       },
       {
         "path": "roles/project-analyst/entry.md",
@@ -47,7 +47,7 @@
       {
         "path": "roles/project-analyst/planner.md",
         "kind": "file",
-        "content_hash": "sha256:d6a21c3b8cedf0b8e0ef7fc66fdcb4b5129b929fb32dd451a2a440658b1f48b1"
+        "content_hash": "sha256:5821bee7b26463a0b284bad79764b58e8e05ce2815045e119a8f5910f7dc0d7a"
       },
       {
         "path": "roles/review/entry.md",
@@ -57,10 +57,10 @@
       {
         "path": "roles/review/planner.md",
         "kind": "file",
-        "content_hash": "sha256:9e661d2fff8923aeb5329bbfc5a4608dc1ae9a5abb2feeec3d647a217cbd1cd5"
+        "content_hash": "sha256:49f52d1290827e779d5005c7d825a1833a5016030feca4b545ba6f0bae53bc3f"
       }
     ],
-    "fingerprint": "sha256:2146598e560660a8d1fe970a46347ff91a20671b851fab05666bf337b55b3d88"
+    "fingerprint": "sha256:85d5b952112e9fc5e2f67b9e6d5837402c383da731dec3dd0ba06c477f5a74de"
   },
   "path_contract": "Every entry and bundle path is relative to the AI-Workflow root.",
   "roles": [

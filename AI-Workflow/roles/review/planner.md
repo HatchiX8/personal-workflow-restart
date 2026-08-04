@@ -35,6 +35,12 @@ Preflight 依既有政策決定 warning。
 
 Planner 只表達需要確認的 profile，不執行驗證。
 
+## 結果回報設定
+
+依 `orchestration.result_reporting` 共用政策，使用 Review mode、Target、Scope 與已知風險產生
+`result_reporting`。此層級只控制 Review 完成後的對話回覆，不得刪減 findings、PASS／FAIL 或
+mode report 的必要內容。
+
 ## 禁止事項
 
 - 不得選取 `review.check.*` Skill ID。

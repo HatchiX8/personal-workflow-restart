@@ -17,6 +17,7 @@ Executor Adapter 是通過 Preflight 的結果與標準 Role Entry 之間唯一�
 - Role Plan 的 Role、Action 與 Planner entry 符合 Role Registry。
 - `preflight.execution_contract.role_id` 等於已凍結 Rule Set 的 Role。
 - `preflight.execution_contract.executor_entry` 等於 Registry 的 Role entry。
+- `preflight.execution_contract.result_reporting` 等於 Role Plan 已驗證的 Result Reporting 契約。
 - 提供的 Rule Set fingerprint 同時等於 Preflight fingerprint，以及使用已選檔案 hash 重新計算的結果。
 - 每個已選 Rule 與 Context 仍可從記錄的路徑讀取。
 
@@ -30,11 +31,15 @@ Executor Adapter 是通過 Preflight 的結果與標準 Role Entry 之間唯一�
 
 - 只載入 `executor_entry`、Rule Set 已選規則與已選 Context 路徑。
 - 保留 Rule Set 的 `load_order` 與 `precedence_rank`。
-- 將 Task Manifest、Role Plan、Resolved Rule Set 與 `execution_contract` 作為唯讀輸入交給 Role Entry。
+- 將 Task Manifest、Role Plan、Resolved Rule Set 與包含 Result Reporting 契約的
+  `execution_contract` 作為唯讀輸入交給 Role Entry。
 - 將 Role Entry 的 `completed`、`blocked` 或 `reroute-required` 原樣交回 Dispatcher。
 
 README 一律是工程文件，不得作為 execution rule 載入。Role Entry 也不得替換已推導的 Role、
 Skill、Target、Module、角色模式、Context 或規則路徑。
+
+Role Entry 可以依已載入的 Result Reporting 政策，在角色工作完成後提高回覆層級，但不得低於
+`execution_contract.result_reporting.minimum_level`，也不得因回覆層級調整而改變執行契約。
 
 ## Execute 邊界
 

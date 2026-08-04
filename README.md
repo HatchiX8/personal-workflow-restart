@@ -223,6 +223,19 @@ Skill：<Registry skill_id>
 routing，也不需要提供 Workflow 路徑、規則路徑或 Context 路徑。請將這些資訊自然地寫進任務
 描述，由 Task Analysis 與 Registry 驗證後推導。
 
+## 結果回覆層級
+
+Workflow 會依任務範圍與風險自動選擇完成回覆層級，不需要在 Prompt 指定 Level：
+
+- Level 1：單一檔案、單一 Target 且沒有高風險事實的微小修改。
+- Level 2：一般開發、Review 或限定範圍分析，也是資訊不足時的預設層級。
+- Level 3：跨模組、全專案、Full Stack、Migration，或涉及架構、資料、權限、安全與公開契約的任務。
+
+執行前判定的是最低層級；若驗證失敗、發現重大風險，或 Review 出現 blocker／high finding，
+Agent 只能向上提升。這項設定只控制對話中的完成回覆，不會縮減 Review report、Project Analysis
+或 Module Context 等正式產物。使用者仍可用自然語句要求「簡短回覆」或「完整報告」，但不得降低
+必要風險資訊。
+
 ## 驗證入口
 
 完成 `AGENTS.md` 與 Project Config 設定後，送出：

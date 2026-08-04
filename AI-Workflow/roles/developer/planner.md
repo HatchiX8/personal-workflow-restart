@@ -41,6 +41,11 @@ Planner 可以依已確認事實提出 validation profile：
 
 實際指令與是否可執行仍由 Project Context、已選 Skill 與 Developer validation 規則決定。
 
+## 結果回報設定
+
+依 `orchestration.result_reporting` 共用政策，使用已確認的 Task Type、Target、Risk 與 Scope mode
+產生 `result_reporting`。資訊不足時最低層級為 Level 2；不得因開發任務看似簡短就省略風險判定。
+
 ## Context 需求
 
 - Module 範圍或跨模組開發需要 `module` Context。

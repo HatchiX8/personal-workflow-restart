@@ -35,7 +35,8 @@ Bootstrap
 
 - Bootstrap 只尋找 Workflow Root、Workflow Config、Project Config 與核心 orchestration contract。
 - Task Analysis 產生結構化 Task Manifest，推導 Action、Task Type、Target、Module 與 Scope。
-- Role Planner 執行該角色的 `roles/<role-id>/planner.md`，產生 Role Plan 與 Skill selectors，不直接載入規則。
+- Role Planner 執行該角色的 `roles/<role-id>/planner.md`，產生 Role Plan、Skill selectors 與
+  Result Reporting 最低層級，不直接載入 Skill 規則。
 - Rule Resolution 根據 Task Manifest 與 Role Plan，只從 Registry 選取本次需要的角色核心、Skill、Review 與 Context 規則。
 - Preflight 驗證 Manifest、Registry、規則檔案、Context、inclusion dependency、獨立 load order、Hash 與 Rule Set fingerprint；precedence 只用於規則衝突裁決。
 - Execute 透過 `orchestration/role-entry-contract.md` 將固定輸入交給 `roles/<role-id>/entry.md`，不重新判斷角色、Skill 或 Context。
@@ -69,7 +70,17 @@ README 一律是工程使用說明，不是 routing source，也不得登錄為 
 - `AI-Workflow/roles/**` 中既有角色規則
 - 已通過 Registry 選取的 Project／Module Context
 
-角色入口固定為 `AI-Workflow/roles/<role-id>/entry.md`，只接收 Task Manifest、Role Plan、Resolved Rule Set 與通過 Preflight 的 Execution Contract。新增 Role、Skill 或 Context 時，應先更新對應 Manifest 或 Registry 契約，再建立回歸 fixture。
+角色入口固定為 `AI-Workflow/roles/<role-id>/entry.md`，只接收 Task Manifest、Role Plan、Resolved
+Rule Set 與通過 Preflight 的 Execution Contract。Execution Contract 會凍結 Result Reporting
+最低層級；執行後只能依驗證失敗或新風險向上提升。新增 Role、Skill 或 Context 時，應先更新對應
+Manifest 或 Registry 契約，再建立回歸 fixture。
+
+## 任務完成回覆
+
+`policies/result-reporting.md` 將對話完成回覆分為三層：微小修改使用 Level 1、一般任務預設
+Level 2、高風險或大範圍任務使用 Level 3。這個層級只控制完成回覆的詳細程度，不會縮減 Review
+report、Project Analysis 或 Module Context 等正式產物。沒有風險、限制或後續事項時，Agent 必須
+省略對應區塊。
 
 ## 選填控制欄位
 

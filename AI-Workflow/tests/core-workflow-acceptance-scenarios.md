@@ -22,7 +22,7 @@ Review 或分析工作。
 1. Bootstrap 能取得 Workflow Config 與 Project Config。
 2. Task Analysis 產生 `status=analyzed` 的 Task Manifest。
 3. Role、Action、模式與 Target 符合情境預期。
-4. 對應角色 Planner 產生 `status=planned` 的 Role Plan。
+4. 對應角色 Planner 產生 `status=planned` 的 Role Plan，且包含 Result Reporting 最低層級與理由。
 5. Rule Resolution 載入角色核心規則。
 6. 明確指定的 Skill 使用精確 Skill ID 載入。
 7. 未指定 Skill 時，只依 Role Plan selectors 自動載入相關 Skill。
@@ -182,7 +182,7 @@ Skill：developer.language.typescript
 記錄下列產物後停止：
 
 - Task Manifest 的 Action、Role、Target、Module 與角色模式。
-- Role Plan 的 `planner_entry`、`skill_selectors` 與 status。
+- Role Plan 的 `planner_entry`、`skill_selectors`、`result_reporting` 與 status。
 - Resolved Rule Set 的核心 Rule IDs 與 Skill IDs。
 - 未解析項目或衝突。
 

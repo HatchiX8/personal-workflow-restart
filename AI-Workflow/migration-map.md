@@ -34,9 +34,11 @@
 
 1. Bootstrap 驗證 Workflow Root、Workflow Config、Project Root、Project Config 與核心編排契約。
 2. Task Analysis 產生 Task Manifest，推導 Action、Task Type、Target、Module 與 Scope。
-3. Role Planner 執行 `roles/<role-id>/planner.md`，產生 Role Plan 與 Skill selectors。
+3. Role Planner 執行 `roles/<role-id>/planner.md`，產生 Role Plan、Skill selectors 與 Result
+   Reporting 最低層級。
 4. Rule Resolution 依 Task Manifest 與 Role Plan 選取角色核心、Skill 與 Context 規則。
-5. Preflight 驗證必要規則、Context、Hash、fingerprint 與 Execution Contract。
+5. Preflight 驗證必要規則、Context、Hash、fingerprint 與 Execution Contract，並凍結 Result
+   Reporting 契約。
 6. Executor Adapter 將通過驗證的 Task Manifest、Role Plan 與固定 Rule Set 交給 Role Entry。
 7. Execute 只依核准的 Scope、Action、Role Plan、Rule Set 與 Context 執行，不重新進行 routing。
 

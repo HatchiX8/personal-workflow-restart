@@ -45,12 +45,28 @@
     "executionContract": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["role_id", "executor_entry", "rule_set_fingerprint", "allowed_action"],
+      "required": ["role_id", "executor_entry", "rule_set_fingerprint", "allowed_action", "result_reporting"],
       "properties": {
         "role_id": { "type": "string" },
         "executor_entry": { "type": "string" },
         "rule_set_fingerprint": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
-        "allowed_action": { "enum": ["develop", "review", "analyze"] }
+        "allowed_action": { "enum": ["develop", "review", "analyze"] },
+        "result_reporting": { "$ref": "#/$defs/resultReporting" }
+      }
+    },
+    "resultReporting": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["minimum_level", "reasons", "upward_escalation"],
+      "properties": {
+        "minimum_level": { "type": "integer", "minimum": 1, "maximum": 3 },
+        "reasons": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "upward_escalation": { "const": true }
       }
     }
   },
