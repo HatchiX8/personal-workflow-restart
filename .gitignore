@@ -1,9 +1,10 @@
 .env
 reviews
 module-context
+tests
 AI-Workflow/reviews/
 AI-Workflow/module-context/
-
+AI-Workflow/tests/
 # Local Workflow runtime artifacts. Keep project.config.json tracked.
 .ai-workflow/runtime/
 AI-Workflow/runtime/
