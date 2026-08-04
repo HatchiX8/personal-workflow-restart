@@ -49,6 +49,14 @@
 5. 對照情境文件中的預期 Role 與 Skill。
 6. 結果正確即 PASS；缺少、誤選或開始執行實際任務即 FAIL。
 
+## 驗收報告存放規則
+
+- 需要保存完整驗收結果時，統一寫入 `AI-Workflow/tests/results/`。
+- 檔名使用 `YYYYMMDD-HHmm-<驗收主題>.md`，避免覆寫不同批次的結果。
+- 不得將執行結果、模型回覆或臨時除錯紀錄放在 `AI-Workflow/tests/` 根目錄、`fixtures/` 或 `expected/`。
+- `results/` 內的驗收報告是本機產物，預設不納入 Git 版本控制。
+- 測試程式、驗收情境、`fixtures/` 與 `expected/` 是可重現驗證所需資產，必須保留在版本控制中。
+
 ## 模型分配
 
 | 驗收情境 | 建議模型 | 原因 |

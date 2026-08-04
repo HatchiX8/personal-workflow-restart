@@ -1,10 +1,11 @@
 .env
 reviews
 module-context
-tests
 AI-Workflow/reviews/
 AI-Workflow/module-context/
-AI-Workflow/tests/
+# 驗收報告屬於本機執行產物；測試程式、案例與預期結果仍需納入版本控制。
+AI-Workflow/tests/results/*
+!AI-Workflow/tests/results/README.md
 # Local Workflow runtime artifacts. Keep project.config.json tracked.
 .ai-workflow/runtime/
 AI-Workflow/runtime/
