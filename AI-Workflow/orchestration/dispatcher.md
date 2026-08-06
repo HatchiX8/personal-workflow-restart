@@ -13,9 +13,9 @@ Project Config 與未修改的原始需求。依序：
 
 1. 載入 `orchestration.task_manifest_authoring`，由 LLM 產生不可變 Task Manifest。
 2. 載入 `orchestration.runtime_dispatch`，以 `operation=resolve-routing` 呼叫 `runtime.entry`。
-3. Runtime 回傳 `status=resolved` 後，只讀取 `next.load_paths` 指定的 Role Planner，將相同 Task
-   Manifest、Runtime 回傳的 Task Risk／Execution Profile 與已驗證 Project Config 交付 Planner，
-   產生不可變 Role Plan。
+3. Runtime 回傳 `status=resolved` 後，依序讀取 `next.load_paths` 指定的精簡 Role Plan 輸出契約與
+   Role Planner，將相同 Task Manifest、Runtime 回傳的 Task Risk／Execution Profile 與已驗證
+   Project Config 交付 Planner，產生不可變 Role Plan。
 4. 以相同 Task Manifest 與 Role Plan 呼叫 `operation=resolve-execution`。
 5. Runtime 只有在 Preflight 通過且同一次呼叫的 Executor Adapter 准入檢查 accepted 後，才能回傳
    `status=ready`。Dispatcher 必須確認 `executor_verification.accepted=true`，接著只依序載入
@@ -44,6 +44,11 @@ Contract 的 Task ID 必須一致。每一階段輸出都是下一階段不可�
 
 Runtime stdout 必須是單一合法 JSON；stderr 不參與 routing。協議版本、status、exit code 或 Task ID
 不一致時 fail closed。
+
+Runtime 回傳 `blocked`、`invalid` 或 `error` 時，才載入 `orchestration.error_interpretation`。LLM 只能
+依不可變 diagnostics 與 `error_context` 判定錯誤屬於使用者資料、專案設定、Workflow 契約、政策、
+宿主環境、執行證據或未知類型，並向使用者解釋；不得解除 blocker、補造 routing facts、修改設定或
+自行 fallback。
 
 ## Markdown fallback
 
@@ -88,7 +93,8 @@ Risk／Profile 低於既有核准值，或新結果仍不足以安全涵蓋範�
 - `READY_FOR_EXECUTION`：Runtime `status=ready` 且 `can_execute=true`。
 - `EXECUTION_REJECTED`：Executor Adapter 拒絕無效或已變更的 contract。
 
-阻擋時必須回傳 diagnostics 與原因，不得轉換成預設 Developer 任務。
+阻擋時必須依 `runtime-dispatch.md` 的阻擋回覆格式，完整回傳 `error_code` 及每筆 diagnostic 的
+`code`、`path`、`reason`，不得只顯示概括終止名稱，也不得轉換成預設 Developer 任務。
 
 ## 禁止事項
 

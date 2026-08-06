@@ -26,11 +26,13 @@
     "orchestration": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["dispatcher", "task_manifest_authoring", "runtime_dispatch", "task_analysis", "task_risk_policy", "risk_assessment", "execution_profile_resolution", "role_planner", "result_reporting", "rule_resolution", "context_resolution", "preflight", "executor_adapter", "role_entry_contract"],
+      "required": ["dispatcher", "task_manifest_authoring", "runtime_dispatch", "role_plan_authoring", "error_interpretation", "task_analysis", "task_risk_policy", "risk_assessment", "execution_profile_resolution", "role_planner", "result_reporting", "rule_resolution", "context_resolution", "preflight", "executor_adapter", "role_entry_contract"],
       "properties": {
         "dispatcher": { "$ref": "#/$defs/workflowRelativePath" },
         "task_manifest_authoring": { "$ref": "#/$defs/workflowRelativePath" },
         "runtime_dispatch": { "$ref": "#/$defs/workflowRelativePath" },
+        "role_plan_authoring": { "$ref": "#/$defs/workflowRelativePath" },
+        "error_interpretation": { "$ref": "#/$defs/workflowRelativePath" },
         "task_analysis": { "$ref": "#/$defs/workflowRelativePath" },
         "task_risk_policy": { "$ref": "#/$defs/workflowRelativePath" },
         "risk_assessment": { "$ref": "#/$defs/workflowRelativePath" },
@@ -74,7 +76,7 @@
     "runtime": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["protocol_version", "entry", "risk_policy", "minimum_node_version", "input", "output", "network", "writes", "fallback"],
+      "required": ["protocol_version", "entry", "risk_policy", "minimum_node_version", "input", "request_directory", "output", "network", "writes", "fallback"],
       "properties": {
         "protocol_version": { "const": "1.0" },
         "entry": { "$ref": "#/$defs/workflowRelativePath" },
@@ -83,7 +85,11 @@
           "type": "string",
           "pattern": "^>=[0-9]+\\.[0-9]+\\.[0-9]+$"
         },
-        "input": { "const": "stdin-json" },
+        "input": { "const": "request-file-json" },
+        "request_directory": {
+          "type": "string",
+          "const": ".ai-workflow/runtime/requests"
+        },
         "output": { "const": "stdout-json" },
         "network": { "const": false },
         "writes": {

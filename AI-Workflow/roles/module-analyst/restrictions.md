@@ -26,6 +26,7 @@ Module Analyst 只分析單一模組或使用者明確指定的模組範圍。
 
 Module Analyst 可優先讀取：
 
+- 以已凍結的模組名稱與明示別名搜尋到的候選目錄、入口與註冊點
 - 使用者指定的模組入口與同資料夾檔案
 - 模組 README、docs 或既有 context 文件
 - route、page、component、service、controller、model、schema 等直接入口
@@ -33,6 +34,10 @@ Module Analyst 可優先讀取：
 - 被模組直接暴露給外部使用的 export、API、props、events 或 contract
 - 相關型別、schema、validation、store、query key 或 API client
 - 少量測試檔，用於理解既有行為與 contract
+
+Module Registry 與既有 Module Context 路徑不得作為啟動前提。沒有候選路徑時，必須先以只讀搜尋
+建立候選集合，再用結構、import、export、route、call 或資料 contract 證據確認是否納入。檔名或
+字串相似只能產生候選，不能單獨證明模組歸屬。
 
 Module Analyst 應避免讀取：
 

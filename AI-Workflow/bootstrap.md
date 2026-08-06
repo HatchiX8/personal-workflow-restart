@@ -38,6 +38,8 @@ Workflow Root 只有一個權威來源：主機介接規則實際載入的 `boot
 - `orchestration.dispatcher`
 - `orchestration.task_manifest_authoring`
 - `orchestration.runtime_dispatch`
+- `orchestration.role_plan_authoring`
+- `orchestration.error_interpretation`
 - `runtime.risk_policy`
 - `runtime.entry`
 
@@ -60,7 +62,7 @@ Workflow Root 只有一個權威來源：主機介接規則實際載入的 `boot
 Bootstrap 只能驗證路徑與解析設定。Registry 內容、Task Risk／Execution Profile 的業務判定、作業
 規則內容，以及 project/application 檔案都不是 Bootstrap 的輸入。
 
-`runtime.entry`、Node.js 或安全 stdin 在宿主環境不可執行時，記錄非阻擋性 `runtime-unavailable`
+`runtime.entry`、Node.js 或受控 request file 在宿主環境不可執行時，記錄非阻擋性 `runtime-unavailable`
 diagnostic 並交付 Dispatcher。Bootstrap 不得自行啟動 Markdown fallback；Dispatcher 必須先取得
 目前使用者針對本次需求的明確同意。Runtime 檔案存在但其設定路徑越界，或 Workflow Config 本身
 不符合 Schema，仍須直接 `BLOCKED`。

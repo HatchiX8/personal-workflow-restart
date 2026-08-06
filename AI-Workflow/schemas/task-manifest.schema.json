@@ -23,7 +23,7 @@
       "required": ["project_id", "project_root", "config_path"],
       "properties": {
         "project_id": { "type": ["string", "null"] },
-        "project_root": { "type": ["string", "null"] },
+        "project_root": { "const": "." },
         "config_path": { "type": ["string", "null"] }
       }
     },

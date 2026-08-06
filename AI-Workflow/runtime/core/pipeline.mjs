@@ -363,7 +363,7 @@ export function buildReferenceRolePlan(manifest, role, taskRisk = null) {
     skill_selectors: [...skillSelectors].sort(),
     result_reporting: deriveResultReporting(manifest, taskRisk),
     validation_profiles: [],
-    context_requirements: manifest.modules?.length ? ['module'] : [],
+    context_requirements: manifest.modules?.length && manifest.role_id !== 'module-analyst' ? ['module'] : [],
     unresolved,
     status: unresolved.length ? 'needs-resolution' : 'planned'
   };
@@ -449,7 +449,7 @@ export function resolveContexts({ manifest, projectConfig, modulesRegistry, root
     result.blockers.push('project-id-mismatch');
     return result;
   }
-  if (!isPathWithin(roots.projectRoot, manifest.project?.project_root ?? '.')) {
+  if (manifest.project?.project_root !== '.') {
     result.blockers.push('project-root-path-invalid');
     return result;
   }
@@ -498,6 +498,10 @@ export function resolveContexts({ manifest, projectConfig, modulesRegistry, root
   if (eligibleProjectContexts.length > 1) (projectMustExist ? result.blockers : result.warnings).push('project-context-conflict');
   else if (eligibleProjectContexts.length === 1) addContext(eligibleProjectContexts[0], 'project');
   else if (projectMustExist) result.blockers.push('required-project-context-missing');
+
+  // Module Analyst creates a fresh Module Context from repository evidence. Its
+  // named module is a discovery seed, not a pointer into the Context Registry.
+  if (manifest.role_id === 'module-analyst' && manifest.analysis_mode === 'module') return result;
 
   for (const requested of manifest.modules ?? []) {
     const requestedId = requested.module_id ?? requested.name;

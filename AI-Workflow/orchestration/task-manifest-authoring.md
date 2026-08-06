@@ -23,7 +23,7 @@
   "target_mode": "single|fullstack|mixed|unknown",
   "project": {
     "project_id": "來自已驗證 Project Config",
-    "project_root": "canonical Project Root",
+    "project_root": ".",
     "config_path": "project.config.json"
   },
   "modules": [],
@@ -42,6 +42,10 @@
 }
 ```
 
+`task_manifest.project.project_root` 是 Project Root-relative 的身分欄位，必須固定為 `.`；不得填入
+canonical 絕對路徑。Runtime Request 外層的 `project_root` 才可攜帶 canonical Project Root，並由
+Runtime 驗證其與啟動 cwd 完全相同。
+
 `modules[]` 每項使用 `{module_id,name,aliases,candidate_paths}`。`provenance` 至少為 `action`、
 `task_type`、`role_id`、`skill_ids`、`targets`、`modules`、`scope`、`routing_triggers`、`review_mode` 與
 `analysis_mode` 提供 `{source,confidence,evidence,candidates}`；`source` 只能是 `explicit`、`config`、
@@ -54,13 +58,16 @@
   全專案或模組為 `analyze`，並依已確認範圍使用 `project-analyst` 或 `module-analyst`。
 - 使用者明確提供的 `角色：<role_id>` 或 `Skill：<skill_id>` 原樣保留，交由 Runtime 精確驗證。
   不得讀取完整 Registry，也不得用相似名稱修正未知 ID。
-- Develop 必須解析至少一個 Target。只有 Project Analysis，或可安全只使用 common checks 的
-  Review，才能讓 Target 為空。
+- Develop 必須解析至少一個 Target。Project Analysis、未限制 Target 的 Module Analysis，或可安全只
+  使用 common checks 的 Review，才能讓 Target 為空。Module Analysis 的空 Targets 表示先執行
+  target-neutral repository discovery，不代表已確認沒有 Frontend／Backend。
 - 只有確定同時包含 frontend 與 backend 時使用 `target_mode=fullstack`；多個其他 Target 使用
   `mixed`；唯一 Target 使用 `single`。
 - Review 的 `review_mode` 必須由 staged/worktree 單次變更或完整 feature 範圍明確支持；Analyze 的
   `analysis_mode` 必須由 project/module 範圍明確支持。
-- 路徑只能來自使用者明示或可重現的 repository evidence。不要從摘要自由文字推測 Module 或路徑。
+- 一般任務的路徑只能來自使用者明示或可重現的 repository evidence。Module Analysis 若明確指定
+  唯一模組名稱，可直接將該名稱記錄為 Module 搜尋種子；`candidate_paths` 可以為空，不得因此要求
+  Module Registry 或既有 Module Context。實際檔案範圍由 Module Analyst 在執行階段以只讀搜尋建立。
 
 ## 風險輸入事實
 

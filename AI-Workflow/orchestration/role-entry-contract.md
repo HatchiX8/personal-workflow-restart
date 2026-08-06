@@ -39,7 +39,9 @@ Role Entry 不得：
 - 重新解析原始 Prompt。
 - 重新執行 Role Planner，或修改 Role Plan 的流程、selector、能力需求與輸出需求。
 - 推導或變更 Role、Action、Task Type、Target、Module、Skill、review mode 或 analysis mode。
-- 掃描目錄、猜測檔名，或自行補載規則與 Context。
+- 為修復 routing 而掃描目錄、猜測檔名，或自行補載規則與 Context。Module Analyst 依已凍結的唯一
+  模組搜尋種子，在 Project Root 內進行角色規則明確允許的只讀 repository discovery 不在此限；
+  discovery 不得改變 Role、Action、Module 身分或 Rule Set。
 - 改變 Rule Set 的載入順序、優先級、required／optional 狀態或 fingerprint。
 - 降低 Task Risk、替換 Execution Profile，或自行略過該 Profile 的必要階段。
 - 將完成回覆降低到 `execution_contract.result_reporting.minimum_level` 以下。
@@ -51,7 +53,8 @@ Role Entry 不得：
 - `developer`：`action=develop`，至少一個 Target；需要 Skill 時由 `skill_ids` 提供。
 - `review`：`action=review`，`review_mode` 必須為 `change` 或 `feature`。
 - `project-analyst`：`action=analyze`，`analysis_mode=project`。
-- `module-analyst`：`action=analyze`，`analysis_mode=module`，且具有唯一 Module 與至少一個 Target。
+- `module-analyst`：`action=analyze`，`analysis_mode=module`，且具有唯一 Module 搜尋種子；Target 可以
+  已確認或留空進行 target-neutral discovery。既有 Module Context 與其路徑不是必要欄位。
 
 入口若發現必要欄位缺少、輸入不一致、更高風險，或工作需要較高 Execution Profile、未載入規則、不同 Scope、Target、Module 或 Context，必須停止執行並回傳 `reroute-required`，不得在角色內重新推導。
 

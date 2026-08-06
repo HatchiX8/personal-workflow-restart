@@ -12,7 +12,6 @@
 - Task Risk 已完成，Execution Profile 已選取，且兩者 Task ID 一致
 - `analysis_mode=module`
 - 具有唯一 Module
-- 至少一個 Target
 
 條件不成立時設定 `status=needs-resolution`。
 
@@ -25,12 +24,16 @@
 - `analysis-profile=boundary|data-flow|contract|risk`
 - `module-size=normal|large`
 
-Frontend／Backend Target 只能由 Task Manifest 與 repository evidence 確認，不得依檔名猜測。
+Frontend／Backend Target 只能由 Task Manifest 與 repository evidence 確認，不得依單一檔名猜測。
+使用者未限制 Target，且 Task Analysis 尚無足夠證據時，Targets 可以為空；此時只載入角色基礎規則，
+由角色執行跨 Target 的模組邊界探索，不得因缺少 Target 阻擋。
 
 ## Context 與驗證
 
 - 既有 Context 不是 Module Analysis 的必要輸入；未綁定、缺少或不是 current 時，不得阻擋
   Role Plan 或 Skill selectors。
+- Module Registry、module alias 設定、current pointer 與 Module Context 路徑都不是 Module Analysis
+  的啟動條件，也不得加入 `context_requirements`。
 - 使用者主動提供的背景資料、文件、限制與已知邊界必須保留為任務證據，供後續分析參考。
 - validation profile 固定包含 `analysis-evidence`、`boundary-review` 與 `output-review`。
 

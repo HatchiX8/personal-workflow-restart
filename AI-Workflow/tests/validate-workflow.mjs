@@ -12,6 +12,7 @@ import {
   verifyExecutor
 } from './reference-pipeline.mjs';
 import { checkRuntimeCliIntegration } from './runtime-cli-validation.mjs';
+import { runSixScenarioAcceptance } from './runtime-six-scenario-acceptance.mjs';
 
 const testsDir = path.dirname(fileURLToPath(import.meta.url));
 const workflowRoot = path.resolve(testsDir, '..');
@@ -152,12 +153,19 @@ function checkRuntimeFallbackConsent() {
   const bootstrap = readWorkflowText('bootstrap.md');
   const dispatcher = readWorkflowText('orchestration/dispatcher.md');
   const runtimeDispatch = readWorkflowText('orchestration/runtime-dispatch.md');
+  const rolePlanAuthoring = readWorkflowText('orchestration/role-plan-authoring.md');
+  const errorInterpretation = readWorkflowText('orchestration/error-interpretation.md');
   const rootReadme = readText('README.md');
-  if (!workflowConfig || !bootstrap || !dispatcher || !runtimeDispatch || !rootReadme) return;
+  if (!workflowConfig || !bootstrap || !dispatcher || !runtimeDispatch || !rolePlanAuthoring || !errorInterpretation || !rootReadme) return;
 
   assert(
     workflowConfig.runtime?.fallback === 'user-confirmed-markdown',
     'Runtime fallback policy must require current-user confirmation.'
+  );
+  assert(
+    workflowConfig.runtime?.input === 'request-file-json'
+      && workflowConfig.runtime?.request_directory === '.ai-workflow/runtime/requests',
+    'Runtime input must use the controlled Project Root request directory.'
   );
   assert(
     /Bootstrap 不得自行啟動 Markdown fallback/.test(bootstrap),
@@ -176,8 +184,38 @@ function checkRuntimeFallbackConsent() {
     'Runtime dispatch must ask the user before loading Markdown fallback.'
   );
   assert(
+    /--request-file \.ai-workflow\/runtime\/requests\/<task_id>\.json/.test(runtimeDispatch)
+      && /`finally` 流程刪除本次 request file/.test(runtimeDispatch),
+    'Runtime dispatch must use and clean up a controlled request file.'
+  );
+  assert(
+    /不得將原始需求或 JSON 拼入 shell command/.test(runtimeDispatch)
+      && /不得接受絕對或越界路徑/.test(runtimeDispatch),
+    'Runtime request-file contract must prohibit shell interpolation and unsafe paths.'
+  );
+  assert(
     /不得預先讀取完整 Schema、Registry 或 fallback 契約/.test(runtimeDispatch),
     'Runtime dispatch must not preload fallback context before consent.'
+  );
+  assert(
+    /不得只回覆[\s\S]*概括名稱/.test(runtimeDispatch)
+      && /`code`、`path` 與 `reason`/.test(runtimeDispatch)
+      && /BLOCKED: runtime-diagnostics-invalid/.test(runtimeDispatch),
+    'Runtime dispatch must preserve structured blocker diagnostics in user-facing replies.'
+  );
+  assert(
+    workflowConfig.orchestration?.role_plan_authoring === 'orchestration/role-plan-authoring.md'
+      && /`facts` 的每一筆都必須是物件/.test(rolePlanAuthoring)
+      && /\{"facts": \["target=frontend", "framework=react"\]\}/.test(rolePlanAuthoring),
+    'Normal Runtime routing must load a compact Role Plan contract that rejects string facts.'
+  );
+  assert(
+    workflowConfig.orchestration?.error_interpretation === 'orchestration/error-interpretation.md'
+      && /user-input-required/.test(errorInterpretation)
+      && /workflow-contract-defect/.test(errorInterpretation)
+      && /不得把 `blocked`、`invalid` 或 `error` 改成 `ready`/.test(errorInterpretation)
+      && /只使用 Runtime Result、[\s\S]*`error_context`/.test(errorInterpretation),
+    'Blocked Runtime results must use the bounded LLM error interpretation contract.'
   );
   assert(
     /Agent、子代理、工具、Workflow 設定、宿主預設、過往需求的同意或自動化規則都不得代表使用者回答/.test(runtimeDispatch),
@@ -203,22 +241,18 @@ function checkExecutionSummaryFooter() {
     'Execution summary must expose the actual task mode.'
   );
   assert(
-    /- Token 消耗：<宿主提供的本次任務實際資訊\|未提供>/.test(reporting),
-    'Execution summary must expose host-provided token usage or an unavailable marker.'
+    !/- Token 消耗：/.test(reporting) && /不得加入 Token/.test(reporting),
+    'Execution summary must omit token usage.'
   );
   assert(
-    /不得以字元數、檔案大小、Tokenizer 推估值、歷史任務或其他替代資料估算 Token/.test(reporting),
-    'Execution summary must prohibit estimated token usage.'
-  );
-  assert(
-    /摘要只能包含上述兩個資訊欄位/.test(reporting) && /摘要必須是完成回覆的最後一個區塊/.test(reporting),
-    'Execution summary must remain a two-field final footer.'
+    /摘要只能包含上述任務模式/.test(reporting) && /摘要必須是完成回覆的最後一個區塊/.test(reporting),
+    'Execution summary must remain a task-mode-only final footer.'
   );
   assert(
     /AWAITING_FALLBACK_CONSENT/.test(reporting) && /Bootstrap 健康檢查/.test(reporting),
     'Consent prompts and exact Bootstrap responses must be exempt from the footer.'
   );
-  notes.push('New-version execution summary checked: mode and actual token telemetry only');
+  notes.push('New-version execution summary checked: task mode only');
 }
 
 function checkUniqueIds(label, items, key) {
@@ -436,6 +470,7 @@ function checkBootstrapAndAdapter() {
 
 function checkIntegratedInputContract() {
   const taskAnalysis = readWorkflowText('orchestration/task-analysis.md');
+  const manifestAuthoring = readWorkflowText('orchestration/task-manifest-authoring.md');
   const commonRules = readWorkflowText('workflow/common.md');
   const manifestSchema = readWorkflowJson('schemas/task-manifest.schema.json');
   if (taskAnalysis !== null) {
@@ -448,6 +483,13 @@ function checkIntegratedInputContract() {
     ?? manifestSchema?.$defs?.provenanceEntry?.properties?.source?.enum
     ?? [];
   assert(!provenanceSources.includes('legacy-default'), 'Task Manifest provenance must not allow legacy-default.');
+  assert(
+    manifestSchema?.properties?.project?.properties?.project_root?.const === '.',
+    'Task Manifest project.project_root must be fixed to the Project Root-relative value ".".'
+  );
+  if (manifestAuthoring !== null) {
+    assert(/`task_manifest\.project\.project_root`[\s\S]*必須固定為 `\.`/.test(manifestAuthoring), 'Task Manifest authoring must distinguish the relative manifest root from the canonical Runtime Request root.');
+  }
   assert(!fs.existsSync(path.join(workflowRoot, 'registry', 'legacy-aliases.json')), 'Legacy Prompt alias Registry must be removed.');
   if (commonRules !== null) assert(/固定輸入/.test(commonRules), 'Common Rules must preserve frozen workflow inputs.');
 }
@@ -470,6 +512,7 @@ function validateManifest(value, label) {
   if (!Array.isArray(value.targets) || !value.targets.every((target) => targets.includes(target)) || !unique(value.targets)) errors.push(`${label}: invalid targets`);
   if (!['single', 'fullstack', 'mixed', 'unknown'].includes(value.target_mode)) errors.push(`${label}: invalid target_mode`);
   if (!value.project || typeof value.project !== 'object' || !['project_id', 'project_root', 'config_path'].every((key) => hasOwn(value.project, key))) errors.push(`${label}: invalid project`);
+  else if (value.project.project_root !== '.') errors.push(`${label}: invalid project_root`);
   if (!Array.isArray(value.modules)) errors.push(`${label}: invalid modules`);
   if (!value.scope || !['summary', 'include_paths', 'exclude_paths', 'change_source'].every((key) => hasOwn(value.scope, key))) errors.push(`${label}: invalid scope`);
   if (!arrayOfStrings(value.routing_triggers) || !unique(value.routing_triggers)) errors.push(`${label}: invalid routing_triggers`);
@@ -486,6 +529,16 @@ function checkRuntimeFixtures() {
   const invalid = readWorkflowJson('tests/fixtures/runtime/invalid-task-manifest.json');
   assert(validateManifest(valid, 'valid-task-manifest').length === 0, 'Valid Task Manifest fixture must pass validation.');
   assert(validateManifest(invalid, 'invalid-task-manifest').length > 0, 'Invalid Task Manifest fixture must fail validation.');
+}
+
+function checkSixScenarioRuntimeAcceptance() {
+  try {
+    const results = runSixScenarioAcceptance();
+    assert(results.length === 6, 'Six-scenario Runtime acceptance must return exactly six results.');
+    notes.push('Runtime end-to-end acceptance checked: Developer/Review across L1, L2, and L3');
+  } catch (error) {
+    failures.push(`Six-scenario Runtime acceptance failed: ${error.message}`);
+  }
 }
 
 function checkTaskRiskPolicy() {
@@ -914,7 +967,35 @@ function checkReferencePipeline() {
   const moduleRun = runReferencePipeline(moduleManifest, roots);
   const modulePreflight = preflightReferencePipeline({ manifest: moduleManifest, rolePlan: moduleRun.rolePlan, resolution: moduleRun.resolution, context: moduleRun.context, roots });
   assertRoleSkills(moduleRun, 'module-analyst', ['module-analyst.backend', 'module-analyst.frontend'], 'Module Analyst isolation');
-  assert(modulePreflight.status === 'PASS_WITH_WARNINGS' && modulePreflight.can_execute === true, 'Module Analysis with unbound optional Context must pass with warnings.');
+  assert(modulePreflight.status === 'PASS' && modulePreflight.can_execute === true, 'Module Analysis must not consult or warn about an unbound Module Context.');
+  assert(moduleRun.resolution.contexts.every((item) => item.type !== 'module'), 'Module Analysis must not load an existing Module Context.');
+  assert(!moduleRun.rolePlan.context_requirements.includes('module'), 'Module Analysis Role Plan must not require Module Context.');
+
+  const discoveryManifest = {
+    ...moduleManifest,
+    task_id: 'acceptance-module-analysis-repository-discovery',
+    raw_request: '分析 inventory-v2 模組並自行從陌生專案尋找相關檔案',
+    targets: [],
+    target_mode: 'unknown',
+    modules: [{ module_id: 'inventory-v2', name: 'inventory-v2', aliases: [], candidate_paths: [] }],
+    scope: {
+      summary: 'Discover the named module from repository evidence without configured paths.',
+      include_paths: [],
+      exclude_paths: [],
+      change_source: 'request'
+    },
+    provenance: {
+      ...moduleManifest.provenance,
+      targets: { source: 'inference', confidence: 1, evidence: ['The request does not constrain a Target; use target-neutral discovery.'], candidates: [] },
+      modules: { source: 'explicit', confidence: 1, evidence: ['The request names inventory-v2.'], candidates: ['inventory-v2'] },
+      scope: { source: 'explicit', confidence: 1, evidence: ['Repository discovery is requested within Project Root.'], candidates: ['module'] }
+    }
+  };
+  const discoveryRun = runReferencePipeline(discoveryManifest, roots);
+  const discoveryPreflight = preflightReferencePipeline({ manifest: discoveryManifest, rolePlan: discoveryRun.rolePlan, resolution: discoveryRun.resolution, context: discoveryRun.context, roots });
+  assertRoleSkills(discoveryRun, 'module-analyst', [], 'Target-neutral Module Analyst isolation');
+  assert(discoveryPreflight.status === 'PASS' && discoveryPreflight.can_execute === true, 'An explicitly named module absent from Registry must pass for repository discovery.');
+  assert(discoveryRun.resolution.contexts.every((item) => item.type !== 'module'), 'Repository discovery must start without loading Module Context paths.');
 
   const incompatibleManifest = {
     ...reviewManifest,
@@ -973,6 +1054,7 @@ function main() {
   checkBootstrapAndAdapter();
   checkIntegratedInputContract();
   checkRuntimeFixtures();
+  checkSixScenarioRuntimeAcceptance();
   checkTaskRiskPolicy();
   checkRuntimeCliIntegration({ workflowRoot, projectRoot, readWorkflowJson, assert, notes });
   checkPhase3Fixtures();

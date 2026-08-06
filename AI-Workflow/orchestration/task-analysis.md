@@ -19,7 +19,8 @@ trigger。它不得在本階段計算 `task_risk.level`、選擇 Execution Profi
 - `registry/roles.json`、`registry/skills.json` 與 `registry/modules.json`。
 - 只有在路徑證據明確、可重現，且已記錄於 provenance 時，才能使用 repository 路徑證據。
 
-README、角色規則檔與 Module Context 內容都不是 Task Analysis 的來源。
+README、角色規則檔與 Module Context 內容都不是 Task Analysis 的來源。Module Analysis 不得為了
+取得檔案路徑而預先讀取 Module Context。
 
 ## 明確控制欄位
 
@@ -68,12 +69,18 @@ Canonical task type 為 `feature`、`change`、`bugfix`、`refactor`、`migratio
 - 新增或建立新能力對應 `feature`；有明確邊界的調整對應 `change`。
 - Frontend、backend、database、tooling 與 docs 是彼此獨立的 `targets`。
 - 確認同時包含 frontend 與 backend 時，正規化為 `target_mode=fullstack`。
-- 只有 Project Analysis，或可安全只使用 common checks 的 Review，才能讓 Target 為空。Develop 必須解析出 Target，Preflight 才能通過。
+- Project Analysis、未限制 Target 的 Module Analysis，或可安全只使用 common checks 的 Review，
+  可以讓 Target 為空。Module Analysis 的空 Targets 表示以角色基礎規則進行跨 Target discovery；
+  Develop 仍必須解析出 Target，Preflight 才能通過。
 
 ### Module、Scope 與角色模式
 
-- Module 只能透過明確的 Registry ID／alias，加上需求或 repository 證據進行比對，並記錄所有候選。
-- Module 比對成功但 Context 尚未綁定時，仍只是在 Manifest 中的 Module 候選，不代表已選取 Context。
+- 一般執行任務的 Module 透過明確 Registry ID／alias、需求或 repository evidence 比對。
+- `role_id=module-analyst` 且 `analysis_mode=module` 時，使用者明確指定的單一模組名稱本身就是合法的
+  discovery identity，不要求 Registry ID、alias 設定、project binding、current pointer 或既有 Context。
+  將原始名稱與明示別名保留在 `modules[0]`；`candidate_paths` 可以為空。
+- Module Analysis 若同時出現多個無法區分的模組名稱才列為 unresolved；缺少預先設定路徑本身不是
+  unresolved。
 - 使用者主動提供的背景資料、文件、限制或已知邊界必須保留在 `scope.summary` 與對應
   provenance；明確提供的路徑依既有路徑證據規則記錄。這類輸入是任務證據，不要求使用者
   另外登錄或命名為 Context。

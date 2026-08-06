@@ -15,6 +15,7 @@
       "items": { "$ref": "#/$defs/diagnostic" }
     },
     "error_code": { "type": "string", "minLength": 1 },
+    "error_context": { "$ref": "#/$defs/errorContext" },
     "task_risk": { "$ref": "task-risk.schema.json" },
     "execution_profile": { "$ref": "execution-profile.schema.json" },
     "next": {
@@ -63,6 +64,32 @@
         "reason": { "type": "string", "minLength": 1 }
       }
     },
+    "errorContext": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["stage", "role_id", "action", "analysis_mode", "manifest_status", "manifest_unresolved", "module_count", "target_count", "project_config"],
+      "properties": {
+        "stage": { "type": "string", "minLength": 1 },
+        "role_id": { "type": ["string", "null"] },
+        "action": { "type": ["string", "null"] },
+        "analysis_mode": { "type": ["string", "null"] },
+        "manifest_status": { "type": ["string", "null"] },
+        "manifest_unresolved": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+        "module_count": { "type": "integer", "minimum": 0 },
+        "target_count": { "type": "integer", "minimum": 0 },
+        "project_config": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["available", "module_registry_configured", "module_alias_count", "project_context_count"],
+          "properties": {
+            "available": { "type": "boolean" },
+            "module_registry_configured": { "type": ["boolean", "null"] },
+            "module_alias_count": { "type": ["integer", "null"], "minimum": 0 },
+            "project_context_count": { "type": ["integer", "null"], "minimum": 0 }
+          }
+        }
+      }
+    },
     "nextStage": {
       "type": "object",
       "additionalProperties": false,
@@ -108,7 +135,7 @@
     {
       "if": { "properties": { "status": { "enum": ["blocked", "invalid", "error"] } }, "required": ["status"] },
       "then": {
-        "required": ["error_code"],
+        "required": ["error_code", "error_context"],
         "properties": { "diagnostics": { "minItems": 1 } }
       }
     }

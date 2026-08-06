@@ -10,22 +10,24 @@ export function baseResult({ operation = null, status, taskId = null, diagnostic
   };
 }
 
-export function invalidResult({ operation = null, taskId = null, diagnostics }) {
+export function invalidResult({ operation = null, taskId = null, diagnostics, errorContext }) {
   return {
     ...baseResult({ operation, status: 'invalid', taskId, diagnostics }),
-    error_code: diagnostics[0]?.code ?? 'INVALID_INPUT'
+    error_code: diagnostics[0]?.code ?? 'INVALID_INPUT',
+    error_context: errorContext
   };
 }
 
-export function blockedResult({ operation, taskId = null, diagnostics, artifacts = {} }) {
+export function blockedResult({ operation, taskId = null, diagnostics, errorContext, artifacts = {} }) {
   return {
     ...baseResult({ operation, status: 'blocked', taskId, diagnostics }),
     error_code: diagnostics[0]?.code ?? 'WORKFLOW_BLOCKED',
+    error_context: errorContext,
     ...artifacts
   };
 }
 
-export function internalErrorResult({ operation = null, taskId = null }) {
+export function internalErrorResult({ operation = null, taskId = null, errorContext }) {
   return {
     ...baseResult({
       operation,
@@ -33,11 +35,12 @@ export function internalErrorResult({ operation = null, taskId = null }) {
       taskId,
       diagnostics: [{ code: 'INTERNAL_ERROR', path: null, reason: 'Runtime failed unexpectedly.' }]
     }),
-    error_code: 'INTERNAL_ERROR'
+    error_code: 'INTERNAL_ERROR',
+    error_context: errorContext
   };
 }
 
-export function routingResult({ taskManifest, taskRisk, executionProfile, plannerPath, diagnostics = [] }) {
+export function routingResult({ taskManifest, taskRisk, executionProfile, plannerPaths, diagnostics = [] }) {
   return {
     ...baseResult({
       operation: 'resolve-routing',
@@ -49,7 +52,7 @@ export function routingResult({ taskManifest, taskRisk, executionProfile, planne
     execution_profile: executionProfile,
     next: {
       stage: 'role-planner',
-      load_paths: [plannerPath]
+      load_paths: plannerPaths
     }
   };
 }

@@ -31,10 +31,45 @@ import {
 const RUNTIME_DIRECTORY = path.dirname(fileURLToPath(import.meta.url));
 const DERIVED_WORKFLOW_ROOT = path.resolve(RUNTIME_DIRECTORY, '..');
 
-async function readStdin() {
-  const chunks = [];
-  for await (const chunk of process.stdin) chunks.push(chunk);
-  return Buffer.concat(chunks.map((chunk) => Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk))).toString('utf8');
+const MAX_REQUEST_BYTES = 1024 * 1024;
+
+function readRequestFile(projectRoot, requestDirectory, requestPath) {
+  if (typeof requestPath !== 'string' || requestPath.length === 0 || path.isAbsolute(requestPath)) {
+    throw new RuntimeInputError('INVALID_REQUEST_PATH', 'Request file path must be project-relative.', '/arguments/1');
+  }
+  if (path.extname(requestPath).toLowerCase() !== '.json') {
+    throw new RuntimeInputError('INVALID_REQUEST_PATH', 'Request file must use the .json extension.', '/arguments/1');
+  }
+
+  let canonicalProjectRoot;
+  let canonicalRequestDirectory;
+  let canonicalRequestFile;
+  try {
+    canonicalProjectRoot = fs.realpathSync.native(projectRoot);
+    canonicalRequestDirectory = fs.realpathSync.native(path.resolve(canonicalProjectRoot, requestDirectory));
+    canonicalRequestFile = fs.realpathSync.native(path.resolve(canonicalProjectRoot, requestPath));
+    const requestStat = fs.lstatSync(path.resolve(canonicalProjectRoot, requestPath));
+    if (requestStat.isSymbolicLink() || !fs.statSync(canonicalRequestFile).isFile()) throw new Error('invalid-file');
+    fs.accessSync(canonicalRequestFile, fs.constants.R_OK);
+  } catch {
+    throw new RuntimeInputError('REQUEST_FILE_UNAVAILABLE', 'Request file is unavailable or is not a regular readable file.', '/arguments/1');
+  }
+
+  for (const [root, candidate] of [
+    [canonicalProjectRoot, canonicalRequestDirectory],
+    [canonicalRequestDirectory, canonicalRequestFile]
+  ]) {
+    const relation = path.relative(root, candidate);
+    if (relation === '..' || relation.startsWith(`..${path.sep}`) || path.isAbsolute(relation)) {
+      throw new RuntimeInputError('REQUEST_PATH_ESCAPE', 'Request file must remain inside the configured request directory.', '/arguments/1');
+    }
+  }
+
+  const bytes = fs.statSync(canonicalRequestFile).size;
+  if (bytes > MAX_REQUEST_BYTES) {
+    throw new RuntimeInputError('REQUEST_FILE_TOO_LARGE', 'Request file exceeds the 1 MiB limit.', '/arguments/1');
+  }
+  return fs.readFileSync(canonicalRequestFile, 'utf8');
 }
 
 function resolveReadableFileWithin(root, relativePath, fieldPath) {
@@ -79,7 +114,7 @@ function loadRoutingMetadata(workflowRoot, manifest) {
   const skillRegistry = readWorkflowJson(workflowRoot, skillRegistryPath, '/workflow_config/registries/skills');
   const role = (roleRegistry.roles ?? []).find((item) => item.role_id === manifest.role_id && item.status === 'active') ?? null;
   const skills = Array.isArray(skillRegistry.skills) ? skillRegistry.skills : [];
-  return { role, skills };
+  return { role, skills, workflowConfig };
 }
 
 function validateExecutionRegistries(workflowRoot) {
@@ -93,12 +128,17 @@ function validateExecutionRegistries(workflowRoot) {
   }
 }
 
-function validatePlannerPath(workflowRoot, role) {
+function validatePlannerPaths(workflowRoot, workflowConfig, role) {
   if (!role || typeof role.planner !== 'string') {
     throw new RuntimeWorkflowError('ROLE_PLANNER_UNRESOLVED', 'The active Role has no planner entry.', '/task_manifest/role_id');
   }
-  resolveReadableFileWithin(workflowRoot, role.planner, '/next/load_paths/0');
-  return role.planner.replaceAll('\\', '/');
+  const authoringPath = workflowConfig.orchestration?.role_plan_authoring;
+  if (typeof authoringPath !== 'string') {
+    throw new RuntimeWorkflowError('ROLE_PLAN_CONTRACT_UNRESOLVED', 'The Role Plan authoring contract is not configured.', '/workflow_config/orchestration/role_plan_authoring');
+  }
+  resolveReadableFileWithin(workflowRoot, authoringPath, '/next/load_paths/0');
+  resolveReadableFileWithin(workflowRoot, role.planner, '/next/load_paths/1');
+  return [authoringPath, role.planner].map((item) => item.replaceAll('\\', '/'));
 }
 
 function riskAndProfileDiagnostics(taskRisk, executionProfile) {
@@ -141,15 +181,49 @@ function preflightDiagnostics(preflight) {
   return diagnostics;
 }
 
+function buildErrorContext(request, roots, stage) {
+  const manifest = request?.task_manifest;
+  const projectConfigSummary = {
+    available: false,
+    module_registry_configured: null,
+    module_alias_count: null,
+    project_context_count: null
+  };
+  if (roots?.projectRoot) {
+    try {
+      const projectConfig = JSON.parse(fs.readFileSync(path.join(roots.projectRoot, 'project.config.json'), 'utf8'));
+      projectConfigSummary.available = true;
+      projectConfigSummary.module_registry_configured = typeof projectConfig.module_registry === 'string';
+      projectConfigSummary.module_alias_count = Object.keys(projectConfig.module_aliases ?? {}).length;
+      projectConfigSummary.project_context_count = Array.isArray(projectConfig.project_contexts)
+        ? projectConfig.project_contexts.length
+        : 0;
+    } catch {}
+  }
+  return {
+    stage,
+    role_id: typeof manifest?.role_id === 'string' ? manifest.role_id : null,
+    action: typeof manifest?.action === 'string' ? manifest.action : null,
+    analysis_mode: typeof manifest?.analysis_mode === 'string' ? manifest.analysis_mode : null,
+    manifest_status: typeof manifest?.status === 'string' ? manifest.status : null,
+    manifest_unresolved: Array.isArray(manifest?.unresolved)
+      ? manifest.unresolved.filter((item) => typeof item === 'string')
+      : [],
+    module_count: Array.isArray(manifest?.modules) ? manifest.modules.length : 0,
+    target_count: Array.isArray(manifest?.targets) ? manifest.targets.length : 0,
+    project_config: projectConfigSummary
+  };
+}
+
 function resolveRouting(request, roots) {
-  const { role, skills } = loadRoutingMetadata(roots.workflowRoot, request.task_manifest);
+  const { role, skills, workflowConfig } = loadRoutingMetadata(roots.workflowRoot, request.task_manifest);
   const taskRisk = assessTaskRisk(request.task_manifest);
   const executionProfile = resolveExecutionProfile(request.task_manifest, taskRisk, role, skills);
   const diagnostics = riskAndProfileDiagnostics(taskRisk, executionProfile);
 
   if (!role) diagnostics.push(diagnostic('ROLE_UNRESOLVED', '/task_manifest/role_id', 'No active Role matches role_id.'));
-  let plannerPath = null;
-  if (diagnostics.length === 0) plannerPath = validatePlannerPath(roots.workflowRoot, role);
+  let plannerPaths = null;
+  if (diagnostics.length === 0) plannerPaths = validatePlannerPaths(roots.workflowRoot, workflowConfig, role);
 
   if (diagnostics.length > 0) {
     return {
@@ -157,6 +231,7 @@ function resolveRouting(request, roots) {
         operation: request.operation,
         taskId: request.task_manifest.task_id,
         diagnostics,
+        errorContext: buildErrorContext(request, roots, 'risk-and-profile'),
         artifacts: { task_risk: taskRisk, execution_profile: executionProfile, next: null }
       }),
       exitCode: EXIT_CODES.WORKFLOW_BLOCKED
@@ -168,7 +243,7 @@ function resolveRouting(request, roots) {
       taskManifest: request.task_manifest,
       taskRisk,
       executionProfile,
-      plannerPath
+      plannerPaths
     }),
     exitCode: EXIT_CODES.SUCCESS
   };
@@ -223,6 +298,7 @@ function resolveExecution(request, roots) {
         diagnostics: diagnostics.length > 0
           ? diagnostics
           : [diagnostic('PREFLIGHT_BLOCKED', '/preflight', 'Preflight did not authorize execution.')],
+        errorContext: buildErrorContext(request, roots, 'preflight-and-executor'),
         artifacts: {
           task_risk: pipeline.taskRisk,
           execution_profile: pipeline.executionProfile,
@@ -257,25 +333,52 @@ export function runRuntimeRequest(request, roots) {
   throw new RuntimeInputError('UNSUPPORTED_OPERATION', 'Unsupported runtime operation.', '/operation');
 }
 
-function errorContext(request) {
+function failureEnvelope(request, roots, stage) {
   return {
     operation: typeof request?.operation === 'string' ? request.operation : null,
-    taskId: typeof request?.task_manifest?.task_id === 'string' ? request.task_manifest.task_id : null
+    taskId: typeof request?.task_manifest?.task_id === 'string' ? request.task_manifest.task_id : null,
+    errorContext: buildErrorContext(request, roots, stage)
   };
+}
+
+function inferFailureStage(request, error) {
+  const paths = (error?.diagnostics ?? []).map((item) => item?.path).filter((item) => typeof item === 'string');
+  if (paths.some((item) => item.startsWith('/role_plan'))) return 'role-plan-validation';
+  if (paths.some((item) => item.startsWith('/task_manifest'))) return 'task-manifest-validation';
+  if (request?.operation === 'resolve-routing') return 'routing';
+  if (request?.operation === 'resolve-execution') return 'execution';
+  return 'runtime-boundary';
+}
+
+function parseRequestContext(rawInput) {
+  try {
+    const candidate = JSON.parse(rawInput);
+    return candidate && typeof candidate === 'object' && !Array.isArray(candidate) ? candidate : null;
+  } catch {
+    return null;
+  }
 }
 
 export async function main(argv = process.argv.slice(2)) {
   let request = null;
+  let roots = null;
   let outcome;
   try {
-    if (argv.length !== 1 || argv[0] !== '--stdin') {
-      throw new RuntimeInputError('INVALID_ARGUMENTS', 'Usage: resolve-task.mjs --stdin', '/arguments');
+    if (argv.length !== 2 || argv[0] !== '--request-file') {
+      throw new RuntimeInputError('INVALID_ARGUMENTS', 'Usage: resolve-task.mjs --request-file <project-relative-json-path>', '/arguments');
     }
-    request = parseRuntimeRequest(await readStdin());
-    const roots = resolveRuntimeRoots(request, DERIVED_WORKFLOW_ROOT);
+    const workflowConfig = readWorkflowJson(DERIVED_WORKFLOW_ROOT, 'workflow.config.json', '/workflow_config');
+    const requestDirectory = workflowConfig.runtime?.request_directory;
+    if (typeof requestDirectory !== 'string') {
+      throw new RuntimeWorkflowError('RUNTIME_CONFIG_INVALID', 'Runtime request directory is not configured.', '/workflow_config/runtime/request_directory');
+    }
+    const rawInput = readRequestFile(process.cwd(), requestDirectory, argv[1]);
+    request = parseRequestContext(rawInput);
+    request = parseRuntimeRequest(rawInput);
+    roots = resolveRuntimeRoots(request, DERIVED_WORKFLOW_ROOT);
     outcome = runRuntimeRequest(request, roots);
   } catch (error) {
-    const context = errorContext(request);
+    const context = failureEnvelope(request, roots, inferFailureStage(request, error));
     if (isRuntimeFailure(error)) {
       outcome = {
         result: error.exitCode === EXIT_CODES.INVALID_INPUT

@@ -35,6 +35,11 @@ Context 路徑一律相對於 Project Root。只有 `current=true`、專案身�
 Module Context 必須透過專案自己的 Module Registry 登錄，並完成 `project_id`、`module_id`、Target
 與 current pointer 綁定。不相容、無法唯一識別或跨專案的 Context 不會載入。
 
+這項設定只用於重用已存在的 Module Context，不是執行 Module Analyst 的前置條件。要求分析某個
+明確命名的模組時，Module Analyst 會以名稱為搜尋種子，直接從 Project Root 的 repository evidence
+建立檔案範圍；不需要先設定 `module_registry`、alias 或每個檔案路徑，也不會載入既有 Module
+Context 代替本次探索。
+
 ## Required Context
 
 Context 預設為選用；缺少、未綁定或過期時只提出警告。只有專案確實需要嚴格模式時，才設定：

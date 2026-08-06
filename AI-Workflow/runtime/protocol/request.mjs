@@ -45,9 +45,10 @@ function validateTaskManifest(manifest) {
     diagnostics.push(diagnostic('INVALID_TASK_MANIFEST', '/task_manifest/project', 'project must be an object.'));
   } else {
     requireKeys(manifest.project, ['project_id', 'project_root', 'config_path'], '/task_manifest/project', diagnostics);
-    for (const key of ['project_id', 'project_root', 'config_path']) {
+    for (const key of ['project_id', 'config_path']) {
       if (!(manifest.project[key] === null || typeof manifest.project[key] === 'string')) diagnostics.push(diagnostic('INVALID_TASK_MANIFEST', `/task_manifest/project/${key}`, `${key} must be a string or null.`));
     }
+    if (manifest.project.project_root !== '.') diagnostics.push(diagnostic('INVALID_TASK_MANIFEST', '/task_manifest/project/project_root', 'project_root must be the Project Root-relative value ".".'));
   }
   if (!Array.isArray(manifest.modules)) {
     diagnostics.push(diagnostic('INVALID_TASK_MANIFEST', '/task_manifest/modules', 'modules must be an array.'));
@@ -152,14 +153,14 @@ function validateRolePlan(rolePlan) {
 
 export function parseRuntimeRequest(rawInput) {
   if (typeof rawInput !== 'string' || rawInput.trim() === '') {
-    throw new RuntimeInputError('EMPTY_STDIN', 'stdin must contain one JSON request.', '/');
+    throw new RuntimeInputError('EMPTY_REQUEST', 'Request file must contain one JSON request.', '/');
   }
 
   let request;
   try {
     request = JSON.parse(rawInput);
   } catch {
-    throw new RuntimeInputError('INVALID_JSON', 'stdin is not valid JSON.', '/');
+    throw new RuntimeInputError('INVALID_JSON', 'Request file is not valid JSON.', '/');
   }
 
   const diagnostics = [];

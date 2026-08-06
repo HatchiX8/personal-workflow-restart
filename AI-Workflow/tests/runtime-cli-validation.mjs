@@ -23,14 +23,26 @@ function parseSingleJson(stdout) {
 }
 
 function runCli(entry, cwd, input) {
-  const result = spawnSync(process.execPath, [entry, '--stdin'], {
-    cwd,
-    input: typeof input === 'string' ? input : JSON.stringify(input),
+  const requestRoot = path.join(cwd, '.ai-workflow', 'runtime', 'requests');
+  fs.mkdirSync(requestRoot, { recursive: true });
+  const requestDirectory = fs.mkdtempSync(path.join(requestRoot, 'validation-'));
+  const requestFile = path.join(requestDirectory, 'request.json');
+  fs.writeFileSync(requestFile, typeof input === 'string' ? input : JSON.stringify(input), {
     encoding: 'utf8',
-    shell: false,
-    windowsHide: true,
-    timeout: 15_000
+    flag: 'wx'
   });
+  let result;
+  try {
+    result = spawnSync(process.execPath, [entry, '--request-file', path.relative(cwd, requestFile)], {
+      cwd,
+      encoding: 'utf8',
+      shell: false,
+      windowsHide: true,
+      timeout: 15_000
+    });
+  } finally {
+    fs.rmSync(requestDirectory, { recursive: true, force: true });
+  }
   const stdout = result.stdout ?? '';
   const parsed = parseSingleJson(stdout);
   return {
@@ -107,8 +119,8 @@ export function checkRuntimeCliIntegration({
   assert(routing.json?.task_id === manifest.task_id, 'Runtime routing result Task ID mismatch.');
   assert(routing.json?.next?.stage === 'role-planner', 'Runtime routing must advance to role-planner.');
   assert(
-    JSON.stringify(routing.json?.next?.load_paths) === JSON.stringify([role.planner]),
-    'Runtime routing must return only the selected canonical Role Planner path.'
+    JSON.stringify(routing.json?.next?.load_paths) === JSON.stringify(['orchestration/role-plan-authoring.md', role.planner]),
+    'Runtime routing must return the compact Role Plan contract followed by the selected canonical Role Planner path.'
   );
 
   const execution = runCli(entry, projectRoot, executionRequest);
@@ -139,6 +151,46 @@ export function checkRuntimeCliIntegration({
     'Invalid Runtime request must report the unsupported protocol version.'
   );
 
+  const absoluteRootManifest = clone(manifest);
+  absoluteRootManifest.task_id = 'runtime-absolute-manifest-root';
+  absoluteRootManifest.project.project_root = projectRoot;
+  const invalidManifestRoot = runCli(entry, projectRoot, { ...routingRequest, task_manifest: absoluteRootManifest });
+  assert(invalidManifestRoot.exitCode === 64, `Absolute Task Manifest project root must exit 64, received ${invalidManifestRoot.exitCode}.`);
+  assert(
+    (invalidManifestRoot.json?.diagnostics ?? []).some((item) => item.path === '/task_manifest/project/project_root'),
+    'Absolute Task Manifest project root must be rejected at the Runtime boundary.'
+  );
+
+  const incompleteRolePlan = clone(rolePlan);
+  delete incompleteRolePlan.result_reporting;
+  const invalidRolePlan = runCli(entry, projectRoot, { ...executionRequest, role_plan: incompleteRolePlan });
+  assert(invalidRolePlan.exitCode === 64, `Incomplete Role Plan must exit 64, received ${invalidRolePlan.exitCode}.`);
+  assert(invalidRolePlan.json?.operation === 'resolve-execution' && invalidRolePlan.json?.task_id === manifest.task_id, 'Invalid Role Plan response must preserve operation and task_id context.');
+  assert(invalidRolePlan.json?.error_code === 'REQUIRED_FIELD_MISSING', 'Incomplete Role Plan must retain the first diagnostic error code.');
+  assert(
+    (invalidRolePlan.json?.diagnostics ?? []).some((item) => item.code === 'REQUIRED_FIELD_MISSING'
+      && item.path === '/role_plan/result_reporting'
+      && typeof item.reason === 'string'),
+    'Incomplete Role Plan must expose code, path, and reason diagnostics.'
+  );
+
+  const stringFactsRolePlan = clone(rolePlan);
+  stringFactsRolePlan.facts = ['task-type=change', 'target=docs'];
+  const invalidStringFacts = runCli(entry, projectRoot, { ...executionRequest, role_plan: stringFactsRolePlan });
+  assert(invalidStringFacts.exitCode === 64, `String Role Plan facts must exit 64, received ${invalidStringFacts.exitCode}.`);
+  assert(
+    invalidStringFacts.json?.operation === 'resolve-execution'
+      && invalidStringFacts.json?.task_id === manifest.task_id
+      && (invalidStringFacts.json?.diagnostics ?? []).length === 2
+      && invalidStringFacts.json.diagnostics.every((item) => item.code === 'INVALID_ROLE_PLAN' && /\/role_plan\/facts\/\d+/.test(item.path)),
+    'String Role Plan facts must be rejected with preserved execution context and item paths.'
+  );
+  assert(
+    invalidStringFacts.json?.error_context?.stage === 'role-plan-validation'
+      && invalidStringFacts.json?.error_context?.role_id === 'developer',
+    'Invalid Role Plan must provide a compact error context for LLM interpretation.'
+  );
+
   const lowConfidenceManifest = clone(manifest);
   lowConfidenceManifest.task_id = 'runtime-low-confidence-scope';
   lowConfidenceManifest.provenance.scope.confidence = 0.5;
@@ -155,6 +207,72 @@ export function checkRuntimeCliIntegration({
     (blocked.json?.diagnostics ?? []).some((item) => item.code === 'RISK_BLOCKED'),
     'Low-confidence Risk blocker must expose RISK_BLOCKED diagnostics.'
   );
+
+  const unresolvedModuleManifest = clone(manifest);
+  unresolvedModuleManifest.task_id = 'runtime-module-identity-unresolved';
+  unresolvedModuleManifest.action = 'analyze';
+  unresolvedModuleManifest.task_type = 'analysis';
+  unresolvedModuleManifest.role_id = 'module-analyst';
+  unresolvedModuleManifest.analysis_mode = 'module';
+  unresolvedModuleManifest.modules = [];
+  unresolvedModuleManifest.unresolved = ['module-identity-unresolved'];
+  unresolvedModuleManifest.status = 'needs-resolution';
+  unresolvedModuleManifest.provenance.action = { source: 'explicit', confidence: 1, evidence: ['module analysis'], candidates: ['analyze'] };
+  unresolvedModuleManifest.provenance.task_type = { source: 'inference', confidence: 1, evidence: ['analysis request'], candidates: ['analysis'] };
+  unresolvedModuleManifest.provenance.role_id = { source: 'explicit', confidence: 1, evidence: ['module-analyst'], candidates: ['module-analyst'] };
+  unresolvedModuleManifest.provenance.modules = { source: 'inference', confidence: 0, evidence: ['No unique module'], candidates: [] };
+  unresolvedModuleManifest.provenance.analysis_mode = { source: 'explicit', confidence: 1, evidence: ['module scope'], candidates: ['module'] };
+  const moduleBlocked = runCli(entry, projectRoot, { ...routingRequest, task_manifest: unresolvedModuleManifest });
+  assert(moduleBlocked.exitCode === 2 && moduleBlocked.json?.status === 'blocked', 'Unresolved Module Analyst request must be blocked.');
+  assert(
+    moduleBlocked.json?.error_context?.stage === 'risk-and-profile'
+      && moduleBlocked.json?.error_context?.role_id === 'module-analyst'
+      && moduleBlocked.json?.error_context?.manifest_unresolved?.includes('module-identity-unresolved')
+      && moduleBlocked.json?.error_context?.module_count === 0
+      && moduleBlocked.json?.error_context?.project_config?.module_registry_configured === false,
+    'Module Analyst blocker must expose enough compact context to identify a missing module search seed without treating project configuration as the remedy.'
+  );
+
+  const discoveryManifest = clone(manifest);
+  discoveryManifest.task_id = 'runtime-module-repository-discovery';
+  discoveryManifest.raw_request = '分析 inventory-v2 模組並自行尋找相關檔案';
+  discoveryManifest.action = 'analyze';
+  discoveryManifest.task_type = 'analysis';
+  discoveryManifest.role_id = 'module-analyst';
+  discoveryManifest.targets = [];
+  discoveryManifest.target_mode = 'unknown';
+  discoveryManifest.modules = [{ module_id: 'inventory-v2', name: 'inventory-v2', aliases: [], candidate_paths: [] }];
+  discoveryManifest.scope = { summary: 'Discover inventory-v2 inside Project Root.', include_paths: [], exclude_paths: [], change_source: 'request' };
+  discoveryManifest.review_mode = null;
+  discoveryManifest.analysis_mode = 'module';
+  discoveryManifest.routing_triggers = [];
+  discoveryManifest.unresolved = [];
+  discoveryManifest.status = 'analyzed';
+  discoveryManifest.provenance = {
+    action: { source: 'explicit', confidence: 1, evidence: ['module analysis'], candidates: ['analyze'] },
+    task_type: { source: 'inference', confidence: 1, evidence: ['analysis request'], candidates: ['analysis'] },
+    role_id: { source: 'explicit', confidence: 1, evidence: ['module-analyst'], candidates: ['module-analyst'] },
+    skill_ids: { source: 'inference', confidence: 1, evidence: ['No explicit skill'], candidates: [] },
+    targets: { source: 'inference', confidence: 1, evidence: ['Target-neutral repository discovery'], candidates: [] },
+    modules: { source: 'explicit', confidence: 1, evidence: ['inventory-v2 is explicitly named'], candidates: ['inventory-v2'] },
+    scope: { source: 'explicit', confidence: 1, evidence: ['Project Root discovery'], candidates: ['module'] },
+    routing_triggers: { source: 'inference', confidence: 1, evidence: ['No risk trigger stated'], candidates: [] },
+    review_mode: { source: 'inference', confidence: 1, evidence: ['Not a review'], candidates: [] },
+    analysis_mode: { source: 'explicit', confidence: 1, evidence: ['Named module scope'], candidates: ['module'] }
+  };
+  const discoveryRole = (roles.roles ?? []).find((item) => item.role_id === 'module-analyst');
+  const discoveryRisk = assessTaskRisk(discoveryManifest, policy);
+  const discoveryRolePlan = buildReferenceRolePlan(discoveryManifest, discoveryRole, discoveryRisk);
+  const discoveryExecution = runCli(entry, projectRoot, {
+    ...routingRequest,
+    operation: 'resolve-execution',
+    task_manifest: discoveryManifest,
+    role_plan: discoveryRolePlan
+  });
+  assert(discoveryExecution.exitCode === 0 && discoveryExecution.json?.status === 'ready', 'Named Module Analysis must execute without Module Registry or candidate paths.');
+  assert(discoveryExecution.json?.preflight?.status === 'PASS', 'Named Module Analysis must pass without Module Context warnings.');
+  assert(!(discoveryExecution.json?.resolved_rule_set?.contexts ?? []).some((item) => item.type === 'module'), 'Runtime must not return a Module Context path for Module Analyst execution.');
+  assert(!(discoveryExecution.json?.role_plan?.context_requirements ?? []).includes('module'), 'Runtime Role Plan must not require Module Context for Module Analyst.');
 
   for (const trigger of policy.hard_triggers ?? []) {
     const triggerManifest = clone(manifest);
@@ -218,5 +336,5 @@ export function checkRuntimeCliIntegration({
     }
   }
 
-  notes.push(`Runtime CLI checked: 2 success paths, 2 invalid inputs, ${policy.hard_triggers.length} hard triggers, fail-closed and read-only behavior`);
+  notes.push(`Runtime CLI checked: 2 success paths, 5 invalid inputs, ${policy.hard_triggers.length} hard triggers, fail-closed and read-only behavior`);
 }

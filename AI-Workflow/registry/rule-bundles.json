@@ -54,7 +54,7 @@
       {
         "path": "bootstrap.md",
         "kind": "file",
-        "content_hash": "sha256:a9a8ada0b546f55972927a4ede18d9f7c298596705ffc87f6070a74b120bb690"
+        "content_hash": "sha256:e2e34fed1d9aec6545677f91225624205dbbef15215c2fa68bbc5b16d15c51d2"
       },
       {
         "path": "policies/analysis-safety.md",
@@ -74,7 +74,7 @@
       {
         "path": "policies/result-reporting.md",
         "kind": "file",
-        "content_hash": "sha256:bbf37673b7a820b4f4ac47288c525bf1befc314020bc843bcc0fa01861da024e"
+        "content_hash": "sha256:fdee9e7315a9ed9083787c38e8df23dffcc1f9d70ff930236eb4a3fe569dd137"
       },
       {
         "path": "policies/secret-handling.md",
@@ -114,7 +114,7 @@
       {
         "path": "roles/module-analyst/entry.md",
         "kind": "file",
-        "content_hash": "sha256:5d89e1d820bb5b177d5cff19a8c93cabae3302e9f2b0870d8411c0041425e817"
+        "content_hash": "sha256:d2ee1558c95191abb6273de53b83d7c4ee08adb8418488722192878ccfce1420"
       },
       {
         "path": "roles/module-analyst/output.md",
@@ -129,12 +129,12 @@
       {
         "path": "roles/module-analyst/restrictions.md",
         "kind": "file",
-        "content_hash": "sha256:5a3b9ae2b82d4e1f57917e968697368e9253f3c36de2cd86783e88de2110325e"
+        "content_hash": "sha256:f1f195ff5d55dc91f9c729714a0c6082edea7d4eb3741f3293b9e4f7034d7952"
       },
       {
         "path": "roles/module-analyst/workflow.md",
         "kind": "file",
-        "content_hash": "sha256:569fd154be36a956171c45b3d8523a77c1dc77a431fbb810895102965ff2b18d"
+        "content_hash": "sha256:bb521cbfd3ebe28b5d3965515fd3274510460d0217f65f8845076169f1fcb488"
       },
       {
         "path": "roles/project-analyst/entry.md",
@@ -252,7 +252,7 @@
         "content_hash": "sha256:3b904565ccd28a1d86417f45c664204a049afaec5f90a38d5f23b65d7ed9c404"
       }
     ],
-    "fingerprint": "sha256:1c4d27a589b4074c82fefdcb04db0b22dfcf0d7c914c43491853fde83dca5457"
+    "fingerprint": "sha256:bffafa3b418f473cd7494ace2891dee3c1948f254218f732668d640f00b3e898"
   },
   "path_contract": "所有規則路徑皆相對於 AI-Workflow Root；核心規則只由 Bundle 與相依關係選取，不可猜測檔名。",
   "dependency_contract": {

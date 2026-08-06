@@ -6,21 +6,22 @@ Module Analyst 的目標是在修改單一模組前，先產出可供後續 agen
 
 ## 執行流程
 
-1. 接收 Role Plan 並確認模組範圍與輸出位置
-2. 確認已選 Target Analysis Skills
-3. 套用分析限制
-4. 判斷模組規模與切片策略
-5. 建立模組邊界
-6. 建立資料流與 contract context
-7. 建立修改邊界與風險提示
-8. 產出 module context md 檔
-9. 完成前自我檢查
+1. 接收 Role Plan 並確認模組搜尋種子與輸出位置
+2. 從 repository evidence 建立模組檔案範圍
+3. 確認已選 Target Analysis Skills
+4. 套用分析限制
+5. 判斷模組規模與切片策略
+6. 建立模組邊界
+7. 建立資料流與 contract context
+8. 建立修改邊界與風險提示
+9. 產出 module context md 檔
+10. 完成前自我檢查
 
-## 1. 接收 Role Plan 並確認模組範圍與輸出位置
+## 1. 接收 Role Plan 並確認模組搜尋種子與輸出位置
 
 任務開始時，Module Analyst 必須使用已通過 Preflight 的固定輸入確認：
 
-- 要分析的單一模組名稱或路徑
+- 要分析的單一模組名稱，以及使用者明示的別名或選用候選路徑
 - 模組所屬專案或 package
 - 預期輸出位置
 - 本次分析是否只針對前端、後端，或同時包含前後端
@@ -32,22 +33,41 @@ Module Analyst 的目標是在修改單一模組前，先產出可供後續 agen
 agent-workspaces/module-context/<task-type>/<YYYYMMDD-HHmm>-<module-slug>.md
 ```
 
-若模組範圍不明確，應先用只讀方式找出候選入口與檔案，再在輸出中標記範圍可信度。不得自行擴大成全專案分析。
+既有 Module Context、Module Registry 綁定或預先設定的檔案路徑都不是必要輸入。若沒有候選路徑，
+必須從 Project Root 進行只讀 discovery；不得要求使用者先登錄每個模組檔案。
 
-## 2. 確認已選 Target Analysis Skills
+## 2. 從 Repository Evidence 建立模組檔案範圍
+
+以模組名稱、大小寫變體、使用者明示別名與描述中的穩定業務詞彙作為搜尋種子。依序：
+
+1. 優先尋找名稱相符的模組資料夾、package、route、page 或主要入口。
+2. 搜尋分散式架構中的 page、action、component／comps、service、store、model、schema 與測試檔。
+3. 以 import、export、route registration、API call、state key、事件或函式呼叫驗證候選關係。
+4. 從已驗證入口只展開直接依賴、直接呼叫端與必要 contract，不得無界限展開全專案。
+5. 記錄納入路徑、排除理由、候選衝突與範圍可信度。
+
+現代集中式架構可從 `lunch/` 類模組資料夾向內分析；舊式分散架構可將 `pages`、`actions`、
+`comps` 等不同位置中，經關係證據確認屬於同一模組的檔案合併成一次分析範圍。只有名稱相似但沒有
+結構或呼叫證據的檔案不得自動納入。
+
+若找到多個互不相關且同名的候選範圍，必須列出候選並回傳 `blocked` 請使用者確認；若完全找不到
+入口或關係證據，也應回傳 `blocked`。這兩種情況都不得改讀既有 Module Context 來替代 discovery。
+
+## 3. 確認已選 Target Analysis Skills
 
 Module Analyst 沿用既有 Target：
 
 - 前端任務
 - 後端任務
 
-Frontend 或 Backend Target 必須已由 Role Planner 產生 selectors，並由 Rule Resolution 選取
-對應 Analysis Skill。若同一模組跨 Frontend 與 Backend，Resolved Rule Set 必須同時包含兩個
-Skill，輸出中仍須分開標示兩種邊界。
+已確認 Frontend 或 Backend Target 時，必須由 Role Planner 產生 selectors，並由 Rule Resolution
+選取對應 Analysis Skill。若同一模組跨 Frontend 與 Backend，Resolved Rule Set 必須同時包含兩個
+Skill，輸出中仍須分開標示兩種邊界。Targets 為空時執行基礎邊界探索，不得在角色內補載 Target
+Skill；發現的 Target 分類只記錄在輸出，供後續任務重新路由。
 
 缺少必要 Target Skill 時回傳 `reroute-required`，本 Workflow 不得自行補載。
 
-## 3. 套用分析限制
+## 4. 套用分析限制
 
 開始讀取模組前，必須先套用：
 
@@ -55,7 +75,7 @@ Skill，輸出中仍須分開標示兩種邊界。
 
 Module Analyst 只分析足以建立 module context 的必要檔案，不做逐檔 code review，不提出重構方案，不修改程式碼。
 
-## 4. 判斷模組規模與切片策略
+## 5. 判斷模組規模與切片策略
 
 若指定模組過於龐大，Module Analyst 不得全量展開分析。
 
@@ -78,7 +98,7 @@ Module Analyst 只分析足以建立 module context 的必要檔案，不做逐�
 
 若修改目標不明確，輸出 PARTIAL context，列出建議下一輪應指定的切片，不得假裝已完整分析大型模組。
 
-## 5. 建立模組邊界
+## 6. 建立模組邊界
 
 Module Analyst 必須整理：
 
@@ -95,7 +115,7 @@ Module Analyst 必須整理：
 - 根據結構推論
 - 待人工確認
 
-## 6. 建立資料流與 Contract Context
+## 7. 建立資料流與 Contract Context
 
 Module Analyst 必須整理後續 agent 修改時需要遵守的 contract：
 
@@ -109,7 +129,7 @@ Module Analyst 必須整理後續 agent 修改時需要遵守的 contract：
 
 不得輸出大量程式碼片段。必要時只引用欄位名稱、函式名稱、路徑與短描述。
 
-## 7. 建立修改邊界與風險提示
+## 8. 建立修改邊界與風險提示
 
 Module Analyst 的重點不是提供改法，而是替後續 agent 設定修改邊界。
 
@@ -124,7 +144,7 @@ Module Analyst 的重點不是提供改法，而是替後續 agent 設定修改�
 
 若觀察到可能問題，只能標記為風險或待確認事項，不得直接要求重構或改寫。
 
-## 8. 產出 Module Context
+## 9. 產出 Module Context
 
 依 `AI-Workflow/roles/module-analyst/output.md` 產出 module context md 檔。
 
@@ -132,11 +152,12 @@ Module Analyst 的重點不是提供改法，而是替後續 agent 設定修改�
 
 文件應能被後續 agent 直接閱讀並用來限制修改範圍。
 
-## 9. 完成前自我檢查
+## 10. 完成前自我檢查
 
 完成前必須檢查：
 
 - 是否只分析單一模組或使用者指定範圍
+- 是否由 repository evidence 建立範圍，而非依賴既有 Module Context 路徑
 - 若模組過大，是否已採用切片策略並標記 PARTIAL 或 BLOCKED
 - 是否明確標記模組邊界
 - 是否區分可修改範圍與不可越界範圍

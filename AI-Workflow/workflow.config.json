@@ -2,12 +2,14 @@
   "$schema": "schemas/workflow-config.schema.json",
   "schema_version": "1.0",
   "workflow_id": "controlled-agent-workflow",
-  "workflow_version": "1.5.0",
+  "workflow_version": "2.0.2",
   "bootstrap": "bootstrap.md",
   "orchestration": {
     "dispatcher": "orchestration/dispatcher.md",
     "task_manifest_authoring": "orchestration/task-manifest-authoring.md",
     "runtime_dispatch": "orchestration/runtime-dispatch.md",
+    "role_plan_authoring": "orchestration/role-plan-authoring.md",
+    "error_interpretation": "orchestration/error-interpretation.md",
     "task_analysis": "orchestration/task-analysis.md",
     "task_risk_policy": "policies/task-risk.md",
     "risk_assessment": "orchestration/risk-assessment.md",
@@ -51,7 +53,8 @@
     "entry": "runtime/resolve-task.mjs",
     "risk_policy": "policies/task-risk-policy.json",
     "minimum_node_version": ">=20.11.0",
-    "input": "stdin-json",
+    "input": "request-file-json",
+    "request_directory": ".ai-workflow/runtime/requests",
     "output": "stdout-json",
     "network": false,
     "writes": [],
@@ -64,9 +67,9 @@
     "required_routing_minimum": "high"
   },
   "runtime_policy": {
-    "runtime_artifacts": "in_memory",
+    "runtime_artifacts": "transient-request-file",
     "require_preflight_pass": true,
     "require_rule_set_fingerprint_match": true,
-    "path_contract": "All paths in this file and every workflow registry are relative to the AI-Workflow root."
+    "path_contract": "Workflow and registry paths are relative to the AI-Workflow root; runtime.request_directory is relative to Project Root."
   }
 }

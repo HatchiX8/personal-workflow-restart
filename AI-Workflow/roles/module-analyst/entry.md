@@ -9,25 +9,31 @@
 - `role_id`: 必須為 `module-analyst`
 - `allowed_action`: 必須為 `analyze`
 - `analysis_mode`: 必須為 `module`
-- `module`: 必須解析為唯一模組
-- `targets`: 至少包含一個分析目標
-- `scope`: 已確認的分析範圍
+- `module`: 使用者要求中可唯一識別的模組名稱或別名，作為 repository discovery 搜尋種子
+- `targets`: 可為已確認的分析目標；未指定時允許進行跨 Target 的基礎邊界探索
+- `scope`: 已確認的分析意圖與專案邊界；檔案清單可由角色在 Project Root 內探索建立
 - `task_risk`: 已凍結的風險層級、理由與 hard triggers
 - `execution_profile`: 已核准的 Profile、必要階段與升級契約
 - `role_plan`: 由 `roles/module-analyst/planner.md` 產生，且 Role、Action 與 Task Manifest 一致
 - `resolved_rule_set`: Rule Resolution 階段產出的完整規則集合
-- `selected_contexts`: 已通過 Preflight 的模組與專案上下文
+- `selected_contexts`: 已通過 Preflight 的選用專案上下文；不得要求或載入既有 Module Context
 - `execution_contract`: 已凍結的執行與輸出契約
 
-若上述輸入不完整、值不符合契約、風險與 Profile 不一致，或 `resolved_rule_set` 缺少本角色所需規則，回傳 `reroute-required`，不得自行補值、降低風險、替換 Profile 或開始分析。
+若模組名稱無法唯一識別、上述輸入不完整、值不符合契約、風險與 Profile 不一致，或
+`resolved_rule_set` 缺少本角色所需規則，回傳 `reroute-required`，不得自行補值、降低風險、替換
+Profile 或開始分析。`candidate_paths` 為選用提示，空陣列不得視為輸入缺漏。
 
 ## 執行
 
-驗證輸入後，依 `role_plan` 與 `resolved_rule_set` 執行 Module Analyst 的模組分析任務。角色執行期間不得重新判斷角色、Action、分析模式、Target、Module、Context、Skill 或規則路徑，也不得再次解析原始 Prompt。
+驗證輸入後，依 `role_plan` 與 `resolved_rule_set` 執行 Module Analyst 的模組分析任務。角色可以模組
+名稱、別名與使用者描述為種子，在 Project Root 內使用只讀搜尋建立本次檔案範圍；這是分析工作，
+不是重新判斷 routing。角色執行期間不得重新判斷角色、Action、分析模式或 Module 身分，不得載入
+未選取的 Workflow 規則或 Module Context，也不得再次解析原始 Prompt。
 
 本角色負責：
 
 - 分析指定模組的結構、邊界、責任與目前實作狀態
+- 自動尋找集中在模組資料夾內，或分散於 page、action、component、service 等位置的相關檔案
 - 整理模組內前端、後端及其他指定 Target 的關聯
 - 找出模組內的資料流、依賴關係、整合點與潛在風險
 - 依任務範圍提供模組理解、影響評估與後續工程判斷依據

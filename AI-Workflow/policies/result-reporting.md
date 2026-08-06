@@ -115,14 +115,10 @@ Execute 不得降低 `minimum_level`，也不得藉由回覆層級變更降低�
 ## 新版 Workflow 執行摘要（測試）
 
 - 任務模式：<runtime|markdown-fallback>
-- Token 消耗：<宿主提供的本次任務實際資訊|未提供>
 ```
 
 - `任務模式` 只能回報本次實際執行的路由；不得依預設值、設定值或預期路由猜測。
-- `Token 消耗` 只能使用宿主提供的本次任務實際 telemetry。宿主提供 input、output 與 total 時，
-  必須合併在同一欄；只提供 total 時只回報 total；未提供時固定回報 `未提供`。
-- 不得以字元數、檔案大小、Tokenizer 推估值、歷史任務或其他替代資料估算 Token。
-- 摘要只能包含上述兩個資訊欄位，不得加入 Risk、Profile、規則數、時間或費用。
+- 摘要只能包含上述任務模式，不得加入 Token、Risk、Profile、規則數、時間或費用。
 - 摘要必須是完成回覆的最後一個區塊；正式報告檔案不得附加此對話測試摘要。
 - Runtime fallback 授權詢問、`AWAITING_FALLBACK_CONSENT` 與其他尚未執行路由的中間狀態，不是
   任務完成結果，不得附加摘要。
