@@ -2,11 +2,14 @@
   "$schema": "schemas/workflow-config.schema.json",
   "schema_version": "1.0",
   "workflow_id": "controlled-agent-workflow",
-  "workflow_version": "1.2.0",
+  "workflow_version": "1.5.0",
   "bootstrap": "bootstrap.md",
   "orchestration": {
     "dispatcher": "orchestration/dispatcher.md",
     "task_analysis": "orchestration/task-analysis.md",
+    "task_risk_policy": "policies/task-risk.md",
+    "risk_assessment": "orchestration/risk-assessment.md",
+    "execution_profile_resolution": "orchestration/execution-profile-resolution.md",
     "role_planner": "orchestration/role-planner.md",
     "result_reporting": "policies/result-reporting.md",
     "rule_resolution": "orchestration/rule-resolution.md",
@@ -25,11 +28,18 @@
     "workflow_config": "schemas/workflow-config.schema.json",
     "project_config": "schemas/project-config.schema.json",
     "task_manifest": "schemas/task-manifest.schema.json",
+    "task_risk": "schemas/task-risk.schema.json",
+    "execution_profile": "schemas/execution-profile.schema.json",
     "role_plan": "schemas/role-plan.schema.json",
     "skill_package": "schemas/skill-package.schema.json",
     "resolved_rule_set": "schemas/resolved-rule-set.schema.json",
     "preflight_result": "schemas/preflight-result.schema.json",
     "registry": "schemas/registry.schema.json"
+  },
+  "execution_profiles": {
+    "lightweight": "orchestration/profiles/lightweight.md",
+    "standard": "orchestration/profiles/standard.md",
+    "full": "orchestration/profiles/full.md"
   },
   "confidence_policy": {
     "high_threshold": 0.9,

@@ -26,14 +26,21 @@ Workflow Root 只有一個權威來源：主機介接規則實際載入的 `boot
 - `schemas.project_config`
 - `orchestration.dispatcher`
 - `orchestration.task_analysis`
+- `orchestration.task_risk_policy`
+- `orchestration.risk_assessment`
+- `orchestration.execution_profile_resolution`
 - `orchestration.role_planner`
 - `orchestration.result_reporting`
 - `orchestration.rule_resolution`
 - `orchestration.context_resolution`
 - `orchestration.preflight`
 - `orchestration.executor_adapter`
+- `execution_profiles.lightweight`
+- `execution_profiles.standard`
+- `execution_profiles.full`
 
-Bootstrap 只能驗證路徑與解析設定。Registry 內容、作業規則內容，以及 project/application 檔案都不是 Bootstrap 的輸入。
+Bootstrap 只能驗證路徑與解析設定。Registry 內容、Task Risk／Execution Profile 的業務判定、作業
+規則內容，以及 project/application 檔案都不是 Bootstrap 的輸入。
 
 ## Project Root 與 Project Config
 

@@ -8,9 +8,11 @@
 入口接收以下唯讀資料：
 
 - `Task Manifest`：已解析的 Action、Role、Target、Module、Scope、Skill、執行模式與角色模式。
+- `Task Risk Assessment`：已凍結的風險層級、理由與 hard triggers。
+- `Execution Profile Contract`：已核准的 Profile、必要階段與升級契約。
 - `Role Plan`：由 `roles/project-analyst/planner.md` 產生的固定分析流程、Skill selectors 與輸出需求。
 - `Resolved Rule Set`：本次任務已選定的規則、Context、載入順序、優先級與 fingerprint。
-- `Preflight Result.execution_contract`：允許執行的 Role、Action、入口與 Rule Set fingerprint。
+- `Preflight Result.execution_contract`：允許執行的 Role、Action、入口、Risk Level、Execution Profile 與 Rule Set fingerprint。
 
 ## 入口驗證
 
@@ -22,12 +24,13 @@
 - `analysis_mode=project`
 - Project Analyst 所需的 Task Manifest 欄位已固定且彼此一致
 - `Resolved Rule Set` 與 `execution_contract` 的入口及 fingerprint 一致
+- Task Risk、Execution Profile 與 `execution_contract` 的層級及 Profile ID 一致
 
 任一條件缺少或不一致時，回傳 `reroute-required`，交回 Dispatcher 處理。不得在本入口重新推導或補載規則。
 
 ## 執行方式
 
-通過入口驗證後，只能依 `Resolved Rule Set.load_order` 使用已載入的規則與 Context，並在 Task Manifest 的 Scope 內執行 Project Analyst 工作。
+通過入口驗證後，只能依 `Resolved Rule Set.load_order` 使用已載入的規則與 Context，並在 Task Manifest 的 Scope 與 Execution Profile 內執行 Project Analyst 工作。
 
 Project Analyst 負責以低侵入、非深讀的方式分析專案，產出能幫助工程師快速上手新專案的專案分析 md 檔。
 
@@ -73,6 +76,6 @@ Project Analyst 是分析與文件產出角色，不是開發、重構、測試�
 
 - `completed`：已在核准 Scope 內完成 Project Analyst 工作。
 - `blocked`：已載入的角色規則所定義的停止條件成立，且不需要改變 routing。
-- `reroute-required`：固定輸入不足或不一致，或任務需要未載入的規則、不同 Scope、Target、Module 或 Context。
+- `reroute-required`：固定輸入不足或不一致、發現更高風險，或任務需要較高 Profile、未載入的規則、不同 Scope、Target、Module 或 Context。
 
 輸出內容與落檔位置依已載入的角色 output 規則及使用者明確要求決定。入口不得在 Execute 階段建立新的輸出政策。

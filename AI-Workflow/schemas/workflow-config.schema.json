@@ -12,6 +12,7 @@
     "orchestration",
     "registries",
     "schemas",
+    "execution_profiles",
     "confidence_policy",
     "runtime_policy"
   ],
@@ -24,10 +25,13 @@
     "orchestration": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["dispatcher", "task_analysis", "role_planner", "result_reporting", "rule_resolution", "context_resolution", "preflight", "executor_adapter", "role_entry_contract"],
+      "required": ["dispatcher", "task_analysis", "task_risk_policy", "risk_assessment", "execution_profile_resolution", "role_planner", "result_reporting", "rule_resolution", "context_resolution", "preflight", "executor_adapter", "role_entry_contract"],
       "properties": {
         "dispatcher": { "$ref": "#/$defs/workflowRelativePath" },
         "task_analysis": { "$ref": "#/$defs/workflowRelativePath" },
+        "task_risk_policy": { "$ref": "#/$defs/workflowRelativePath" },
+        "risk_assessment": { "$ref": "#/$defs/workflowRelativePath" },
+        "execution_profile_resolution": { "$ref": "#/$defs/workflowRelativePath" },
         "role_planner": { "$ref": "#/$defs/workflowRelativePath" },
         "result_reporting": { "$ref": "#/$defs/workflowRelativePath" },
         "rule_resolution": { "$ref": "#/$defs/workflowRelativePath" },
@@ -51,7 +55,18 @@
     "schemas": {
       "type": "object",
       "minProperties": 1,
+      "required": ["task_risk", "execution_profile"],
       "additionalProperties": { "$ref": "#/$defs/workflowRelativePath" }
+    },
+    "execution_profiles": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["lightweight", "standard", "full"],
+      "properties": {
+        "lightweight": { "$ref": "#/$defs/workflowRelativePath" },
+        "standard": { "$ref": "#/$defs/workflowRelativePath" },
+        "full": { "$ref": "#/$defs/workflowRelativePath" }
+      }
     },
     "confidence_policy": {
       "type": "object",

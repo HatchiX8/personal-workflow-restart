@@ -9,6 +9,7 @@
 
 - `role_id=module-analyst`
 - `action=analyze`
+- Task Risk 已完成，Execution Profile 已選取，且兩者 Task ID 一致
 - `analysis_mode=module`
 - 具有唯一 Module
 - 至少一個 Target
@@ -35,12 +36,14 @@ Frontend／Backend Target 只能由 Task Manifest 與 repository evidence 確認
 
 ## 結果回報設定
 
-依 `orchestration.result_reporting` 共用政策，使用 Target、Scope mode、module size 與分析風險產生
-`result_reporting`。此層級只控制完成回覆，不得縮減 Module Context 正式文件。
+依 `orchestration.result_reporting` 共用政策，以凍結的 Task Risk 作為共同基線，再使用 Target、
+Scope mode、module size、分析風險與輸出詳細度需求產生 `result_reporting`。此層級只控制完成回覆，
+不得縮減 Module Context 正式文件。
 
 ## 禁止事項
 
 - 不得選取 Frontend／Backend Analysis Skill ID。
 - 不得修改 Module、Target 或 Scope。
+- 不得重算、降低 Task Risk 或替換 Execution Profile。
 - 不得開始讀取完整模組或產生分析結論。
 - 不得執行會改變專案狀態的命令。

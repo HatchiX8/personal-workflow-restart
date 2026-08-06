@@ -9,6 +9,7 @@
 
 - `role_id=review`
 - `action=review`
+- Task Risk 已完成，Execution Profile 已選取，且兩者 Task ID 一致
 - `review_mode` 為 `change` 或 `feature`
 - Review Scope 與需求來源已固定
 
@@ -37,13 +38,14 @@ Planner 只表達需要確認的 profile，不執行驗證。
 
 ## 結果回報設定
 
-依 `orchestration.result_reporting` 共用政策，使用 Review mode、Target、Scope 與已知風險產生
-`result_reporting`。此層級只控制 Review 完成後的對話回覆，不得刪減 findings、PASS／FAIL 或
-mode report 的必要內容。
+依 `orchestration.result_reporting` 共用政策，以凍結的 Task Risk 作為共同基線，再使用 Review
+mode、Target、Scope、已知風險與輸出詳細度需求產生 `result_reporting`。此層級只控制 Review
+完成後的對話回覆，不得刪減 findings、PASS／FAIL 或 mode report 的必要內容。
 
 ## 禁止事項
 
 - 不得選取 `review.check.*` Skill ID。
 - 不得重新決定 Role 或 Action。
 - 不得把 Change Review 擴大成 Feature Review。
+- 不得重算、降低 Task Risk 或替換 Execution Profile。
 - 不得開始讀取完整 Review Scope 或產生 findings。

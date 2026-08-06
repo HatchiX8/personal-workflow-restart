@@ -17,6 +17,8 @@
     "executor_entry": "roles/developer/executor.md",
     "rule_set_fingerprint": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
     "allowed_action": "develop",
+    "risk_level": 2,
+    "execution_profile": "standard",
     "result_reporting": {
       "minimum_level": 2,
       "reasons": ["一般開發任務"],

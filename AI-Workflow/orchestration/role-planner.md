@@ -11,6 +11,8 @@ Role Planner 不執行角色工作、不讀取 Skill 規則內容，也不決定
 ## 輸入
 
 - 已完成且 `status=analyzed` 的 Task Manifest。
+- 已完成且 `status=assessed` 的 Task Risk Assessment。
+- 已選取且 `status=selected` 的 Execution Profile Contract。
 - Workflow Config、Project Config 與 Role Registry。
 - Task Analysis 已確認的 Project、Module、Target、Scope、Role mode 與明確 Skill ID。
 - 只供事實判斷使用的 repository evidence。
@@ -23,7 +25,8 @@ Role Plan 必須包含：
 - 實際使用的 `planner_entry`。
 - 可供 Registry selector 比對的標準化 facts。
 - 由 facts 產生的 `skill_selectors`，不得直接猜測 Skill ID。
-- 依 `orchestration.result_reporting` 共用政策產生 `result_reporting`，包含最低回覆層級與理由。
+- 依 `orchestration.result_reporting` 共用政策，以凍結的 Task Risk 作為共同風險基線產生
+  `result_reporting`，包含最低回覆層級與理由。
 - 本角色需要的 validation profiles，以及應嘗試選取的 Context 類型。Context 類型本身不代表
   required；required 狀態只由 Project Config 與 Context metadata 決定。
 - Planner 無法安全判斷的 unresolved 項目。
@@ -46,9 +49,10 @@ analysis-depth=sampled
 
 fact 必須包含來源、信心與 evidence。只有高信心事實可用於 conditional Skill 自動載入。
 
-Result Reporting 只能依 Task Manifest、已確認 facts 與使用者對回覆詳細度的自然語意判定。資訊
-不足時使用 Level 2，不得猜測為 Level 1；任何 Level 3 條件成立時必須選擇 Level 3。角色 Planner
-不得自行建立不同的層級定義。
+Result Reporting 必須消費 Task Risk，不得重新計算或降低其風險基線；再依已確認 facts 與使用者對
+回覆詳細度的自然語意增加輸出專屬理由。資訊不足時使用 Level 2，不得猜測為 Level 1；任何輸出
+Level 3 條件成立時必須選擇 Level 3。角色 Planner 不得自行建立不同的層級定義，也不得改變
+Execution Profile。
 
 Planner 應推導能力需求與技術事實，不應知道未來有哪些 Skill。新增 Skill 時，應由 Skill
 Manifest selectors 對應既有 facts；不得要求修改 Planner。
@@ -75,6 +79,7 @@ Validation needs 與 Project／Module Context requirements。
 ## 禁止事項
 
 - 不得重新選擇 Role 或改變 Action。
+- 不得重算、降低 Task Risk 或替換 Execution Profile。
 - 不得讀取或執行 Skill 的 `rules.md`。
 - 不得以檔名猜測 Skill。
 - 不得建立另一套 precedence、dependency 或 conflict 規則。

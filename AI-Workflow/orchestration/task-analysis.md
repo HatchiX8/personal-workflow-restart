@@ -4,6 +4,10 @@
 
 Task Analysis 將原始需求轉換為符合 `schemas/task-manifest.schema.json` 的 `Task Manifest`。它只描述任務，不選擇規則檔案、不載入 Context，也不執行工作。
 
+Task Analysis 只提供後續 Risk Assessment 所需、已由本階段確認的任務事實、provenance 與 routing
+trigger。它不得在本階段計算 `task_risk.level`、選擇 Execution Profile，或計算 Result Reporting
+層級。
+
 ## 允許使用的來源
 
 - 使用者的原始需求。
@@ -72,6 +76,35 @@ Canonical task type 為 `feature`、`change`、`bugfix`、`refactor`、`migratio
   另外登錄或命名為 Context。
 - `scope.summary` 是需求結果的精簡重述。`include_paths` 與 `exclude_paths` 只能包含明確提供或有 repository 證據的路徑。除非 Review 明確指出 `staged`、`worktree` 或 `full-project`，否則 `change_source` 為 `request`。
 - 從確定的任務事實填入 `routing_triggers`，例如 `architecture`、`structure-change`、`runtime=node-js` 或 `developer-self-review`。Trigger 必須有 provenance，Rule Resolution 不得再從原始文字找回 trigger。
+
+### Risk Assessment 輸入事實
+
+Task Analysis 必須把已確認且會影響風險的事實保留在 canonical Manifest 欄位或
+`routing_triggers`，供 `risk-assessment.md` 單向消費。至少涵蓋可由需求安全確認的：
+
+- Scope 範圍：單一檔案、極小範圍、單一模組、cross-module 或 full-project。
+- Target 與 target mode：single、fullstack 或 mixed。
+- Task Type，以及修改是否為多檔案或多項修改。
+- architecture、structure-change、database schema、data migration／backfill、public API／event／webhook
+  contract、authentication、authorization、security、payment／monetary flow、production／infrastructure、
+  destructive operation、file-delete、rollback、外部系統寫入與 Workflow 治理規則修改等訊號。
+- 可逆性、資料狀態影響與契約影響，但只能記錄需求已明示或有允許來源證據支持的值。
+
+會驅動 Level 3 的 trigger 必須使用 `schemas/task-risk.schema.json` 的 canonical hard trigger ID，例如
+`architecture-change`、`database-schema`、`data-migration`、`authentication`、`public-api-contract`、
+`production-deployment`、`destructive-operation` 或 `workflow-governance-change`；不得把同義自由文字直接
+作為可執行分流條件。
+
+每個 risk-related fact 與 trigger 都必須有 provenance，包含 `source`、`confidence`、`evidence` 與
+`candidates`；不得因缺少證據而填入低風險預設值。無法確認的項目應維持未知或列入 unresolved，
+由 Risk Assessment 依資訊不足政策處理。相同事實不得為了 Result Reporting 再推導一次。
+
+下列內容不是 Task Analysis 的責任：
+
+- 將 fact 或 trigger 對應成 Level 1、2、3。
+- 將風險層級對應成 `lightweight`、`standard` 或 `full`。
+- 因使用者要求詳細報告而提高任務風險；該要求只能保留為輸出偏好證據。
+- 依風險結果選取 Role、Skill、Rule、Context 或驗證流程。
 
 ## 完成條件
 

@@ -9,6 +9,7 @@ Plan。它只推導開發任務事實，不讀取 Skill 規則、不選 Skill ID
 
 - `role_id=developer`
 - `action=develop`
+- Task Risk 已完成，Execution Profile 已選取，且兩者 Task ID 一致
 - 至少一個 Target
 - Scope、Project 與明確 Skill ID 已由 Task Analysis 固定
 
@@ -43,8 +44,9 @@ Planner 可以依已確認事實提出 validation profile：
 
 ## 結果回報設定
 
-依 `orchestration.result_reporting` 共用政策，使用已確認的 Task Type、Target、Risk 與 Scope mode
-產生 `result_reporting`。資訊不足時最低層級為 Level 2；不得因開發任務看似簡短就省略風險判定。
+依 `orchestration.result_reporting` 共用政策，以凍結的 Task Risk 作為共同基線，再使用已確認的
+Task Type、Target、Risk、Scope mode 與輸出詳細度需求產生 `result_reporting`。Planner 不得重算或
+降低 Task Risk，也不得因開發任務看似簡短就省略風險判定。
 
 ## Context 選取需求
 
@@ -61,4 +63,5 @@ Planner 可以依已確認事實提出 validation profile：
 - 不得以檔名猜測 Runtime、Framework 或 Language。
 - 不得將低信心技術訊號用於自動載入。
 - 不得重寫 Task Manifest 的 Role、Action、Scope 或明確 Skill。
+- 不得改變 Task Risk 或 Execution Profile。
 - 不得開始 Developer Workflow。

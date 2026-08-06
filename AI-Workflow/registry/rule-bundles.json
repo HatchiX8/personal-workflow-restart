@@ -54,7 +54,7 @@
       {
         "path": "bootstrap.md",
         "kind": "file",
-        "content_hash": "sha256:5e96c45f7dbfeeb9151a9e9caec9c57306c2155dda4140baf2fe8292ec940003"
+        "content_hash": "sha256:d7ab0d6bee435c23d22c9cc24a83c7dea7e39c4900072f91a4b538663235a189"
       },
       {
         "path": "policies/analysis-safety.md",
@@ -74,7 +74,7 @@
       {
         "path": "policies/result-reporting.md",
         "kind": "file",
-        "content_hash": "sha256:8c0f48b69f1a984f43a2d6e5fd00d4dcaa7a79f699320b5ba083c844ac0f714e"
+        "content_hash": "sha256:24b85e67755c3bbd875e79eaf268ca43f58950eb01b9126f75b238173441d53e"
       },
       {
         "path": "policies/secret-handling.md",
@@ -89,7 +89,7 @@
       {
         "path": "roles/developer/entry.md",
         "kind": "file",
-        "content_hash": "sha256:9fc062978178c8f6d3e2d56a6c91375c45a18a60c68c827088db515d4084ac34"
+        "content_hash": "sha256:7522f5b67621ed3ffc8ca68c94ab3fc0ff9d12afed8b90a4881b72e7689a4e9b"
       },
       {
         "path": "roles/developer/output.md",
@@ -114,7 +114,7 @@
       {
         "path": "roles/module-analyst/entry.md",
         "kind": "file",
-        "content_hash": "sha256:059330ac6410ddcff10d96bc34e3c1b33a871e192e23bd2397f68a866c87c945"
+        "content_hash": "sha256:5d89e1d820bb5b177d5cff19a8c93cabae3302e9f2b0870d8411c0041425e817"
       },
       {
         "path": "roles/module-analyst/output.md",
@@ -139,7 +139,7 @@
       {
         "path": "roles/project-analyst/entry.md",
         "kind": "file",
-        "content_hash": "sha256:628387ee534fed5b88bc2759c887243ec75e3ce8792c7f83e9c9f500d72005a4"
+        "content_hash": "sha256:887894f2aa374ebb199f2a203d5b83ac9c4325f435b390110a6df32f90212a39"
       },
       {
         "path": "roles/project-analyst/identify-project.md",
@@ -174,7 +174,7 @@
       {
         "path": "roles/review/entry.md",
         "kind": "file",
-        "content_hash": "sha256:34855a9492f26fd94fb357c13d2a5f7bdf9fa32b26677ef532abac1f571312c1"
+        "content_hash": "sha256:2e73d1ac0d7dd01f15bd0d22c09e6d97033d6e9324a298bccccb66ad8d140845"
       },
       {
         "path": "roles/review/modes/change/entry.md",
@@ -249,10 +249,10 @@
       {
         "path": "workflow/common.md",
         "kind": "file",
-        "content_hash": "sha256:6c6488c2e1e45dbc5b92dd9c4f768b44389f032a0ea508cdf60e638b99fb298b"
+        "content_hash": "sha256:3b904565ccd28a1d86417f45c664204a049afaec5f90a38d5f23b65d7ed9c404"
       }
     ],
-    "fingerprint": "sha256:48511b1813e2623191b82ea93898c8a3236f55b35f4080d88f66a42e5a6c2876"
+    "fingerprint": "sha256:96449c4f5b7e75acfe020becdb152b6852ee8fbe36751ab3e09a65f73219f8b9"
   },
   "path_contract": "所有規則路徑皆相對於 AI-Workflow Root；核心規則只由 Bundle 與相依關係選取，不可猜測檔名。",
   "dependency_contract": {

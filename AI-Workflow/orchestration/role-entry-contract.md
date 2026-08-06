@@ -10,9 +10,11 @@ Role Entry 是 Executor Adapter 進入角色規則的唯一入口。所有角色
 Executor Adapter 必須向 Role Entry 提供下列唯讀輸入：
 
 - `Task Manifest`：已解析的 Action、Role、Target、Module、Scope、Skill 與角色模式。
+- `Task Risk Assessment`：已凍結的風險層級、理由、hard triggers 與升級契約。
+- `Execution Profile Contract`：已選 Profile、必要／略過階段與升級契約。
 - `Role Plan`：由該角色 Planner 產生的固定流程、Skill selectors、必要能力與輸出需求。
 - `Resolved Rule Set`：已選規則、Context、載入順序、優先級與 fingerprint。
-- `Preflight Result.execution_contract`：允許執行的 Role、Action、入口、Rule Set fingerprint 與
+- `Preflight Result.execution_contract`：允許執行的 Role、Action、入口、Risk Level、Execution Profile、Rule Set fingerprint 與
   Result Reporting 最低層級。
 
 Role Entry 只能使用 `Resolved Rule Set` 已列出的規則與 Context。未列出的檔案即使存在，也不得在
@@ -25,9 +27,10 @@ Execute 階段自行載入。
 1. 驗證 `role_id`、`allowed_action` 與自身宣告相符。
 2. 驗證 Role Plan 的 Role、Action 與 Planner entry 符合 Role Registry。
 3. 驗證角色必要欄位已由 Task Manifest 與 Role Plan 固定。
-4. 依 `Resolved Rule Set.load_order` 使用已載入規則。
-5. 在 Task Manifest 的 Scope 內依 Role Plan 執行角色工作。
-6. 依輸出契約與已載入的 Result Reporting 政策回傳執行結果。
+4. 驗證 Task Risk、Execution Profile 與 `execution_contract` 的層級及 Profile ID 一致。
+5. 依 `Resolved Rule Set.load_order` 使用已載入規則。
+6. 在 Task Manifest 的 Scope 與 Execution Profile 內依 Role Plan 執行角色工作。
+7. 依輸出契約與已載入的 Result Reporting 政策回傳執行結果。
 
 ## 禁止事項
 
@@ -38,6 +41,7 @@ Role Entry 不得：
 - 推導或變更 Role、Action、Task Type、Target、Module、Skill、review mode 或 analysis mode。
 - 掃描目錄、猜測檔名，或自行補載規則與 Context。
 - 改變 Rule Set 的載入順序、優先級、required／optional 狀態或 fingerprint。
+- 降低 Task Risk、替換 Execution Profile，或自行略過該 Profile 的必要階段。
 - 將完成回覆降低到 `execution_contract.result_reporting.minimum_level` 以下。
 - 修復 Task Analysis、Rule Resolution 或 Preflight 的缺漏。
 - 使用角色內 README 作為執行規則；README 一律只作為工程文件。
@@ -49,8 +53,7 @@ Role Entry 不得：
 - `project-analyst`：`action=analyze`，`analysis_mode=project`。
 - `module-analyst`：`action=analyze`，`analysis_mode=module`，且具有唯一 Module 與至少一個 Target。
 
-入口若發現必要欄位缺少、輸入不一致，或工作需要未載入規則、不同 Scope、Target、Module 或
-Context，必須停止執行並回傳 `reroute-required`，不得在角色內重新推導。
+入口若發現必要欄位缺少、輸入不一致、更高風險，或工作需要較高 Execution Profile、未載入規則、不同 Scope、Target、Module 或 Context，必須停止執行並回傳 `reroute-required`，不得在角色內重新推導。
 
 ## 輸出
 

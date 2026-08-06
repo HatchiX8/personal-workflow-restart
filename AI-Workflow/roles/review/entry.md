@@ -6,9 +6,11 @@
 ## 固定輸入
 
 - `Task Manifest`：已解析的 Action、Role、Target、Scope 與 `review_mode`。
+- `Task Risk Assessment`：已凍結的風險層級、理由與 hard triggers。
+- `Execution Profile Contract`：已核准的 Profile、必要階段與升級契約。
 - `Role Plan`：由 `roles/review/planner.md` 產生的固定流程、檢查 selectors 與輸出需求。
 - `Resolved Rule Set`：已選 mode、checks、Context、載入順序、優先級與 fingerprint。
-- `Preflight Result.execution_contract`：允許執行的 Role、Action、入口與 Rule Set fingerprint。
+- `Preflight Result.execution_contract`：允許執行的 Role、Action、入口、Risk Level、Execution Profile 與 Rule Set fingerprint。
 
 ## 入口驗證
 
@@ -20,9 +22,10 @@
 - `review_mode` 為 `change` 或 `feature`
 - Resolved Rule Set 已包含該 mode 的入口與必要 checks
 - `Resolved Rule Set` 與 `execution_contract` 的入口及 fingerprint 一致
+- Task Risk、Execution Profile 與 `execution_contract` 的層級及 Profile ID 一致
 
 任一條件缺少或不一致時，回傳 `reroute-required`，交回 Dispatcher 處理。不得在本入口重新
-判斷 mode、Target、Scope、Context 或 checks。
+判斷 mode、Target、Scope、Context、checks、風險或 Profile。
 
 ## 角色責任
 
@@ -39,7 +42,7 @@ Context 規則。入口不得變更 reviewer mode、Target、規則載入順序�
 
 - `completed`：已完成 Review 並依 mode 規則產出判定與報告。
 - `blocked`：角色規則內的停止條件成立，且不需要改變 routing。
-- `reroute-required`：固定輸入不足、不一致，或需要不同 mode、checks、Scope、Target 或 Context。
+- `reroute-required`：固定輸入不足、不一致、發現更高風險，或需要較高 Profile、不同 mode、checks、Scope、Target 或 Context。
 
 報告內容與落檔位置依已載入的 mode report 規則及使用者明確要求決定。本入口不得建立新的
 輸出政策。

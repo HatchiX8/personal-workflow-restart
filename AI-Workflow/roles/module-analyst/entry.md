@@ -12,12 +12,14 @@
 - `module`: 必須解析為唯一模組
 - `targets`: 至少包含一個分析目標
 - `scope`: 已確認的分析範圍
+- `task_risk`: 已凍結的風險層級、理由與 hard triggers
+- `execution_profile`: 已核准的 Profile、必要階段與升級契約
 - `role_plan`: 由 `roles/module-analyst/planner.md` 產生，且 Role、Action 與 Task Manifest 一致
 - `resolved_rule_set`: Rule Resolution 階段產出的完整規則集合
 - `selected_contexts`: 已通過 Preflight 的模組與專案上下文
 - `execution_contract`: 已凍結的執行與輸出契約
 
-若上述輸入不完整、值不符合契約，或 `resolved_rule_set` 缺少本角色所需規則，回傳 `reroute-required`，不得自行補值或開始分析。
+若上述輸入不完整、值不符合契約、風險與 Profile 不一致，或 `resolved_rule_set` 缺少本角色所需規則，回傳 `reroute-required`，不得自行補值、降低風險、替換 Profile 或開始分析。
 
 ## 執行
 
@@ -34,7 +36,7 @@
 
 本角色不是開發執行者。不得直接修改程式碼、設定、資料庫或其他專案產物；不得代替 Developer 進行實作；不得將未驗證的推測當成既有事實。
 
-分析結果應依 `execution_contract` 指定的輸出格式與位置產出，並清楚區分已確認資訊、推論、待確認事項與限制。完成時回傳 `completed`；若缺少必要上下文或無法在既定範圍內完成，回傳 `blocked`；若契約要求改由其他角色處理，回傳 `reroute-required`。
+分析結果應依 `execution_contract` 指定的輸出格式與位置產出，並清楚區分已確認資訊、推論、待確認事項與限制。完成時回傳 `completed`；若缺少必要上下文或無法在既定範圍內完成，回傳 `blocked`；若發現更高風險、需要較高 Profile 或契約要求改由其他角色處理，回傳 `reroute-required`。
 
 ## 規則集合
 

@@ -2,7 +2,7 @@
 
 ## 責任
 
-Executor Adapter 是通過 Preflight 的結果與標準 Role Entry 之間唯一的橋接層。它接收 Task Manifest、Role Plan、Resolved Rule Set 與 Preflight Result，不執行分析、推導、Preflight 修復或 routing。
+Executor Adapter 是通過 Preflight 的結果與標準 Role Entry 之間唯一的橋接層。它接收 Task Manifest、Task Risk Assessment、Execution Profile Contract、Role Plan、Resolved Rule Set 與 Preflight Result，不執行分析、推導、風險重判、Profile 重選、Preflight 修復或 routing。
 
 所有角色入口必須遵守 `orchestration/role-entry-contract.md`，並固定使用
 `roles/<role-id>/entry.md`。
@@ -17,6 +17,9 @@ Executor Adapter 是通過 Preflight 的結果與標準 Role Entry 之間唯一�
 - Role Plan 的 Role、Action 與 Planner entry 符合 Role Registry。
 - `preflight.execution_contract.role_id` 等於已凍結 Rule Set 的 Role。
 - `preflight.execution_contract.executor_entry` 等於 Registry 的 Role entry。
+- `preflight.execution_contract.risk_level` 等於已凍結 Task Risk 的 `level`，且不得低於已選 Profile 的 `risk_level`。
+- `preflight.execution_contract.execution_profile` 等於已凍結 Execution Profile 的 `profile_id`。
+- Task Risk 與 Execution Profile 都允許向上升級，且 Profile 狀態為 `selected`。
 - `preflight.execution_contract.result_reporting` 等於 Role Plan 已驗證的 Result Reporting 契約。
 - 提供的 Rule Set fingerprint 同時等於 Preflight fingerprint，以及使用已選檔案 hash 重新計算的結果。
 - 每個已選 Rule 與 Context 仍可從記錄的路徑讀取。
@@ -31,7 +34,7 @@ Executor Adapter 是通過 Preflight 的結果與標準 Role Entry 之間唯一�
 
 - 只載入 `executor_entry`、Rule Set 已選規則與已選 Context 路徑。
 - 保留 Rule Set 的 `load_order` 與 `precedence_rank`。
-- 將 Task Manifest、Role Plan、Resolved Rule Set 與包含 Result Reporting 契約的
+- 將 Task Manifest、Task Risk Assessment、Execution Profile Contract、Role Plan、Resolved Rule Set 與包含風險、Profile、Result Reporting 契約的
   `execution_contract` 作為唯讀輸入交給 Role Entry。
 - 將 Role Entry 的 `completed`、`blocked` 或 `reroute-required` 原樣交回 Dispatcher。
 
@@ -43,4 +46,4 @@ Role Entry 可以依已載入的 Result Reporting 政策，在角色工作完成
 
 ## Execute 邊界
 
-准入後，Execute 只能在已凍結 Scope 內執行 Preflight 核准的 Action（`develop`、`review` 或 `analyze`）。若執行時新發現需要其他規則、不同 Target、不同 Module 或不同 Context，原 contract 立即失效，Role Entry 必須回傳 `reroute-required`；Execute 本身不得做出該決策。
+准入後，Execute 只能在已凍結 Scope 與 Execution Profile 內執行 Preflight 核准的 Action（`develop`、`review` 或 `analyze`）。若執行時新發現更高風險、需要較高 Profile、其他規則、不同 Target、不同 Module 或不同 Context，原 contract 立即失效，Role Entry 必須回傳 `reroute-required`；Execute 本身不得降低風險、替換 Profile 或做出該決策。

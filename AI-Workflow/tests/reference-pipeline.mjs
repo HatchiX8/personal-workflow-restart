@@ -95,7 +95,119 @@ const triggersMatch = (item, manifest, defaultMode = 'any') => {
   return (item.trigger_mode ?? defaultMode) === 'all' ? matches.every(Boolean) : matches.some(Boolean);
 };
 
-export function deriveResultReporting(manifest) {
+export function assessTaskRisk(manifest) {
+  const triggers = new Set(
+    (manifest.routing_triggers ?? []).map((trigger) =>
+      trigger.startsWith('risk=') ? trigger.slice('risk='.length) : trigger
+    )
+  );
+  const moduleCount = manifest.modules?.length ?? 0;
+  const includePaths = manifest.scope?.include_paths ?? [];
+  const scopeMode = manifest.scope?.change_source === 'full-project'
+    ? 'full-project'
+    : moduleCount > 1
+      ? 'cross-module'
+      : moduleCount === 1
+        ? 'module'
+        : includePaths.length === 1
+          ? 'file'
+          : 'unknown';
+  const hardTriggerMap = new Map([
+    ['architecture', 'architecture-change'], ['architecture-change', 'architecture-change'],
+    ['database', 'database-schema'], ['database-schema', 'database-schema'],
+    ['data-migration', 'data-migration'], ['migration', 'migration'],
+    ['public-api-contract', 'public-api-contract'], ['authentication', 'authentication'],
+    ['authorization', 'authorization'], ['security', 'security'], ['payment', 'payment'],
+    ['monetary-flow', 'monetary-flow'], ['destructive-operation', 'destructive-operation'],
+    ['file-delete', 'file-delete'], ['rollback', 'rollback'],
+    ['production', 'production-deployment'], ['production-deployment', 'production-deployment'],
+    ['infrastructure', 'infrastructure-change'], ['infrastructure-change', 'infrastructure-change'],
+    ['workflow-governance', 'workflow-governance-change'],
+    ['workflow-governance-change', 'workflow-governance-change']
+  ]);
+  const hardTriggers = [...triggers].flatMap((trigger) => hardTriggerMap.has(trigger) ? [hardTriggerMap.get(trigger)] : []);
+  if (['cross-module', 'full-project'].includes(scopeMode)) hardTriggers.push(scopeMode);
+  if (manifest.target_mode === 'fullstack') hardTriggers.push('fullstack');
+  if (manifest.target_mode === 'mixed') hardTriggers.push('mixed-target');
+  if (manifest.task_type === 'migration') hardTriggers.push('migration');
+
+  const unresolved = [];
+  if (manifest.status !== 'analyzed' || (manifest.unresolved ?? []).length > 0) {
+    unresolved.push('task-manifest-not-fully-analyzed');
+  }
+  let level = 2;
+  const reasons = [];
+  if (hardTriggers.length > 0) {
+    level = 3;
+    reasons.push(...hardTriggers.map((trigger) => `hard-trigger=${trigger}`));
+  } else {
+    const level1 = scopeMode === 'file'
+      && (manifest.targets ?? []).length === 1
+      && ['change', 'bugfix', 'maintenance'].includes(manifest.task_type)
+      && manifest.target_mode === 'single';
+    if (level1) {
+      level = 1;
+      reasons.push('scope-mode=file', `task-type=${manifest.task_type}`, 'single-target');
+    } else {
+      reasons.push(scopeMode === 'unknown' ? 'scope-size-not-confirmed' : 'default-standard-task');
+    }
+  }
+  return {
+    schema_version: '1.0',
+    task_id: manifest.task_id,
+    assessed_at: '2000-01-01T00:00:00Z',
+    level,
+    confidence: unresolved.length ? 0.7 : 1,
+    scope_mode: scopeMode,
+    target_mode: manifest.target_mode,
+    task_type: manifest.task_type,
+    risk_facts: [...triggers].sort(),
+    hard_triggers: [...new Set(hardTriggers)].sort(),
+    reasons: [...new Set(reasons)],
+    upward_escalation: true,
+    status: unresolved.length ? 'needs-resolution' : 'assessed',
+    unresolved
+  };
+}
+
+export function resolveExecutionProfile(manifest, taskRisk, role = null, skills = []) {
+  const profileByLevel = { 1: 'lightweight', 2: 'standard', 3: 'full' };
+  const profileId = profileByLevel[taskRisk.level];
+  const reasons = [`risk-level=${taskRisk.level}`];
+  let blocked = taskRisk.status !== 'assessed' || manifest.task_id !== taskRisk.task_id;
+  if (taskRisk.level === 1) {
+    if (!role || role.status !== 'active' || role.action !== manifest.action) {
+      blocked = true;
+      reasons.push('advisory-role-not-yet-supported');
+    }
+    const skillById = new Map(skills.map((skill) => [skill.skill_id, skill]));
+    for (const skillId of manifest.skill_ids ?? []) {
+      const skill = skillById.get(skillId);
+      if (!skill || skill.status !== 'active' || skill.role_id !== manifest.role_id) {
+        blocked = true;
+        reasons.push(`skill-role-incompatible=${skillId}`);
+      }
+    }
+  }
+  const stagesByProfile = {
+    lightweight: ['role-planner', 'rule-resolution', 'preflight', 'executor-adapter', 'role-entry'],
+    standard: ['role-planner', 'rule-resolution', 'context-resolution', 'preflight', 'executor-adapter', 'role-entry'],
+    full: ['role-planner', 'rule-resolution', 'context-resolution', 'preflight', 'executor-adapter', 'role-entry']
+  };
+  return {
+    schema_version: '1.0',
+    task_id: manifest.task_id,
+    risk_level: taskRisk.level,
+    profile_id: profileId,
+    required_stages: blocked ? [] : stagesByProfile[profileId],
+    skipped_stages: profileId === 'lightweight' ? ['context-resolution'] : [],
+    reasons: [...new Set(reasons)],
+    upward_escalation: true,
+    status: blocked ? 'blocked' : 'selected'
+  };
+}
+
+export function deriveResultReporting(manifest, taskRisk = null) {
   const routingTriggers = new Set(
     (manifest.routing_triggers ?? []).map((trigger) =>
       trigger.startsWith('risk=') ? trigger.slice('risk='.length) : trigger
@@ -126,13 +238,14 @@ export function deriveResultReporting(manifest) {
   if (manifest.task_type === 'migration') level3Reasons.push('task-type=migration');
   level3Reasons.push(...matchedHighRisks.map((risk) => `risk=${risk}`));
   if (detailedReportRequested) level3Reasons.push('explicit-detailed-report-request');
+  if (taskRisk?.level === 3) level3Reasons.push(...(taskRisk.reasons ?? []).map((reason) => `task-risk:${reason}`));
   if (level3Reasons.length > 0) {
     return { minimum_level: 3, reasons: [...new Set(level3Reasons)], upward_escalation: true };
   }
 
   const level1TaskType = ['change', 'bugfix', 'maintenance'].includes(manifest.task_type);
   const singleTarget = (manifest.targets ?? []).length === 1;
-  if (scopeMode === 'file' && singleTarget && level1TaskType) {
+  if ((taskRisk?.level ?? 1) === 1 && scopeMode === 'file' && singleTarget && level1TaskType) {
     return {
       minimum_level: 1,
       reasons: ['scope-mode=file', `task-type=${manifest.task_type}`, 'single-target'],
@@ -147,7 +260,7 @@ export function deriveResultReporting(manifest) {
   };
 }
 
-export function buildReferenceRolePlan(manifest, role) {
+export function buildReferenceRolePlan(manifest, role, taskRisk = null) {
   const skillSelectors = new Set([
     `role=${manifest.role_id}`,
     `action=${manifest.action}`,
@@ -182,7 +295,7 @@ export function buildReferenceRolePlan(manifest, role) {
     planner_entry: role?.planner ?? 'unresolved',
     facts,
     skill_selectors: [...skillSelectors].sort(),
-    result_reporting: deriveResultReporting(manifest),
+    result_reporting: deriveResultReporting(manifest, taskRisk),
     validation_profiles: [],
     context_requirements: manifest.modules?.length ? ['module'] : [],
     unresolved,
@@ -382,7 +495,11 @@ export function runReferencePipeline(manifest, roots, providedRolePlan = null) {
   const bundleById = new Map((bundles.bundles ?? []).map((bundle) => [bundle.bundle_id, bundle]));
   const role = (roles.roles ?? []).find((item) => item.role_id === manifest.role_id && item.status === 'active');
   if (!role) unresolved.push('role-unresolved');
-  const rolePlan = providedRolePlan ?? buildReferenceRolePlan(manifest, role);
+  const taskRisk = assessTaskRisk(manifest);
+  const executionProfile = resolveExecutionProfile(manifest, taskRisk, role, skills.skills ?? []);
+  if (taskRisk.status !== 'assessed') unresolved.push(...(taskRisk.unresolved ?? ['task-risk-incomplete']));
+  if (executionProfile.status !== 'selected') unresolved.push(...executionProfile.reasons.map((reason) => `profile:${reason}`));
+  const rolePlan = providedRolePlan ?? buildReferenceRolePlan(manifest, role, taskRisk);
   if (rolePlan.status !== 'planned') unresolved.push(...(rolePlan.unresolved ?? ['role-plan-incomplete']));
   if (rolePlan.role_id !== manifest.role_id || rolePlan.action !== manifest.action) {
     unresolved.push('role-plan-task-mismatch');
@@ -442,14 +559,16 @@ export function runReferencePipeline(manifest, roots, providedRolePlan = null) {
     if (triggersMatch(rule, manifest, bundles.dependency_contract?.default_trigger_mode ?? 'any')) includeResource(rule.rule_id, `triggered rule ${rule.rule_id}`);
   }
   for (const skillId of manifest.skill_ids ?? []) includeResource(skillId, `explicit skill ${skillId}`);
-  for (const skill of skills.skills ?? []) {
-    if (
-      skill.status !== 'active' ||
-      skill.role_id !== manifest.role_id ||
-      !['conditional', 'explicit_or_conditional'].includes(skill.load_policy)
-    ) continue;
-    if (selectorsMatch(skill, rolePlan, manifest)) {
-      includeResource(skill.skill_id, `Role Plan selector matched ${skill.skill_id}`);
+  if (executionProfile.profile_id !== 'lightweight') {
+    for (const skill of skills.skills ?? []) {
+      if (
+        skill.status !== 'active' ||
+        skill.role_id !== manifest.role_id ||
+        !['conditional', 'explicit_or_conditional'].includes(skill.load_policy)
+      ) continue;
+      if (selectorsMatch(skill, rolePlan, manifest)) {
+        includeResource(skill.skill_id, `Role Plan selector matched ${skill.skill_id}`);
+      }
     }
   }
 
@@ -502,13 +621,24 @@ export function runReferencePipeline(manifest, roots, providedRolePlan = null) {
     status: unresolved.length === 0 ? 'resolved' : 'incomplete'
   };
   resolution.fingerprint = canonicalFingerprint(resolution);
-  return { resolution, context: contextsResult, rolePlan, registries: { roles, skills, bundles, modules }, workflowConfig, projectConfig };
+  return { resolution, context: contextsResult, taskRisk, executionProfile, rolePlan, registries: { roles, skills, bundles, modules }, workflowConfig, projectConfig };
 }
 
-export function preflightReferencePipeline({ manifest, rolePlan, resolution, context, roots }) {
+export function preflightReferencePipeline({ manifest, taskRisk = null, executionProfile = null, rolePlan, resolution, context, roots }) {
   const checks = [];
   const blockers = [...resolution.unresolved, ...context.blockers];
   const warnings = [...context.warnings];
+  taskRisk ??= assessTaskRisk(manifest);
+  if (!executionProfile) {
+    const workflowConfig = readJson(path.join(roots.workflowRoot, 'workflow.config.json'));
+    const roles = readJson(path.join(roots.workflowRoot, workflowConfig.registries.roles));
+    const skills = readJson(path.join(roots.workflowRoot, workflowConfig.registries.skills));
+    const role = (roles.roles ?? []).find((item) => item.role_id === manifest.role_id && item.status === 'active');
+    executionProfile = resolveExecutionProfile(manifest, taskRisk, role, skills.skills ?? []);
+  }
+  if (taskRisk.status !== 'assessed') blockers.push('task-risk-incomplete');
+  if (executionProfile.status !== 'selected') blockers.push('execution-profile-blocked');
+  if (executionProfile.risk_level < taskRisk.level) blockers.push('execution-profile-risk-downgrade');
   if (!rolePlan?.result_reporting) blockers.push('result-reporting-missing');
   if (rolePlan && (rolePlan.role_id !== manifest.role_id || rolePlan.action !== manifest.action)) {
     blockers.push('role-plan-routing-mismatch');
@@ -544,6 +674,8 @@ export function preflightReferencePipeline({ manifest, rolePlan, resolution, con
     executor_entry: resolution.executor_entry,
     rule_set_fingerprint: resolution.fingerprint,
     allowed_action: manifest.action,
+    risk_level: taskRisk.level,
+    execution_profile: executionProfile.profile_id,
     result_reporting: rolePlan.result_reporting
   };
   return {
@@ -560,9 +692,11 @@ export function preflightReferencePipeline({ manifest, rolePlan, resolution, con
   };
 }
 
-export function verifyExecutor({ resolution, preflight, rolePlan, roots, readBytes = fs.readFileSync }) {
+export function verifyExecutor({ resolution, preflight, taskRisk = null, executionProfile = null, rolePlan, roots, readBytes = fs.readFileSync }) {
   if (!preflight?.can_execute || !preflight.execution_contract) return { accepted: false, reason: 'preflight-not-executable' };
   if (preflight.execution_contract.rule_set_fingerprint !== resolution.fingerprint) return { accepted: false, reason: 'preflight-fingerprint-mismatch' };
+  if (taskRisk && preflight.execution_contract.risk_level !== taskRisk.level) return { accepted: false, reason: 'task-risk-contract-mismatch' };
+  if (executionProfile && preflight.execution_contract.execution_profile !== executionProfile.profile_id) return { accepted: false, reason: 'execution-profile-contract-mismatch' };
   if (JSON.stringify(preflight.execution_contract.result_reporting) !== JSON.stringify(rolePlan?.result_reporting)) {
     return { accepted: false, reason: 'result-reporting-contract-mismatch' };
   }

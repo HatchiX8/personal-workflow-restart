@@ -9,6 +9,7 @@
 
 - `role_id=project-analyst`
 - `action=analyze`
+- Task Risk 已完成，Execution Profile 已選取，且兩者 Task ID 一致
 - `analysis_mode=project`
 - Project Root 與輸出 Scope 已固定
 
@@ -33,12 +34,14 @@
 
 ## 結果回報設定
 
-依 `orchestration.result_reporting` 共用政策，使用 Scope mode、Project shape、分析深度與已知風險
-產生 `result_reporting`。此層級只控制完成回覆，不得縮減 Project Analysis 正式文件。
+依 `orchestration.result_reporting` 共用政策，以凍結的 Task Risk 作為共同基線，再使用 Scope
+mode、Project shape、分析深度、已知風險與輸出詳細度需求產生 `result_reporting`。此層級只控制
+完成回覆，不得縮減 Project Analysis 正式文件。
 
 ## 禁止事項
 
 - 不得選取技術棧或分析 Profile Skill ID。
 - 不得開始 Project Analyst Workflow。
 - 不得修改 Project、Module、Scope 或輸出位置。
+- 不得重算、降低 Task Risk 或替換 Execution Profile。
 - 不得執行會改變專案狀態的命令。
