@@ -1,5 +1,8 @@
 # Preflight 執行前驗證契約
 
+> 載入政策：本檔是 Markdown fallback 與 Runtime 行為說明。正常路徑由 Node Runtime 執行完整
+> Preflight；Agent 只接受 `status=ready` 且 `preflight.can_execute=true` 的結果。
+
 ## 責任
 
 Preflight 驗證 Task Manifest、Task Risk Assessment、Execution Profile Contract、Role Plan 與已凍結的 Resolved Rule Set 是否可以執行，並輸出符合 `schemas/preflight-result.schema.json` 的結果。Preflight 不選擇新規則、不修改前置產物，也不開始角色工作。

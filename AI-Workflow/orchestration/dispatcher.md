@@ -2,90 +2,89 @@
 
 ## 責任
 
-Dispatcher 是 Workflow 的編排協調器，負責階段順序、風險與執行 Profile 產物交接、分流及終止狀態。Dispatcher 不負責分類任務、判定風險、選擇執行 Profile、選擇規則、驗證規則路徑，也不執行角色任務。
+Dispatcher 是 Workflow 的精簡協調器。正常路徑只載入 `task-manifest-authoring.md` 與
+`runtime-dispatch.md`，將確定性的 Schema、Risk、Profile、Registry、Rule、Context 與 Preflight
+推導交給同一支 Node Runtime。Dispatcher 不分類任務、不自行判定風險、不選規則，也不執行角色工作。
 
-## 輸入
+## 輸入與啟動
 
-- Bootstrap 解析完成的 Workflow Root 與 `workflow.config.json`。
-- Bootstrap 已驗證且凍結的 Project Config。
-- 使用者的原始需求。
+輸入為 Bootstrap 驗證後的 canonical Workflow Root、canonical Project Root、Workflow Config、
+Project Config 與未修改的原始需求。依序：
 
-若無法讀取 Workflow Config、已設定的 Registry、Risk Assessment、Execution Profile Resolution、三個 Execution Profile 或其他已設定的編排契約，Dispatcher 必須以 `BLOCKED` 停止，不得推測替代路徑。
+1. 載入 `orchestration.task_manifest_authoring`，由 LLM 產生不可變 Task Manifest。
+2. 載入 `orchestration.runtime_dispatch`，以 `operation=resolve-routing` 呼叫 `runtime.entry`。
+3. Runtime 回傳 `status=resolved` 後，只讀取 `next.load_paths` 指定的 Role Planner，將相同 Task
+   Manifest、Runtime 回傳的 Task Risk／Execution Profile 與已驗證 Project Config 交付 Planner，
+   產生不可變 Role Plan。
+4. 以相同 Task Manifest 與 Role Plan 呼叫 `operation=resolve-execution`。
+5. Runtime 只有在 Preflight 通過且同一次呼叫的 Executor Adapter 准入檢查 accepted 後，才能回傳
+   `status=ready`。Dispatcher 必須確認 `executor_verification.accepted=true`，接著只依序載入
+   `load_paths`，將 `execution_contract` 交給 Role Entry；正常路徑不另載 `executor-adapter.md`。
 
-## 必要順序
+Task Manifest、Task Risk、Execution Profile、Role Plan、Resolved Rule Set、Preflight 與 Execution
+Contract 的 Task ID 必須一致。每一階段輸出都是下一階段不可變輸入；Runtime 產物預設只保留在記憶體。
 
-1. 使用原始需求與不可變的 Config／Registry snapshot 呼叫 `task-analysis.md`。
-2. Task Manifest 必須為 `status=analyzed`；以該不可變 Manifest 呼叫
-   `workflow.config.json` 設定的 `orchestration.risk_assessment`，產生通過 Schema 的 Task Risk。
-3. Task Risk 必須為 `status=assessed`；`status=needs-resolution` 時以 `RISK_BLOCKED` 停止。以相同 Task Manifest 與不可變 Task Risk 呼叫
-   `orchestration.execution_profile_resolution`，產生 Execution Profile Selection。
-4. Selection 必須為 `status=selected`。Dispatcher 只能呼叫
-   `workflow.config.json.execution_profiles.<profile_id>` 指定的 `lightweight`、`standard` 或 `full`
-   Profile，並依 Selection 的 `required_stages` 與該 Profile 契約執行；不得自行增刪或重排階段。
-5. 每個 Profile 只有在其 Preflight 回傳 `can_execute=true` 時，才能呼叫 `executor-adapter.md`。
+正常路徑不得預先載入：
 
-`full` Profile 必須與導入風險分流前的完整流程等價，且在 Profile 內保持下列既有順序：
+- 完整 Task Manifest Schema 或 Registry；
+- `risk-assessment.md`、`execution-profile-resolution.md`；
+- 任一 Profile、`rule-resolution.md`、`context-resolution.md`、`preflight.md`；
+- 未出現在 Runtime `next.load_paths`／`load_paths` 的 Role、Skill 或 Rule。
 
-1. 依 Task Manifest 的 Role 呼叫 `roles/<role-id>/planner.md`，將不可變 Task Risk 與 Profile
-   Selection 一併交付，並套用 `workflow.config.json` 設定的 `orchestration.result_reporting`，產生 Role Plan。
-2. 使用 Task Manifest、Role Plan 與相同 snapshot 呼叫 `rule-resolution.md`。
-3. 使用 Task Manifest、Role Plan、Resolved Rule Set 與 snapshot 呼叫 `preflight.md`。
-4. 只有 Preflight 回傳 `can_execute=true` 時，才能呼叫 `executor-adapter.md`。
+`load_paths` 一律相對於 Workflow Root，且必須已由 Runtime canonicalize、驗證與排序。Agent 不得新增、
+刪除、改序或用相似檔名替代。
 
-`lightweight` 與 `standard` 必須各自遵守已設定的 Profile 契約，不得因省略階段而省略該 Profile
-宣告的安全核心、Rule／Skill 相容性檢查、最低驗證或 Preflight。Profile 契約不得允許尚未支援的
-Action 或 Role 靜默進入較輕流程；這類情況必須阻擋或依 Task Risk 選擇較高 Profile。
+## Runtime 狀態
 
-每個階段的輸出都是下一階段的不可變輸入。Dispatcher 必須在可取得時記錄 Task ID、Task Risk
-level、Profile ID、Resolution ID 與 Rule Set fingerprint。Task Manifest、Task Risk、Execution
-Profile Selection、Role Plan、Resolved Rule Set 與 Preflight Result 的 Task ID 必須一致。除非後續
-階段明確導入持久化交接儲存，runtime 產物只保留在記憶體中。
+- `resolve-routing` 成功必須是 exit `0`、`status=resolved`、`next.stage=role-planner`。
+- `resolve-execution` 成功必須是 exit `0`、`status=ready`、`preflight.can_execute=true`。
+- exit `2` 或合法 `status=blocked` 是 Workflow 決策；保留 diagnostics 並停止，不得進入 fallback。
+- exit `64` 時只允許依 diagnostics 修正 LLM 產生的 request 一次，不得改寫使用者需求或降低條件。
+- exit `70`、入口不存在、Node 版本不足、宿主無法執行或使用者拒絕精確入口時，視為 Runtime 不可用。
 
-Context Resolution 是由 Rule Resolution 呼叫的內部契約。Dispatcher 不新增獨立階段，也不進行 Context 決策。
+Runtime stdout 必須是單一合法 JSON；stderr 不參與 routing。協議版本、status、exit code 或 Task ID
+不一致時 fail closed。
 
-## 執行中升級與重新分流
+## Markdown fallback
 
-Role Entry 回傳 `reroute-required` 時，Dispatcher 必須使原 Execution Contract 立即失效，並保留
-Role Entry 回傳的新事實、evidence 與 reroute reason。Dispatcher 不得自行判定新風險或直接改選
-Profile；必須從受新事實影響的最早前置階段重新產生不可變產物，且至少重新執行 Risk Assessment
-與 Execution Profile Resolution。
+只有 Runtime 技術上不可用時，才載入既有完整契約並執行：Task Analysis → Risk Assessment →
+Execution Profile Resolution → selected Profile → Role Planner → Rule Resolution（內含 Context
+Resolution）→ Preflight → Executor Adapter。Fallback 的權威來源、stage 順序、安全核心與阻擋條件
+不得弱化，且最終回覆必須標示 `routing_mode=markdown-fallback` 與不可用原因。
 
-重新分流禁止降低既有風險或 Profile。新證據確實提高 Task Risk 時，只允許下列向上升級：
+若 Runtime 已成功啟動並因 Manifest、Risk、Profile、Registry、Rule、Context、hash 或 Preflight
+回傳 blocker，禁止以 fallback 重新解算。
+
+## 執行中重新分流
+
+Role Entry 回傳 `reroute-required` 時，原 Execution Contract、Rule Set 與 fingerprint 立即失效。將新
+fact、evidence 與 reroute reason 合併成新的 Task Manifest，再從 `resolve-routing` 重新開始。風險與
+Profile 只能維持或向上升級：
 
 ```text
-lightweight -> standard
-lightweight -> full
-standard -> full
+lightweight -> standard -> full
 ```
 
-若新證據只改變 Scope、Target、Module、Context 或所需 Rule，而 Risk Assessment 仍確認為相同
-level，可以重新選擇相同 Profile；這是同層級 contract 重建，不是風險降級。`full` 也可以在
-Level 3 重新產生完整 contract。無論同層重建或向上升級，都必須重新執行該 Profile 的所有必要
-階段與 Preflight，不得沿用舊 Rule Set、fingerprint 或 Execution Contract。
-
-新的 `risk_level` 或 Profile rank 低於先前已核准值、Execution Profile Resolution 回傳 blocked，
-或重新分流仍不足以安全涵蓋新發現範圍時，必須以 `PROFILE_BLOCKED` 停止。
+同層級也必須完整重建所有 Runtime 產物與 Preflight；禁止沿用舊 `load_paths` 或 fingerprint。新的
+Risk／Profile 低於既有核准值，或新結果仍不足以安全涵蓋範圍時，以 `PROFILE_BLOCKED` 停止。
 
 ## 終止狀態
 
-- `ANALYSIS_BLOCKED`：Task Analysis 無法產生安全的 routing 輸入。
-- `RISK_BLOCKED`：Risk Assessment 無法從已確認事實產生可安全分流的 Task Risk。
-- `PROFILE_BLOCKED`：Execution Profile Resolution 回傳 blocked、Profile 契約不可用，或執行中重新分流嘗試降低既有風險／Profile 或仍無法安全涵蓋新範圍。
-- `PLANNING_BLOCKED`：Role Planner 無法產生安全的 Skill selectors 或必要 facts。
-- `RESOLUTION_INCOMPLETE`：Rule Resolution 仍有未解析的必要輸入。
-- `PREFLIGHT_BLOCKED`：Preflight 回傳 `BLOCKED`。
-- `READY_FOR_EXECUTION`：Preflight 回傳 `PASS` 或 `PASS_WITH_WARNINGS`，且 `can_execute=true`。
-- `EXECUTION_REJECTED`：Executor Adapter 拒絕無效或已變更的 execution contract。
+- `ANALYSIS_BLOCKED`：Task Manifest 無法形成安全的 Runtime 輸入。
+- `RUNTIME_UNAVAILABLE`：Runtime 技術上不可用，且 Markdown fallback 也無法完成。
+- `RISK_BLOCKED`／`PROFILE_BLOCKED`：Runtime 或 fallback 的風險／Profile 判定阻擋。
+- `PLANNING_BLOCKED`：Role Planner 無法產生安全 Role Plan。
+- `RESOLUTION_INCOMPLETE`：Rule／Context Resolution 不完整。
+- `PREFLIGHT_BLOCKED`：Preflight 不允許執行。
+- `READY_FOR_EXECUTION`：Runtime `status=ready` 且 `can_execute=true`。
+- `EXECUTION_REJECTED`：Executor Adapter 拒絕無效或已變更的 contract。
 
-Dispatcher 必須回傳造成阻擋的產物與原因，不得將被阻擋的結果轉換成預設 Developer 任務。
+阻擋時必須回傳 diagnostics 與原因，不得轉換成預設 Developer 任務。
 
 ## 禁止事項
 
-- 讀取 `roles/**` 或 README 來做 routing 決策。
-- 選擇 Role、Skill、Target、Module 或 Review mode。
-- 自行判定或覆寫 Task Risk，或自行選擇／降級 Execution Profile。
-- 代替 Role Planner 推導 Role-specific facts。
-- 在共用 Result Reporting 政策之外重算或覆寫 Result Reporting 最低層級。
-- 重新排序已選取的規則。
-- 為了做業務決策而讀取 project 或 application 程式碼。
-- 開始 Develop、Review 或 Analyze 工作。
+- 以 README、完整 Registry 或未命中規則自行做 routing。
+- 自行覆寫 Task Risk、Profile、Resolved Rule Set、load order、hash 或 fingerprint。
+- 為了省 Token、時間或避免授權而降低 Profile 或跳過 Runtime blocker。
+- 代替 Role Planner 推導 Role-specific repository facts。
+- 在 `can_execute=true` 前開始 Develop、Review 或 Analyze。

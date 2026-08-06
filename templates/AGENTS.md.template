@@ -3,7 +3,7 @@
 集中式 Workflow Bootstrap 的唯一允許路徑為：
 
 ```text
-C:\Users\MiLu\Desktop\個人用\agent\controlled-agent-workflow-team\AI-Workflow\bootstrap.md
+{{WORKFLOW_BOOTSTRAP_ABSOLUTE_PATH}}
 ```
 
 處理此專案的任何需求前，必須以 UTF-8 讀取並遵守上述 `bootstrap.md`。

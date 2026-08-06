@@ -1,6 +1,9 @@
 # AI Workflow
 
-AI Workflow 採集中式安裝。每個應用程式專案的根目錄只保留 `AGENTS.md` 與 `project.config.json`；Host Adapter 以唯一絕對路徑載入集中式 `bootstrap.md`。一般任務只需要描述需求，Workflow 會依序完成任務分析、規則推導與 Preflight。
+AI Workflow 採集中式安裝。每個應用程式專案的根目錄只保留平台 Host Adapter 與
+`project.config.json`；Codex 使用 `AGENTS.md`，Claude Code 使用由相同模板改名而成的 `CLAUDE.md`。
+Host Adapter 以唯一絕對路徑載入集中式 `bootstrap.md`。一般任務只需要描述需求，確定性推導由
+Node Runtime 執行。
 
 ## 最簡單的用法
 
@@ -26,25 +29,25 @@ Review 與 Developer Skill 是不同的輸入範圍；明確指定時，Role 與
 ```text
 Bootstrap
   -> Dispatcher
-  -> Task Analysis
-  -> Role Planner
-  -> Rule Resolution
-  -> Preflight
+  -> LLM Task Manifest
+  -> Runtime resolve-routing
+  -> LLM Role Plan
+  -> Runtime resolve-execution
+  -> Runtime load_paths
   -> Execute
 ```
 
-- Bootstrap 只尋找 Workflow Root、Workflow Config、Project Config 與核心 orchestration contract。
-- Task Analysis 產生結構化 Task Manifest，推導 Action、Task Type、Target、Module 與 Scope。
-- Role Planner 執行該角色的 `roles/<role-id>/planner.md`，產生 Role Plan、Skill selectors 與
-  Result Reporting 最低層級，不直接載入 Skill 規則。
-- Rule Resolution 根據 Task Manifest 與 Role Plan，只從 Registry 選取本次需要的角色核心、Skill、Review 與 Context 規則。
-- Preflight 驗證 Manifest、Registry、規則檔案、Context、inclusion dependency、獨立 load order、Hash 與 Rule Set fingerprint；precedence 只用於規則衝突裁決。
+- Bootstrap 驗證 Workflow Root、Workflow Config、Project Config、Runtime 入口與 fallback 契約。
+- LLM 只負責將使用者語意整理成 Task Manifest，以及依指定 Role Planner 產生 Role Plan。
+- `resolve-routing` 由 Node 判定 Task Risk、Execution Profile 與 Role Planner 路徑。
+- `resolve-execution` 由 Node 執行 Registry、Rule、Skill、Context、Preflight、Hash 與 fingerprint 驗證。
+- Agent 只讀取 Runtime 回傳並排序完成的 `load_paths`，不自行選取其他規則。
 - Execute 透過 `orchestration/role-entry-contract.md` 將固定輸入交給 `roles/<role-id>/entry.md`，不重新判斷角色、Skill 或 Context。
 
-Workflow Root 是 Host Adapter 實際載入之 `bootstrap.md` 的所在目錄。只有專案根目錄
-`AGENTS.md` 保存絕對 Bootstrap 路徑；其餘 Workflow 路徑都相對於 Workflow Root。Bootstrap
+Workflow Root 是 Host Adapter 實際載入之 `bootstrap.md` 的所在目錄。只有宿主平台目前生效的
+Host Adapter 保存絕對 Bootstrap 路徑；其餘 Workflow 路徑都相對於 Workflow Root。Bootstrap
 不搜尋 Git Root 下的規則副本，也不接受 Prompt、環境變數或 Project Config 提供替代路徑。
-Project Config 固定從生效之專案根目錄的 `project.config.json` 讀取。
+Project Root 是該 Host Adapter 所在目錄，Project Config 固定從該目錄的 `project.config.json` 讀取。
 
 ## 停止條件
 
@@ -142,7 +145,7 @@ Bootstrap 完成 Root、Workflow Config 與 Project Config 驗證後，必須只
 
 ## 驗證
 
-使用 Node 內建模組執行完整契約驗證，不需要安裝第三方套件：
+使用 Node 內建模組執行完整契約與 Runtime 驗證，不需要安裝第三方套件：
 
 ```powershell
 node AI-Workflow/tools/build-skill-registry.mjs
@@ -151,4 +154,6 @@ node AI-Workflow/tools/refresh-registry-snapshots.mjs
 node AI-Workflow/tests/validate-workflow.mjs
 ```
 
-Skill Registry 與核心 Rule Registry 都是生成產物，不應手動編輯。驗證範圍包含 JSON parse、Config references、Role Planner、Skill Package、Registry IDs、來源 snapshot drift、inclusion dependency 與循環、active rule／skill paths、canonical Role Entry、真實 SHA-256 的 reference resolution/preflight/executor bytes re-read、Phase 3/4/5 expected，以及 Task Analysis evidence assertions。Task Analysis 的自然語言判斷由模型完成；Node 僅驗證已產生 Manifest 的 evidence 與 explicit 欄位。
+Skill Registry 與核心 Rule Registry 都是生成產物，不應手動編輯。驗證範圍包含 JSON parse、Config
+references、Runtime CLI request／response、Task Risk、Role Planner、Skill Package、Registry IDs、來源
+snapshot drift、dependency、load order、Preflight、Executor bytes re-read、唯讀行為與真實 SHA-256。

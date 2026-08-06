@@ -1,6 +1,8 @@
 # Bootstrap 啟動規則
 
-Bootstrap 是 Workflow 的唯一入口，負責驗證集中式 Workflow Root、Project Config 與編排契約，並啟動 Dispatcher。Bootstrap 不分類需求，也不載入作業規則。
+Bootstrap 是 Workflow 的唯一入口，負責驗證集中式 Workflow Root、Project Config、精簡 Runtime
+入口契約與 Markdown fallback 契約，並啟動 Dispatcher。Bootstrap 不分類需求、不執行 Runtime，也不
+載入 Registry、Schema 內容或作業規則。
 
 所有檔案都必須以 UTF-8 讀取。`workflow.config.json` 中的所有路徑都以解析後的 Workflow Root 為基準；Project Config 中的所有路徑都以解析後的 Project Root 為基準。
 
@@ -24,7 +26,23 @@ Workflow Root 只有一個權威來源：主機介接規則實際載入的 `boot
 
 - `schemas.workflow_config`
 - `schemas.project_config`
+- `schemas.runtime_request`
+- `schemas.runtime_result`
+- `schemas.task_manifest`
+- `schemas.task_risk_policy`
+- `schemas.task_risk`
+- `schemas.execution_profile`
+- `schemas.role_plan`
+- `schemas.resolved_rule_set`
+- `schemas.preflight_result`
 - `orchestration.dispatcher`
+- `orchestration.task_manifest_authoring`
+- `orchestration.runtime_dispatch`
+- `runtime.risk_policy`
+- `runtime.entry`
+
+下列完整契約是 Markdown fallback 的必要檔案。Bootstrap 只驗證路徑存在且可讀，不載入其內容：
+
 - `orchestration.task_analysis`
 - `orchestration.task_risk_policy`
 - `orchestration.risk_assessment`
@@ -42,9 +60,15 @@ Workflow Root 只有一個權威來源：主機介接規則實際載入的 `boot
 Bootstrap 只能驗證路徑與解析設定。Registry 內容、Task Risk／Execution Profile 的業務判定、作業
 規則內容，以及 project/application 檔案都不是 Bootstrap 的輸入。
 
+`runtime.entry` 或 Node.js 在宿主環境不可執行時，記錄非阻擋性 `runtime-unavailable` diagnostic 並
+交付 Dispatcher，由 Dispatcher 依 `runtime.fallback` 決定是否啟動 Markdown fallback。Runtime
+檔案存在但其設定路徑越界，或 Workflow Config 本身不符合 Schema，仍須直接 `BLOCKED`。
+
 ## Project Root 與 Project Config
 
-Project Root 是目前生效之專案根目錄 `AGENTS.md` 所在目錄。Bootstrap 必須讀取：
+Project Root 是宿主平台目前實際載入之 Host Adapter（例如 `AGENTS.md` 或 `CLAUDE.md`）所在目錄。
+Host Adapter 的 canonical path 與檔名必須來自宿主載入 provenance，不得由 Bootstrap 搜尋或猜測。
+Bootstrap 必須讀取：
 
 ```text
 <PROJECT_ROOT>/project.config.json
@@ -83,5 +107,8 @@ Root 與核心驗證成功後，使用下列輸入呼叫已設定的 Dispatcher�
 - 已解析的 Project Config；
 - 主機介接規則、Root 與 Config 的 provenance；
 - 非阻擋性 diagnostics。
+
+Dispatcher 正常路徑只應載入 `orchestration.task_manifest_authoring` 與
+`orchestration.runtime_dispatch`；完整 Schema、Registry 與確定性編排契約由 Node Runtime 讀取。
 
 後續所有階段都由 Dispatcher 負責。Bootstrap 不得開始執行任務。

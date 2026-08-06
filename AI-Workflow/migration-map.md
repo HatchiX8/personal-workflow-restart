@@ -4,43 +4,41 @@
 
 ```text
 一般 Prompt
-  -> Project Root AGENTS.md Host Adapter
-  -> AGENTS.md 指定的絕對 bootstrap.md
+  -> Project Root Host Adapter（AGENTS.md 或 CLAUDE.md）
+  -> Host Adapter 指定的絕對 bootstrap.md
   -> Dispatcher
-  -> Task Analysis
-  -> Role Planner
-  -> Rule Resolution
-  -> Preflight
-  -> Executor Adapter
+  -> LLM Task Manifest
+  -> Runtime resolve-routing
+  -> LLM Role Plan
+  -> Runtime resolve-execution
+  -> Runtime load_paths
   -> Role Entry / Execute
 ```
 
-`AGENTS.md` 中的絕對 Bootstrap 路徑是唯一入口。Workflow Root 是已載入 `bootstrap.md` 的
-所在目錄；後續 Workflow 路徑都相對於此 Root。Project Config 固定由專案根目錄的
-`project.config.json` 提供。入口驗證失敗時，Workflow 必須停止。
+目前宿主實際載入之 Host Adapter 中的絕對 Bootstrap 路徑是唯一入口。Workflow Root 是已載入
+`bootstrap.md` 的所在目錄；後續 Workflow 路徑都相對於此 Root。Project Config 固定由 Host Adapter
+所在目錄的 `project.config.json` 提供。入口驗證失敗時，Workflow 必須停止。
 
 ## 專案邊界
 
 ```text
 <PROJECT_ROOT>/
-  AGENTS.md
-  CLAUDE.md
+  AGENTS.md 或 CLAUDE.md
   project.config.json
 ```
 
-專案只保存 Host Adapter、Project Config 與專案專屬 Context。集中式 Workflow Root 保存 Bootstrap、Orchestration、Registry、Schema、Role 與 Skill 規則。
+Codex 將共用 Host Adapter 模板安裝為 `AGENTS.md`；Claude Code 將同一模板改名為 `CLAUDE.md`，不透過
+`@AGENTS.md` 轉接。專案只保存 Host Adapter、Project Config 與專案專屬 Context。集中式 Workflow
+Root 保存 Bootstrap、Runtime、Orchestration、Registry、Schema、Role 與 Skill 規則。
 
 ## 階段責任
 
-1. Bootstrap 驗證 Workflow Root、Workflow Config、Project Root、Project Config 與核心編排契約。
-2. Task Analysis 產生 Task Manifest，推導 Action、Task Type、Target、Module 與 Scope。
-3. Role Planner 執行 `roles/<role-id>/planner.md`，產生 Role Plan、Skill selectors 與 Result
-   Reporting 最低層級。
-4. Rule Resolution 依 Task Manifest 與 Role Plan 選取角色核心、Skill 與 Context 規則。
-5. Preflight 驗證必要規則、Context、Hash、fingerprint 與 Execution Contract，並凍結 Result
-   Reporting 契約。
-6. Executor Adapter 將通過驗證的 Task Manifest、Role Plan 與固定 Rule Set 交給 Role Entry。
-7. Execute 只依核准的 Scope、Action、Role Plan、Rule Set 與 Context 執行，不重新進行 routing。
+1. Bootstrap 驗證 Workflow Root、Workflow Config、Project Root、Project Config、Runtime 與 fallback 契約。
+2. LLM 產生 Task Manifest，不自行判定風險、Profile 或規則路徑。
+3. Runtime `resolve-routing` 判定 Risk、Profile 與 Role Planner。
+4. LLM 依指定 Planner 產生 Role Plan。
+5. Runtime `resolve-execution` 完成 Registry、Rule、Context、Preflight 與 Executor 驗證。
+6. Execute 只讀取 Runtime 核准的 `load_paths`，不重新進行 routing。
 
 ## 輸入邊界
 

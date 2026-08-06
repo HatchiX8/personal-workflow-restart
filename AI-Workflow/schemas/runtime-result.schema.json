@@ -1,0 +1,116 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://controlled-agent-workflow.local/schemas/runtime-result.schema.json",
+  "title": "Workflow Runtime Result",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["protocol_version", "operation", "status", "task_id", "diagnostics"],
+  "properties": {
+    "protocol_version": { "const": "1.0" },
+    "operation": { "enum": ["resolve-routing", "resolve-execution", null] },
+    "status": { "enum": ["resolved", "ready", "blocked", "invalid", "error"] },
+    "task_id": { "type": ["string", "null"] },
+    "diagnostics": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/diagnostic" }
+    },
+    "error_code": { "type": "string", "minLength": 1 },
+    "task_risk": { "$ref": "task-risk.schema.json" },
+    "execution_profile": { "$ref": "execution-profile.schema.json" },
+    "next": {
+      "oneOf": [
+        { "$ref": "#/$defs/nextStage" },
+        { "type": "null" }
+      ]
+    },
+    "resolved_rule_set": { "$ref": "resolved-rule-set.schema.json" },
+    "preflight": { "$ref": "preflight-result.schema.json" },
+    "executor_verification": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "required": ["accepted", "reason"],
+      "properties": {
+        "accepted": { "type": "boolean" },
+        "reason": { "type": "string", "minLength": 1 }
+      }
+    },
+    "load_paths": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/relativePath" },
+      "uniqueItems": true
+    },
+    "execution_contract": {
+      "oneOf": [
+        { "$ref": "preflight-result.schema.json#/$defs/executionContract" },
+        { "type": "null" }
+      ]
+    },
+    "fingerprint": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" }
+  },
+  "$defs": {
+    "relativePath": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^(?![A-Za-z]:)(?!/)(?!\\\\\\\\)(?!.*(?:^|/)\\.\\.(?:/|$)).+$"
+    },
+    "diagnostic": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code", "path", "reason"],
+      "properties": {
+        "code": { "type": "string", "pattern": "^[A-Z][A-Z0-9_]*$" },
+        "path": { "type": ["string", "null"] },
+        "reason": { "type": "string", "minLength": 1 }
+      }
+    },
+    "nextStage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["stage", "load_paths"],
+      "properties": {
+        "stage": { "const": "role-planner" },
+        "load_paths": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/relativePath" },
+          "minItems": 1,
+          "uniqueItems": true
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "status": { "const": "resolved" } }, "required": ["status"] },
+      "then": {
+        "required": ["task_risk", "execution_profile", "next"],
+        "properties": {
+          "operation": { "const": "resolve-routing" },
+          "task_id": { "type": "string", "minLength": 1 },
+          "next": { "$ref": "#/$defs/nextStage" }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "status": { "const": "ready" } }, "required": ["status"] },
+      "then": {
+        "required": ["task_risk", "execution_profile", "resolved_rule_set", "preflight", "executor_verification", "load_paths", "execution_contract", "fingerprint"],
+        "properties": {
+          "operation": { "const": "resolve-execution" },
+          "task_id": { "type": "string", "minLength": 1 },
+          "executor_verification": {
+            "type": "object",
+            "properties": { "accepted": { "const": true } }
+          },
+          "execution_contract": { "$ref": "preflight-result.schema.json#/$defs/executionContract" }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "status": { "enum": ["blocked", "invalid", "error"] } }, "required": ["status"] },
+      "then": {
+        "required": ["error_code"],
+        "properties": { "diagnostics": { "minItems": 1 } }
+      }
+    }
+  ]
+}

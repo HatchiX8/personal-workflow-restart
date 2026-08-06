@@ -1,5 +1,8 @@
 # Context Resolution 情境解析契約
 
+> 載入政策：本檔是 Markdown fallback 與 Runtime 行為說明。正常路徑中 Context Resolution 是 Node
+> Runtime 的 Rule Resolution 子程序，Agent 不獨立載入或執行本檔。
+
 ## 責任
 
 Context Resolution 是 Rule Resolution 中具確定性的子程序，負責從已驗證設定與 Registry metadata 解析 Project Context 與 Module Context record。它回傳已選 Context record、warning、blocker，以及 required／optional reason；不修改 Context 檔案、不選擇規則，也不開始執行。

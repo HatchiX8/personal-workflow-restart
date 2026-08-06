@@ -1,9 +1,14 @@
 # Risk Assessment 任務風險評估契約
 
+> 載入政策：本檔是 Markdown fallback 與 Runtime 行為說明。正常路徑的實際判定由
+> `workflow.config.json.runtime.entry` 讀取 `runtime.risk_policy` 後執行；Agent 不讀本檔、不自行計算
+> level，也不得在 Runtime blocker 後用本檔重算。
+
 ## 責任
 
 Risk Assessment 將已分析的 Task Manifest 轉換為符合 `schemas/task-risk.schema.json` 的獨立
-`Task Risk Assessment`。它只依 `policies/task-risk.md` 分類任務風險，不選擇或修改 Role、Skill、
+`Task Risk Assessment`。Runtime 以 `runtime.risk_policy` 的機器可讀政策為判定權威；本 fallback
+依 `policies/task-risk.md` 的等價人類政策分類，不選擇或修改 Role、Skill、
 Rule、Context、Execution Profile，也不執行角色工作。
 
 Task Risk Assessment 是新的不可變產物，不得寫回或擴充 Task Manifest。

@@ -1,0 +1,40 @@
+{
+  "$schema": "https://controlled-agent-workflow.local/schemas/project-config.schema.json",
+  "schema_version": "1.0",
+  "project_id": "replace-with-project-id",
+  "project_root": ".",
+  "workflow_compatibility": {
+    "minimum_version": "1.1.0",
+    "maximum_major_version": 1
+  },
+  "project_contexts": [],
+  "module_registry": null,
+  "module_aliases": {},
+  "auto_skills": [],
+  "context_resolution": {
+    "project_identity": "verified-config-and-canonical-root",
+    "module_identity": "project_id+module_id_or_alias+targets",
+    "auto_load": "current-only",
+    "candidate_conflict": "blocked",
+    "cross_project_context": "blocked"
+  },
+  "context_policy": {
+    "require_project_context_for": [],
+    "require_module_context_for": [],
+    "allow_project_analysis_without_context": true,
+    "status_policy": {
+      "current": "pass",
+      "stale": "warning",
+      "partial": "warning",
+      "unknown": "warning",
+      "required_context_failure": "blocked"
+    },
+    "high_risk_conditions": [
+      "architecture",
+      "database",
+      "migration",
+      "fullstack",
+      "cross-module"
+    ]
+  }
+}

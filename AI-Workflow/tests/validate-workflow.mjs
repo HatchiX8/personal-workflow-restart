@@ -11,6 +11,7 @@ import {
   validateRegistrySnapshot,
   verifyExecutor
 } from './reference-pipeline.mjs';
+import { checkRuntimeCliIntegration } from './runtime-cli-validation.mjs';
 
 const testsDir = path.dirname(fileURLToPath(import.meta.url));
 const workflowRoot = path.resolve(testsDir, '..');
@@ -411,6 +412,30 @@ function checkRuntimeFixtures() {
   const invalid = readWorkflowJson('tests/fixtures/runtime/invalid-task-manifest.json');
   assert(validateManifest(valid, 'valid-task-manifest').length === 0, 'Valid Task Manifest fixture must pass validation.');
   assert(validateManifest(invalid, 'invalid-task-manifest').length > 0, 'Invalid Task Manifest fixture must fail validation.');
+}
+
+function checkTaskRiskPolicy() {
+  const policy = readWorkflowJson('policies/task-risk-policy.json');
+  const schema = readWorkflowJson('schemas/task-risk.schema.json');
+  if (!policy || !schema) return;
+
+  const schemaTriggers = [...(schema.$defs?.hardTrigger?.enum ?? [])].sort();
+  const policyTriggers = [...(policy.hard_triggers ?? [])].sort();
+  assert(
+    JSON.stringify(policyTriggers) === JSON.stringify(schemaTriggers),
+    'Task Risk Policy hard triggers must exactly match task-risk.schema.json.'
+  );
+
+  const knownTriggers = new Set(schemaTriggers);
+  for (const [alias, trigger] of Object.entries(policy.trigger_aliases ?? {})) {
+    assert(alias.length > 0 && knownTriggers.has(trigger), `Task Risk Policy alias points to an unknown trigger: ${alias} -> ${trigger}`);
+  }
+  for (const [source, mapping] of Object.entries(policy.derived_hard_triggers ?? {})) {
+    for (const [value, trigger] of Object.entries(mapping ?? {})) {
+      assert(value.length > 0 && knownTriggers.has(trigger), `Task Risk Policy derived trigger is invalid: ${source}.${value} -> ${trigger}`);
+    }
+  }
+  assert(policy.default_level === 2, 'Task Risk Policy default level must remain conservative Level 2.');
 }
 
 function checkPhase3Fixtures() {
@@ -872,6 +897,8 @@ function main() {
   checkBootstrapAndAdapter();
   checkIntegratedInputContract();
   checkRuntimeFixtures();
+  checkTaskRiskPolicy();
+  checkRuntimeCliIntegration({ workflowRoot, projectRoot, readWorkflowJson, assert, notes });
   checkPhase3Fixtures();
   checkPhase4Fixtures();
   checkPhase5Fixtures();

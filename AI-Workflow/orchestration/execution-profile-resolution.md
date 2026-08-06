@@ -1,5 +1,8 @@
 # Execution Profile Resolution 執行設定檔解析契約
 
+> 載入政策：本檔是 Markdown fallback 與 Runtime 行為說明。正常路徑由 Node Runtime 確定性映射
+> Profile；Agent 不讀本檔、不自行選擇或降低 Profile。
+
 ## 責任
 
 Execution Profile Resolution 位於 Risk Assessment 之後，將已完成的 Task Manifest 與 Task Risk

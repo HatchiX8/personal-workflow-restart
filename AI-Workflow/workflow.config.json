@@ -6,6 +6,8 @@
   "bootstrap": "bootstrap.md",
   "orchestration": {
     "dispatcher": "orchestration/dispatcher.md",
+    "task_manifest_authoring": "orchestration/task-manifest-authoring.md",
+    "runtime_dispatch": "orchestration/runtime-dispatch.md",
     "task_analysis": "orchestration/task-analysis.md",
     "task_risk_policy": "policies/task-risk.md",
     "risk_assessment": "orchestration/risk-assessment.md",
@@ -27,8 +29,11 @@
   "schemas": {
     "workflow_config": "schemas/workflow-config.schema.json",
     "project_config": "schemas/project-config.schema.json",
+    "runtime_request": "schemas/runtime-request.schema.json",
+    "runtime_result": "schemas/runtime-result.schema.json",
     "task_manifest": "schemas/task-manifest.schema.json",
     "task_risk": "schemas/task-risk.schema.json",
+    "task_risk_policy": "schemas/task-risk-policy.schema.json",
     "execution_profile": "schemas/execution-profile.schema.json",
     "role_plan": "schemas/role-plan.schema.json",
     "skill_package": "schemas/skill-package.schema.json",
@@ -40,6 +45,17 @@
     "lightweight": "orchestration/profiles/lightweight.md",
     "standard": "orchestration/profiles/standard.md",
     "full": "orchestration/profiles/full.md"
+  },
+  "runtime": {
+    "protocol_version": "1.0",
+    "entry": "runtime/resolve-task.mjs",
+    "risk_policy": "policies/task-risk-policy.json",
+    "minimum_node_version": ">=20.11.0",
+    "input": "stdin-json",
+    "output": "stdout-json",
+    "network": false,
+    "writes": [],
+    "fallback": "markdown"
   },
   "confidence_policy": {
     "high_threshold": 0.9,

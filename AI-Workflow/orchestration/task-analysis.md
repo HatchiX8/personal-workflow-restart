@@ -1,5 +1,8 @@
 # Task Analysis 任務分析契約
 
+> 載入政策：本檔是完整 Markdown fallback 與除錯規格。Runtime 正常路徑不得載入本檔，應只載入
+> `task-manifest-authoring.md`，再由 Node 驗證完整 Task Manifest Schema 與 Registry 相容性。
+
 ## 責任
 
 Task Analysis 將原始需求轉換為符合 `schemas/task-manifest.schema.json` 的 `Task Manifest`。它只描述任務，不選擇規則檔案、不載入 Context，也不執行工作。

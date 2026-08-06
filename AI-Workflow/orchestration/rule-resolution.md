@@ -1,5 +1,9 @@
 # Rule Resolution 規則推導契約
 
+> 載入政策：本檔是 Markdown fallback 與 Runtime 行為說明。正常路徑由 Node Runtime 讀取 Registry、
+> 解析 dependency／conflict／Context、計算 hash 與 fingerprint；Agent 只讀 Runtime 回傳的
+> `load_paths`。
+
 ## 責任
 
 Rule Resolution 將 Task Manifest、Task Risk、Execution Profile Contract 與 Role Plan 轉換為符合
