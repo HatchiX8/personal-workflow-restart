@@ -54,7 +54,7 @@
       {
         "path": "bootstrap.md",
         "kind": "file",
-        "content_hash": "sha256:a6568c163e18ebedd3f715ecbc34d82bf0a9fb2bf7f1428279ad841977090873"
+        "content_hash": "sha256:a9a8ada0b546f55972927a4ede18d9f7c298596705ffc87f6070a74b120bb690"
       },
       {
         "path": "policies/analysis-safety.md",
@@ -74,7 +74,7 @@
       {
         "path": "policies/result-reporting.md",
         "kind": "file",
-        "content_hash": "sha256:24b85e67755c3bbd875e79eaf268ca43f58950eb01b9126f75b238173441d53e"
+        "content_hash": "sha256:bbf37673b7a820b4f4ac47288c525bf1befc314020bc843bcc0fa01861da024e"
       },
       {
         "path": "policies/secret-handling.md",
@@ -252,7 +252,7 @@
         "content_hash": "sha256:3b904565ccd28a1d86417f45c664204a049afaec5f90a38d5f23b65d7ed9c404"
       }
     ],
-    "fingerprint": "sha256:98ac1223d33126e92808e561f4264f31538c7f81979a1676c123b76a4575eb45"
+    "fingerprint": "sha256:1c4d27a589b4074c82fefdcb04db0b22dfcf0d7c914c43491853fde83dca5457"
   },
   "path_contract": "所有規則路徑皆相對於 AI-Workflow Root；核心規則只由 Bundle 與相依關係選取，不可猜測檔名。",
   "dependency_contract": {

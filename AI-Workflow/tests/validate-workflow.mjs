@@ -147,6 +147,80 @@ function checkConfigReferences() {
   assert((projectConfig.project_contexts ?? []).every((item) => item && typeof item === 'object' && !Array.isArray(item)), 'Project Context entries must use the structured canonical format.');
 }
 
+function checkRuntimeFallbackConsent() {
+  const workflowConfig = readWorkflowJson('workflow.config.json');
+  const bootstrap = readWorkflowText('bootstrap.md');
+  const dispatcher = readWorkflowText('orchestration/dispatcher.md');
+  const runtimeDispatch = readWorkflowText('orchestration/runtime-dispatch.md');
+  const rootReadme = readText('README.md');
+  if (!workflowConfig || !bootstrap || !dispatcher || !runtimeDispatch || !rootReadme) return;
+
+  assert(
+    workflowConfig.runtime?.fallback === 'user-confirmed-markdown',
+    'Runtime fallback policy must require current-user confirmation.'
+  );
+  assert(
+    /Bootstrap 不得自行啟動 Markdown fallback/.test(bootstrap),
+    'Bootstrap must not start Markdown fallback automatically.'
+  );
+  assert(
+    /AWAITING_FALLBACK_CONSENT/.test(dispatcher) && /目前對話中的使用者/.test(dispatcher),
+    'Dispatcher must wait for explicit consent from the current user.'
+  );
+  assert(
+    /Agent、子代理或其他自動化回覆都不能代替使用者同意/.test(dispatcher),
+    'Dispatcher must reject proxy or automated fallback consent.'
+  );
+  assert(
+    /是否允許本次需求改用 Markdown fallback/.test(runtimeDispatch),
+    'Runtime dispatch must ask the user before loading Markdown fallback.'
+  );
+  assert(
+    /不得預先讀取完整 Schema、Registry 或 fallback 契約/.test(runtimeDispatch),
+    'Runtime dispatch must not preload fallback context before consent.'
+  );
+  assert(
+    /Agent、子代理、工具、Workflow 設定、宿主預設、過往需求的同意或自動化規則都不得代表使用者回答/.test(runtimeDispatch),
+    'Runtime dispatch must prohibit every non-user consent source.'
+  );
+  assert(
+    /必須先詢問是否允許本次改用[\s\S]*Markdown fallback，不能自行同意/.test(rootReadme),
+    'README must disclose user-confirmed Markdown fallback behavior.'
+  );
+  notes.push('Runtime fallback consent contract checked: current-user confirmation required');
+}
+
+function checkExecutionSummaryFooter() {
+  const reporting = readWorkflowText('policies/result-reporting.md');
+  if (!reporting) return;
+
+  assert(
+    /## 新版 Workflow 執行摘要（測試）/.test(reporting),
+    'Result reporting must define the new-version test summary title.'
+  );
+  assert(
+    /- 任務模式：<runtime\|markdown-fallback>/.test(reporting),
+    'Execution summary must expose the actual task mode.'
+  );
+  assert(
+    /- Token 消耗：<宿主提供的本次任務實際資訊\|未提供>/.test(reporting),
+    'Execution summary must expose host-provided token usage or an unavailable marker.'
+  );
+  assert(
+    /不得以字元數、檔案大小、Tokenizer 推估值、歷史任務或其他替代資料估算 Token/.test(reporting),
+    'Execution summary must prohibit estimated token usage.'
+  );
+  assert(
+    /摘要只能包含上述兩個資訊欄位/.test(reporting) && /摘要必須是完成回覆的最後一個區塊/.test(reporting),
+    'Execution summary must remain a two-field final footer.'
+  );
+  assert(
+    /AWAITING_FALLBACK_CONSENT/.test(reporting) && /Bootstrap 健康檢查/.test(reporting),
+    'Consent prompts and exact Bootstrap responses must be exempt from the footer.'
+  );
+  notes.push('New-version execution summary checked: mode and actual token telemetry only');
+}
+
 function checkUniqueIds(label, items, key) {
   if (!Array.isArray(items)) return;
   const ids = items.map((item) => item?.[key]).filter((item) => typeof item === 'string');
@@ -891,6 +965,8 @@ function checkProjectArtifactPaths() {
 function main() {
   checkAllJsonParses();
   checkConfigReferences();
+  checkRuntimeFallbackConsent();
+  checkExecutionSummaryFooter();
   checkDependencies();
   checkRegistrySnapshots();
   checkModuleInvariants();

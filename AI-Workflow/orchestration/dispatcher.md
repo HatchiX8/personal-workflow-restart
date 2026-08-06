@@ -47,10 +47,18 @@ Runtime stdout 必須是單一合法 JSON；stderr 不參與 routing。協議版
 
 ## Markdown fallback
 
-只有 Runtime 技術上不可用時，才載入既有完整契約並執行：Task Analysis → Risk Assessment →
-Execution Profile Resolution → selected Profile → Role Planner → Rule Resolution（內含 Context
-Resolution）→ Preflight → Executor Adapter。Fallback 的權威來源、stage 順序、安全核心與阻擋條件
-不得弱化，且最終回覆必須標示 `routing_mode=markdown-fallback` 與不可用原因。
+Runtime 技術上不可用時，不得直接載入 fallback 契約。Dispatcher 必須先設定
+`AWAITING_FALLBACK_CONSENT`，向目前使用者說明不可用原因，以及 Markdown fallback 會增加 LLM Token
+消耗，並詢問是否允許本次需求改用 fallback。
+
+只有目前對話中的使用者在這次詢問之後明確同意，才可載入既有完整契約並執行：Task Analysis →
+Risk Assessment → Execution Profile Resolution → selected Profile → Role Planner → Rule Resolution（內含
+Context Resolution）→ Preflight → Executor Adapter。過往同意、預設設定、Workflow Config、宿主
+白名單、Agent、子代理或其他自動化回覆都不能代替使用者同意，也不得預先假設同意。使用者拒絕或
+沒有明確回覆時，以 `RUNTIME_UNAVAILABLE` 停止，不得載入完整 Registry、Schema 或 fallback 契約。
+
+Fallback 的權威來源、stage 順序、安全核心與阻擋條件不得弱化，且最終回覆必須標示
+`routing_mode=markdown-fallback`、不可用原因與本次使用者同意的 provenance。
 
 若 Runtime 已成功啟動並因 Manifest、Risk、Profile、Registry、Rule、Context、hash 或 Preflight
 回傳 blocker，禁止以 fallback 重新解算。
@@ -71,7 +79,8 @@ Risk／Profile 低於既有核准值，或新結果仍不足以安全涵蓋範�
 ## 終止狀態
 
 - `ANALYSIS_BLOCKED`：Task Manifest 無法形成安全的 Runtime 輸入。
-- `RUNTIME_UNAVAILABLE`：Runtime 技術上不可用，且 Markdown fallback 也無法完成。
+- `AWAITING_FALLBACK_CONSENT`：Runtime 技術上不可用，等待目前使用者決定是否承擔額外 Token 成本。
+- `RUNTIME_UNAVAILABLE`：Runtime 技術上不可用，且使用者拒絕或未明確同意 Markdown fallback。
 - `RISK_BLOCKED`／`PROFILE_BLOCKED`：Runtime 或 fallback 的風險／Profile 判定阻擋。
 - `PLANNING_BLOCKED`：Role Planner 無法產生安全 Role Plan。
 - `RESOLUTION_INCOMPLETE`：Rule／Context Resolution 不完整。

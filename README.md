@@ -31,8 +31,9 @@ Codex、Claude Code 與其他能執行 Node.js 的 Agent 都可以使用本 Work
 node <WORKFLOW_ROOT>/runtime/resolve-task.mjs --stdin
 ```
 
-Runtime 只讀取設定與規則，不連網、不寫檔。Runtime 無法執行時會改用 Markdown fallback；Runtime
-已執行並回傳阻擋時則直接停止。Claude Code 若需要讀取專案外的集中式 Workflow，啟動時加入：
+Runtime 只讀取設定與規則，不連網、不寫檔。Runtime 無法執行時，Agent 必須先詢問是否允許本次改用
+較耗 Token 的 Markdown fallback，不能自行同意；Runtime 已執行並回傳阻擋時則直接停止。Claude Code
+若需要讀取專案外的集中式 Workflow，啟動時加入：
 
 ```text
 claude --add-dir <WORKFLOW_ROOT>

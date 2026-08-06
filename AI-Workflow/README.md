@@ -44,6 +44,9 @@ Bootstrap
 - Agent 只讀取 Runtime 回傳並排序完成的 `load_paths`，不自行選取其他規則。
 - Execute 透過 `orchestration/role-entry-contract.md` 將固定輸入交給 `roles/<role-id>/entry.md`，不重新判斷角色、Skill 或 Context。
 
+Runtime 技術上不可用時，Dispatcher 必須先詢問目前使用者是否允許本次使用較耗 Token 的 Markdown
+fallback。Agent、子代理、設定或過往同意都不能代替使用者回答；未取得明確同意前不得載入 fallback。
+
 Workflow Root 是 Host Adapter 實際載入之 `bootstrap.md` 的所在目錄。只有宿主平台目前生效的
 Host Adapter 保存絕對 Bootstrap 路徑；其餘 Workflow 路徑都相對於 Workflow Root。Bootstrap
 不搜尋 Git Root 下的規則副本，也不接受 Prompt、環境變數或 Project Config 提供替代路徑。

@@ -55,7 +55,7 @@
     "output": "stdout-json",
     "network": false,
     "writes": [],
-    "fallback": "markdown"
+    "fallback": "user-confirmed-markdown"
   },
   "confidence_policy": {
     "high_threshold": 0.9,

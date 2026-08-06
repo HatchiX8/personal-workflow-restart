@@ -90,7 +90,7 @@
           "type": "array",
           "maxItems": 0
         },
-        "fallback": { "const": "markdown" }
+        "fallback": { "const": "user-confirmed-markdown" }
       }
     },
     "confidence_policy": {

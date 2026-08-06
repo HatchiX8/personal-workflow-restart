@@ -17,8 +17,9 @@ node <WORKFLOW_ROOT>/<runtime.entry> --stdin
   並由宿主平台顯示實際授權 UI。
 - Workflow 不授予權限。不得要求或建立 `node *`、`npm *`、`Bash(*)` 等廣泛永久權限；使用者可只
   授權本次或依宿主功能記住精確入口。
-- Runtime 若因不存在、Node 版本不足、宿主無 shell 能力或使用者拒絕而不可執行，才進入 Markdown
-  fallback。合法執行後回傳 `status=blocked` 不屬於不可用，不得繞過 blocker 改走 fallback。
+- Runtime 若因不存在、Node 版本不足、宿主無 shell／安全 stdin 能力或使用者拒絕精確入口而不可
+  執行，必須先停止並詢問目前使用者，不能直接進入 Markdown fallback。合法執行後回傳
+  `status=blocked` 不屬於不可用，不得繞過 blocker 改走 fallback。
 
 ## 第一階段：Routing
 
@@ -79,7 +80,14 @@ Executor verification rejected 時必須為 exit `2`、`status=blocked`、`execu
 
 ## Markdown fallback
 
-只有 Runtime 技術上不可執行時，依下列順序載入既有完整契約：
+Runtime 技術上不可執行時，先回報穩定原因，並使用下列意義完整的詢問：
+
+```text
+Runtime 無法執行（<reason>）。改用 Markdown fallback 會增加 Token 消耗。是否允許本次需求改用 Markdown fallback？
+```
+
+發出詢問後設定 `AWAITING_FALLBACK_CONSENT`，不得預先讀取完整 Schema、Registry 或 fallback 契約。
+只有目前對話中的使用者在詢問後明確同意，才依下列順序載入：
 
 ```text
 task-analysis.md
@@ -92,5 +100,9 @@ task-analysis.md
 -> executor-adapter.md
 ```
 
+Agent、子代理、工具、Workflow 設定、宿主預設、過往需求的同意或自動化規則都不得代表使用者回答
+這項詢問，也不得將沉默視為同意。使用者拒絕或沒有明確同意時，以 `RUNTIME_UNAVAILABLE` 停止。
+
 fallback 必須保留相同 Schema、Registry、風險政策、Task ID、fingerprint 與 fail-closed 行為，並在最終
-回覆標示 `routing_mode=markdown-fallback` 與原因。Fallback 不是 Runtime blocker 的繞過機制。
+回覆標示 `routing_mode=markdown-fallback`、原因與本次同意 provenance。Fallback 不是 Runtime
+blocker 的繞過機制。

@@ -40,6 +40,9 @@ Root 保存 Bootstrap、Runtime、Orchestration、Registry、Schema、Role 與 S
 5. Runtime `resolve-execution` 完成 Registry、Rule、Context、Preflight 與 Executor 驗證。
 6. Execute 只讀取 Runtime 核准的 `load_paths`，不重新進行 routing。
 
+Runtime 技術上不可用時，流程先停在 `AWAITING_FALLBACK_CONSENT`。只有目前使用者明確同意，才能
+載入 Markdown fallback；Agent 或子代理不得代為同意。
+
 ## 輸入邊界
 
 - 一般 Prompt 只需要描述需求。
