@@ -47,8 +47,9 @@ trigger 必須選擇 `full`。
 5. 任務不需要 required Project／Module Context，不含 Level 2 或 Level 3 升級條件，且可以只用
    安全核心、最小規則集合與輕量 Preflight 安全執行。
 
-一般問答若無法對應現行合法 Action／Role，必須輸出 `status=blocked`，在 `reasons` 記錄
-`advisory-role-not-yet-supported`。不得偷偷選擇 `developer`，也不得把問答改寫成 Develop 任務。
+一般既有功能、程式碼、資料流或 Contract 的唯讀分析可以使用 `developer`／`analyze`。其他無法
+對應合法 Action／Role 的問答仍須輸出 `status=blocked`；不得把唯讀需求改寫成 `develop` 或藉此
+取得修改授權。
 
 ## Profile Contract
 

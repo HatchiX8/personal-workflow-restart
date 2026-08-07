@@ -4,7 +4,8 @@
 
 ## 執行驗證
 
-必須依本次修改範圍與已選 Skill 執行對應驗證：
+`action=analyze` 只驗證來源路徑、搜尋證據、推論邊界與是否維持唯讀，不執行會產生或修改檔案的
+lint、typecheck、build、test 或 format。`action=develop` 必須依本次修改範圍與已選 Skill 執行：
 
 - TypeScript typecheck（涉及 TypeScript、Vue 或前端邏輯時）
 - lint（專案有設定且修改程式碼時）

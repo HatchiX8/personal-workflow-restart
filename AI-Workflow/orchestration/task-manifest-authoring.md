@@ -54,17 +54,22 @@ Runtime 驗證其與啟動 cwd 完全相同。
 
 ## 精簡語意規則
 
-- 修改、修正、新增或重構為 `develop`／`developer`；Review 已完成變更為 `review`／`review`；分析
-  全專案或模組為 `analyze`，並依已確認範圍使用 `project-analyst` 或 `module-analyst`。
+- 修改、修正、新增或重構為 `develop`／`developer`；一般既有功能、程式碼、資料流或 Contract 的
+  唯讀分析為 `analyze`／`developer`，且 `analysis_mode=null`。完整 Project Analysis 才使用
+  `analyze`／`project-analyst`。
+- `module-analyst` 是 explicit-only Role。只有原始需求包含完全相等的獨立一行
+  `角色：module-analyst`，才能設定 `role_id=module-analyst` 與 `analysis_mode=module`。包含前後空白、
+  使用 display name、僅提到「模組分析」或把該字串放在句子中都不算明示啟動。
 - 使用者明確提供的 `角色：<role_id>` 或 `Skill：<skill_id>` 原樣保留，交由 Runtime 精確驗證。
   不得讀取完整 Registry，也不得用相似名稱修正未知 ID。
-- Develop 必須解析至少一個 Target。Project Analysis、未限制 Target 的 Module Analysis，或可安全只
-  使用 common checks 的 Review，才能讓 Target 為空。Module Analysis 的空 Targets 表示先執行
+- Developer 的 `develop` 與 `analyze` 都必須解析至少一個 Target。Project Analysis、未限制 Target
+  的明示 Module Analysis，或可安全只使用 common checks 的 Review，才能讓 Target 為空。Module Analysis 的空 Targets 表示先執行
   target-neutral repository discovery，不代表已確認沒有 Frontend／Backend。
 - 只有確定同時包含 frontend 與 backend 時使用 `target_mode=fullstack`；多個其他 Target 使用
   `mixed`；唯一 Target 使用 `single`。
-- Review 的 `review_mode` 必須由 staged/worktree 單次變更或完整 feature 範圍明確支持；Analyze 的
-  `analysis_mode` 必須由 project/module 範圍明確支持。
+- Review 的 `review_mode` 必須由 staged/worktree 單次變更或完整 feature 範圍明確支持。Developer
+  唯讀分析維持 `analysis_mode=null`；Project Analyst 使用 `project`；只有精確明示啟動的 Module
+  Analyst 使用 `module`。
 - 一般任務的路徑只能來自使用者明示或可重現的 repository evidence。Module Analysis 若明確指定
   唯一模組名稱，可直接將該名稱記錄為 Module 搜尋種子；`candidate_paths` 可以為空，不得因此要求
   Module Registry 或既有 Module Context。實際檔案範圍由 Module Analyst 在執行階段以只讀搜尋建立。

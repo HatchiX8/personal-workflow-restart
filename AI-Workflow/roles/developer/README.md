@@ -1,6 +1,6 @@
 # Developer 角色規則
 
-Developer 擁有獨立 Planner 與固定 Workflow：
+Developer 擁有獨立 Planner 與固定 Workflow，並可承接 `develop` 與 `analyze`：
 
 ```text
 entry.md
@@ -17,7 +17,7 @@ skills/
 
 - `entry.md`：驗證已凍結的 Task Manifest、Role Plan、Rule Set 與 Execution Contract。
 - `planner.md`：根據 Task Manifest 與 Repository Evidence 產生 Role Plan，不直接指定 Skill ID。
-- `workflow.md`：固定執行理解、規劃、實作、驗證、自我檢查與回報。
+- `workflow.md`：`develop` 執行理解、規劃、實作、驗證、自我檢查與回報；`analyze` 僅做唯讀理解與對話回覆。
 - `core.md`、`restrictions.md`：保存所有 Developer 任務都必須遵守的核心原則與限制。
 - `validation.md`、`output.md`：定義固定驗證與回報責任。
 
@@ -51,5 +51,8 @@ Skill：developer.language.typescript
 
 調整 TypeScript 前端訂單列表元件的資料型別。
 ```
+
+一般功能、程式碼、資料流或 contract 分析由 Developer 的 `action=analyze` 處理，不建立 md
+報告；只有完整專案分析與明確啟動的 Module Analyst 會依各自契約產出分析文件。
 
 本 README 僅供工程師理解目錄，不是 execution rule。

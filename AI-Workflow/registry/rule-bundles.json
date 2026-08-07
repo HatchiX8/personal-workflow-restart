@@ -89,32 +89,32 @@
       {
         "path": "roles/developer/entry.md",
         "kind": "file",
-        "content_hash": "sha256:7522f5b67621ed3ffc8ca68c94ab3fc0ff9d12afed8b90a4881b72e7689a4e9b"
+        "content_hash": "sha256:fd41d3ba6c319f16cb613d0c232bc69c7cb8467d3932f955c130b6806bdef4e4"
       },
       {
         "path": "roles/developer/output.md",
         "kind": "file",
-        "content_hash": "sha256:77e28c64e397becb15ca132d798fdc1771277188e8cb70181a15fd490827e6c2"
+        "content_hash": "sha256:5c9a8df5ca19be43458292257dbec3ca37a85b383ea7ea29fa6a99ca04bfecc9"
       },
       {
         "path": "roles/developer/restrictions.md",
         "kind": "file",
-        "content_hash": "sha256:e273a84334959a1f6e33a1823f6ac7a0690bc86022ea71969d71e6694a4a1609"
+        "content_hash": "sha256:e6e01d59e83d021e92e8dfbf6f9fea6d9a24a9cbd03c3a0616b25be34f4c2363"
       },
       {
         "path": "roles/developer/validation.md",
         "kind": "file",
-        "content_hash": "sha256:a37b229a8ec6a3f7fe0872bff181b5add657ec4240c9541dc7ed5472db0215b4"
+        "content_hash": "sha256:6c5c3185a3e5c3e7ea7552ad3f8eab1a9577c6a625be54e8fc16e240f9464922"
       },
       {
         "path": "roles/developer/workflow.md",
         "kind": "file",
-        "content_hash": "sha256:8d424556ae858fed61754229e590dcda1b60614b62d4a17d570c6819e82cf145"
+        "content_hash": "sha256:f8e7f5667df84b5e6a7e88166fb3bc3cf27dc59161afe630ea049bfc05a0431a"
       },
       {
         "path": "roles/module-analyst/entry.md",
         "kind": "file",
-        "content_hash": "sha256:d2ee1558c95191abb6273de53b83d7c4ee08adb8418488722192878ccfce1420"
+        "content_hash": "sha256:48464c8087a55fc8d588d2bab60d38e76ca39a15b5b9e288e5431f41c507ebcf"
       },
       {
         "path": "roles/module-analyst/output.md",
@@ -252,7 +252,7 @@
         "content_hash": "sha256:3b904565ccd28a1d86417f45c664204a049afaec5f90a38d5f23b65d7ed9c404"
       }
     ],
-    "fingerprint": "sha256:bffafa3b418f473cd7494ace2891dee3c1948f254218f732668d640f00b3e898"
+    "fingerprint": "sha256:80021e1ea981c15d90e9dd6549f2aac33d74dd239415ea14c6ad159519fc3a4c"
   },
   "path_contract": "所有規則路徑皆相對於 AI-Workflow Root；核心規則只由 Bundle 與相依關係選取，不可猜測檔名。",
   "dependency_contract": {

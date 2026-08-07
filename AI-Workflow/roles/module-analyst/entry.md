@@ -8,6 +8,8 @@
 
 - `role_id`: 必須為 `module-analyst`
 - `allowed_action`: 必須為 `analyze`
+- `activation`: 原始需求必須包含完全相等的獨立一行 `角色：module-analyst`，且 Role provenance 必須為
+  `explicit`
 - `analysis_mode`: 必須為 `module`
 - `module`: 使用者要求中可唯一識別的模組名稱或別名，作為 repository discovery 搜尋種子
 - `targets`: 可為已確認的分析目標；未指定時允許進行跨 Target 的基礎邊界探索
@@ -19,7 +21,7 @@
 - `selected_contexts`: 已通過 Preflight 的選用專案上下文；不得要求或載入既有 Module Context
 - `execution_contract`: 已凍結的執行與輸出契約
 
-若模組名稱無法唯一識別、上述輸入不完整、值不符合契約、風險與 Profile 不一致，或
+若沒有精確明示 Role、模組名稱無法唯一識別、上述輸入不完整、值不符合契約、風險與 Profile 不一致，或
 `resolved_rule_set` 缺少本角色所需規則，回傳 `reroute-required`，不得自行補值、降低風險、替換
 Profile 或開始分析。`candidate_paths` 為選用提示，空陣列不得視為輸入缺漏。
 

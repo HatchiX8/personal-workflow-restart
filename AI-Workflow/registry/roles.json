@@ -22,22 +22,22 @@
       {
         "path": "roles/developer/entry.md",
         "kind": "file",
-        "content_hash": "sha256:7522f5b67621ed3ffc8ca68c94ab3fc0ff9d12afed8b90a4881b72e7689a4e9b"
+        "content_hash": "sha256:fd41d3ba6c319f16cb613d0c232bc69c7cb8467d3932f955c130b6806bdef4e4"
       },
       {
         "path": "roles/developer/planner.md",
         "kind": "file",
-        "content_hash": "sha256:4a65f8f89a0f9182d388f7587e5e827af05e333ca327a28f3f316de9dc1d97a9"
+        "content_hash": "sha256:299dc20ed73df36da3e57f970f1d4c02df6905f885f711786fc8130eb9bef169"
       },
       {
         "path": "roles/module-analyst/entry.md",
         "kind": "file",
-        "content_hash": "sha256:d2ee1558c95191abb6273de53b83d7c4ee08adb8418488722192878ccfce1420"
+        "content_hash": "sha256:48464c8087a55fc8d588d2bab60d38e76ca39a15b5b9e288e5431f41c507ebcf"
       },
       {
         "path": "roles/module-analyst/planner.md",
         "kind": "file",
-        "content_hash": "sha256:e0a952104b791819afff4c26ca3cb8dc460dec243356eb516e09abb9138086db"
+        "content_hash": "sha256:d19f0f2c8e76a9c012f51a0779b50d640ccb842f66ebc9bf84746bd3cc8fa700"
       },
       {
         "path": "roles/project-analyst/entry.md",
@@ -47,7 +47,7 @@
       {
         "path": "roles/project-analyst/planner.md",
         "kind": "file",
-        "content_hash": "sha256:38188ac05c839c5e7679237657ea3c4886b4ea23c3387a86341e05df08947ae6"
+        "content_hash": "sha256:d11af9c14bbc1b0fb6182a63dcbf1848b3ddfc509349663f99affbc0c02a8bde"
       },
       {
         "path": "roles/review/entry.md",
@@ -60,7 +60,7 @@
         "content_hash": "sha256:d06ab33d116eb58aec22fc62a71fe524234eb65ceaf75594d9363a4597530112"
       }
     ],
-    "fingerprint": "sha256:1cca91f61e6a40deb564117ff1da953c2d7c043c548732819c62fab651cdb46c"
+    "fingerprint": "sha256:7d66406d4b4cf131b8e34dfbb900ddfa004bd22971199afb0d09b2fd9802806e"
   },
   "path_contract": "Every entry and bundle path is relative to the AI-Workflow root.",
   "roles": [
@@ -68,6 +68,11 @@
       "role_id": "developer",
       "display_name": "Developer",
       "action": "develop",
+      "supported_actions": [
+        "develop",
+        "analyze"
+      ],
+      "activation": "automatic",
       "entry": "roles/developer/entry.md",
       "planner": "roles/developer/planner.md",
       "status": "active",
@@ -86,6 +91,10 @@
       "role_id": "review",
       "display_name": "Review",
       "action": "review",
+      "supported_actions": [
+        "review"
+      ],
+      "activation": "automatic",
       "entry": "roles/review/entry.md",
       "planner": "roles/review/planner.md",
       "status": "active",
@@ -120,6 +129,10 @@
       "role_id": "project-analyst",
       "display_name": "Project Analyst",
       "action": "analyze",
+      "supported_actions": [
+        "analyze"
+      ],
+      "activation": "automatic",
       "entry": "roles/project-analyst/entry.md",
       "planner": "roles/project-analyst/planner.md",
       "status": "active",
@@ -138,6 +151,10 @@
       "role_id": "module-analyst",
       "display_name": "Module Analyst",
       "action": "analyze",
+      "supported_actions": [
+        "analyze"
+      ],
+      "activation": "explicit-only",
       "entry": "roles/module-analyst/entry.md",
       "planner": "roles/module-analyst/planner.md",
       "status": "active",

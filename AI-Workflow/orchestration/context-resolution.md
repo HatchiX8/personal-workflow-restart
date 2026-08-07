@@ -53,9 +53,11 @@ Rule Resolution 建立 Resolved Rule Set 前，每個回傳的 Context record �
   與 status 條件的 Context 時自動載入；不存在、未綁定或不相容時，任務仍可執行並產生 warning。
 - 只有 Project Config 的 `require_project_context_for`、`require_module_context_for`，或特定 Context
   的 `required_for` 明確包含目前 Action 時，該 Context 才是 required。
-- Module Analysis 不要求既有 Module Context。若存在符合身分、Target 且明確標記 current 的
-  Context，可以作為 optional 參考；缺少、未綁定或不是 current 時不得阻擋 Rule Resolution。
-- Develop 與 Review 不會因任務屬於 Module Scope 或具有 high-risk fact，就自動把 Context 升級為
+- Developer、Review 與 Project Analyst 可以讀取符合身分、Target 且明確標記 current 的 Module
+  Context。Module Analyst 永遠不讀取既有 Module Context，而是從 repository evidence 建立新產物。
+- Project Analyst 的 Module Context 永遠是 optional；即使 Project Config 或 Context metadata 將
+  `analyze` 列為 required，缺少、未綁定、不相容或非 current 也只能 warning，不得阻擋。
+- Developer 與 Review 不會因任務屬於 Module Scope 或具有 high-risk fact，就自動把 Context 升級為
   required。是否必須存在 Context，只依前述明確 required 設定判斷。
 - Current Context 不產生 status warning。
 - Context 為 optional 時，`stale`、`partial` 與 `unknown` 依 `context_policy.status_policy` 處理：可以產生 warning，但仍只有明確標記 current 時才能選取。

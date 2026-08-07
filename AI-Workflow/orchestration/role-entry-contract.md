@@ -50,10 +50,12 @@ Role Entry 不得：
 
 ## 角色必要欄位
 
-- `developer`：`action=develop`，至少一個 Target；需要 Skill 時由 `skill_ids` 提供。
+- `developer`：`action=develop|analyze`，至少一個 Target；`analyze` 僅允許唯讀檢查與對話回覆，
+  `develop` 才允許修改。需要 Skill 時由 `skill_ids` 提供。
 - `review`：`action=review`，`review_mode` 必須為 `change` 或 `feature`。
 - `project-analyst`：`action=analyze`，`analysis_mode=project`。
-- `module-analyst`：`action=analyze`，`analysis_mode=module`，且具有唯一 Module 搜尋種子；Target 可以
+- `module-analyst`：只有原始需求含精確獨立行 `角色：module-analyst` 才能啟動；其
+  `action=analyze`、`analysis_mode=module`，且具有唯一 Module 搜尋種子；Target 可以
   已確認或留空進行 target-neutral discovery。既有 Module Context 與其路徑不是必要欄位。
 
 入口若發現必要欄位缺少、輸入不一致、更高風險，或工作需要較高 Execution Profile、未載入規則、不同 Scope、Target、Module 或 Context，必須停止執行並回傳 `reroute-required`，不得在角色內重新推導。

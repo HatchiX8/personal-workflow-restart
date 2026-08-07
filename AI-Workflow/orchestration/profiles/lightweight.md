@@ -6,8 +6,8 @@
 `orchestration/execution-profile-resolution.md` 的 Level 1 准入條件。它服務範圍明確、影響局部、
 容易驗證與還原的低風險任務；Profile 本身不得將未知或較高風險任務降級。
 
-一般問答若沒有現行合法 Role／Action，必須以 `advisory-role-not-yet-supported` 阻擋。不得預設
-Developer，也不得繞過 Role Registry。
+一般既有功能、程式碼、資料流或 Contract 的唯讀分析使用 Developer／Analyze；其他沒有現行合法
+Role／Action 的問答仍須阻擋。不得把唯讀需求改寫成 Develop，也不得繞過 Role Registry。
 
 ## 必要階段
 

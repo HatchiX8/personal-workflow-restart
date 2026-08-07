@@ -142,6 +142,31 @@ export function checkRuntimeCliIntegration({
     'Reference Role Plan Result Reporting must use the frozen Task Risk as its only classification baseline.'
   );
 
+  const developerAnalyzeManifest = clone(manifest);
+  developerAnalyzeManifest.task_id = 'runtime-developer-readonly-analysis';
+  developerAnalyzeManifest.raw_request = '分析首頁按鈕的既有資料流與元件責任。';
+  developerAnalyzeManifest.action = 'analyze';
+  developerAnalyzeManifest.task_type = 'analysis';
+  developerAnalyzeManifest.analysis_mode = null;
+  developerAnalyzeManifest.provenance.action = { source: 'explicit', confidence: 1, evidence: ['唯讀分析'], candidates: ['analyze'] };
+  developerAnalyzeManifest.provenance.task_type = { source: 'explicit', confidence: 1, evidence: ['既有功能分析'], candidates: ['analysis'] };
+  developerAnalyzeManifest.provenance.role_id = { source: 'inference', confidence: 1, evidence: ['一般功能分析使用 Developer'], candidates: ['developer'] };
+  const developerAnalyzeRisk = assessTaskRisk(developerAnalyzeManifest, policy);
+  const developerAnalyzePlan = buildReferenceRolePlan(developerAnalyzeManifest, role, developerAnalyzeRisk);
+  const developerAnalyzeRouting = runCli(entry, projectRoot, { ...routingRequest, task_manifest: developerAnalyzeManifest });
+  const developerAnalyzeExecution = runCli(entry, projectRoot, {
+    ...executionRequest,
+    task_manifest: developerAnalyzeManifest,
+    role_plan: developerAnalyzePlan
+  });
+  assert(developerAnalyzeRouting.exitCode === 0 && developerAnalyzeRouting.json?.status === 'resolved', 'Developer read-only analysis must resolve without a separate analysis Role.');
+  assert(developerAnalyzeExecution.exitCode === 0 && developerAnalyzeExecution.json?.status === 'ready', 'Developer read-only analysis must pass Runtime execution.');
+  assert(developerAnalyzeExecution.json?.execution_contract?.allowed_action === 'analyze', 'Developer analysis contract must preserve read-only action=analyze.');
+  assert(
+    !(developerAnalyzeExecution.json?.load_paths ?? []).some((item) => item.startsWith('roles/module-analyst/') || item.includes('module-context')),
+    'Developer read-only analysis must not load Module Analyst report rules.'
+  );
+
   const compatibilityRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'controlled-agent-runtime-config-'));
   try {
     const baseProjectConfig = JSON.parse(fs.readFileSync(path.join(projectRoot, 'project.config.json'), 'utf8'));
@@ -258,6 +283,7 @@ export function checkRuntimeCliIntegration({
   unresolvedModuleManifest.action = 'analyze';
   unresolvedModuleManifest.task_type = 'analysis';
   unresolvedModuleManifest.role_id = 'module-analyst';
+  unresolvedModuleManifest.raw_request = '角色：module-analyst\n分析尚未指定名稱的模組。';
   unresolvedModuleManifest.analysis_mode = 'module';
   unresolvedModuleManifest.modules = [];
   unresolvedModuleManifest.unresolved = ['module-identity-unresolved'];
@@ -280,7 +306,7 @@ export function checkRuntimeCliIntegration({
 
   const discoveryManifest = clone(manifest);
   discoveryManifest.task_id = 'runtime-module-repository-discovery';
-  discoveryManifest.raw_request = '分析 inventory-v2 模組並自行尋找相關檔案';
+  discoveryManifest.raw_request = '角色：module-analyst\n分析 inventory-v2 模組並自行尋找相關檔案';
   discoveryManifest.action = 'analyze';
   discoveryManifest.task_type = 'analysis';
   discoveryManifest.role_id = 'module-analyst';
@@ -305,6 +331,22 @@ export function checkRuntimeCliIntegration({
     review_mode: { source: 'inference', confidence: 1, evidence: ['Not a review'], candidates: [] },
     analysis_mode: { source: 'explicit', confidence: 1, evidence: ['Named module scope'], candidates: ['module'] }
   };
+  const implicitModuleAnalystManifest = clone(discoveryManifest);
+  implicitModuleAnalystManifest.task_id = 'runtime-module-analysis-without-explicit-role';
+  implicitModuleAnalystManifest.raw_request = '分析 inventory-v2 模組並自行尋找相關檔案';
+  implicitModuleAnalystManifest.provenance.role_id = {
+    source: 'inference',
+    confidence: 1,
+    evidence: ['Module scope alone must not activate Module Analyst'],
+    candidates: ['module-analyst']
+  };
+  const implicitModuleAnalyst = runCli(entry, projectRoot, { ...routingRequest, task_manifest: implicitModuleAnalystManifest });
+  assert(implicitModuleAnalyst.exitCode === 2 && implicitModuleAnalyst.json?.status === 'blocked', 'Module Analyst without the exact standalone Role directive must be blocked.');
+  assert(implicitModuleAnalyst.json?.error_code === 'ROLE_EXPLICIT_ACTIVATION_REQUIRED', 'Implicit Module Analyst routing must return ROLE_EXPLICIT_ACTIVATION_REQUIRED.');
+  assert(
+    (implicitModuleAnalyst.json?.diagnostics ?? []).some((item) => item.path === '/task_manifest/role_id'),
+    'Implicit Module Analyst blocker must identify role_id.'
+  );
   const discoveryRole = (roles.roles ?? []).find((item) => item.role_id === 'module-analyst');
   const discoveryRisk = assessTaskRisk(discoveryManifest, policy);
   const discoveryRolePlan = buildReferenceRolePlan(discoveryManifest, discoveryRole, discoveryRisk);
@@ -381,5 +423,5 @@ export function checkRuntimeCliIntegration({
     }
   }
 
-  notes.push(`Runtime CLI checked: 3 success paths, 6 invalid inputs, ${policy.hard_triggers.length} hard triggers, config compatibility, fail-closed and read-only behavior`);
+  notes.push(`Runtime CLI checked: 5 success paths, 7 invalid/blocking inputs, ${policy.hard_triggers.length} hard triggers, explicit Role activation, config compatibility, fail-closed and read-only behavior`);
 }

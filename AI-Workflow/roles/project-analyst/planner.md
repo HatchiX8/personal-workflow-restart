@@ -29,7 +29,8 @@
 
 ## Context 與驗證
 
-- Project Context 可作為 optional 輸入；不存在時依既有 onboarding warning 政策處理。
+- Project Context 與已登錄的 current Module Context 可作為 optional 輸入。Module Context 缺少、
+  未綁定、不相容或不是 current 時只能 warning，不得阻擋 Project Analyst。
 - validation profile 固定包含 `analysis-evidence` 與 `output-review`。
 
 ## 結果回報設定

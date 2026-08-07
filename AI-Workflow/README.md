@@ -15,6 +15,10 @@ Node Runtime 執行。
 
 `角色`與 `Skill` 是選填欄位。未提供時，Workflow 會依需求內容與 Registry 推導；明確提供時，仍須通過 Registry 與 Preflight 驗證。
 
+一般既有功能、程式碼或資料流分析由 Developer 以 `action=analyze` 唯讀執行，只在對話中回覆；後續
+要求修改時會重新路由為 `action=develop`。Module Analyst 是例外：只有 Prompt 含完全相等的獨立一行
+`角色：module-analyst` 才會啟動並產生 Module Context md 報告。
+
 ```text
 角色：developer
 Skill：developer.language.typescript
@@ -64,7 +68,9 @@ Workflow 遇到下列情況會停止，並回報原因，不會直接使用模�
 - Rule Set 在 Preflight 後內容 Hash 或 fingerprint 改變。
 
 Review 在 Target 未知時可以只載入 Common Checks，但若其他必要資訊缺失，仍會被 Preflight 阻擋。
-Project／Module Context 預設為選用；未設定、未綁定、不相容或已過期時只提出警告並繼續執行。
+Project／Module Context 預設為選用；Module Context 可供 Developer、Review 與 Project Analyst
+重用，Module Analyst 不讀取既有 Module Context。Project Analyst 的 Module Context 永遠不作為
+blocker；未設定、未綁定、不相容或已過期時只提出警告並繼續執行。
 只有 `context_policy.require_project_context_for`、`context_policy.require_module_context_for` 或
 Context candidate 的 `required_for` 明確要求本次 Action 時，Context 驗證失敗才會阻擋。
 

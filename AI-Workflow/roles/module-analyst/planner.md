@@ -9,11 +9,12 @@
 
 - `role_id=module-analyst`
 - `action=analyze`
+- 原始需求包含完全相等的獨立一行 `角色：module-analyst`，且 Role provenance 為 `explicit`
 - Task Risk 已完成，Execution Profile 已選取，且兩者 Task ID 一致
 - `analysis_mode=module`
 - 具有唯一 Module
 
-條件不成立時設定 `status=needs-resolution`。
+條件不成立時設定 `status=needs-resolution`。不得因需求提到「分析模組」而推論或補造明示角色。
 
 ## 任務事實
 

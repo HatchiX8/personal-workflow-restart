@@ -305,6 +305,9 @@ function checkDependencies() {
   };
 
   for (const role of roles.roles ?? []) {
+    assert(arrayOfStrings(role.supported_actions) && role.supported_actions.length > 0 && unique(role.supported_actions), `Role supported_actions are invalid: ${role.role_id}`);
+    assert((role.supported_actions ?? []).includes(role.action), `Role canonical action is absent from supported_actions: ${role.role_id}`);
+    assert(['automatic', 'explicit-only'].includes(role.activation), `Role activation policy is invalid: ${role.role_id}`);
     for (const bundleId of [...(role.required_bundle_ids ?? []), ...(role.optional_bundle_ids ?? [])]) {
       assert(bundleIds.has(bundleId), `Role ${role.role_id} references missing bundle ${bundleId}`);
     }
@@ -317,6 +320,10 @@ function checkDependencies() {
       assert(mode.entry === `roles/${role.role_id}/modes/${mode.mode_id}/entry.md`, `Role mode entry is not canonical: ${role.role_id}/${mode.mode_id} -> ${mode.entry}`);
     }
   }
+  const developerRole = (roles.roles ?? []).find((role) => role.role_id === 'developer');
+  const moduleAnalystRole = (roles.roles ?? []).find((role) => role.role_id === 'module-analyst');
+  assert(JSON.stringify(developerRole?.supported_actions) === JSON.stringify(['develop', 'analyze']), 'Developer must support develop and analyze actions.');
+  assert(moduleAnalystRole?.activation === 'explicit-only', 'Module Analyst must remain explicit-only.');
 
   for (const skill of skills.skills ?? []) {
     assert(roleIds.has(skill.role_id), `Skill ${skill.skill_id} references missing role ${skill.role_id}`);
@@ -694,6 +701,7 @@ function checkPhase5Fixtures() {
     const manifest = {
       action: fixture.query?.action,
       task_type: fixture.query?.task_type ?? 'analysis',
+      role_id: fixture.query?.role_id ?? 'developer',
       analysis_mode: fixture.query?.analysis_mode ?? null,
       routing_triggers: fixture.query?.risk_facts ?? [],
       targets: fixture.query?.targets ?? [],
@@ -727,6 +735,42 @@ function checkPhase5Fixtures() {
     if (id.includes('unbound') || id.includes('cross-project')) assert((expected.contexts ?? []).length === 0, `Phase 5 ${id} must not select a Context.`);
     if (id === 'unbound-optional-warning') assert(expected.status === 'RESOLVED_WITH_WARNINGS', `Phase 5 optional unbound Context must only warn: ${id}`);
     if (id === 'required-module-missing-blocked') assert(expected.status === 'BLOCKED', `Phase 5 explicitly required Module Context must block: ${id}`);
+  }
+
+  const reusableFixture = readWorkflowJson('tests/fixtures/phase-5/current-alias-success.context-input.json');
+  if (reusableFixture) {
+    const baseManifest = {
+      action: 'develop',
+      task_type: 'change',
+      role_id: 'developer',
+      analysis_mode: null,
+      routing_triggers: [],
+      targets: ['frontend'],
+      modules: [{ module_id: 'order' }],
+      project: { project_id: 'synthetic-a', project_root: '.', config_path: reusableFixture.verified_project.config_path }
+    };
+    const baseProjectConfig = {
+      project_id: 'synthetic-a',
+      project_contexts: [],
+      context_policy: {
+        require_project_context_for: [],
+        require_module_context_for: ['analyze'],
+        status_policy: reusableFixture.context_policy.status_policy
+      }
+    };
+    for (const [roleId, action] of [['developer', 'develop'], ['review', 'review'], ['project-analyst', 'analyze']]) {
+      const actual = resolveContexts({
+        manifest: { ...baseManifest, role_id: roleId, action, analysis_mode: roleId === 'project-analyst' ? 'project' : null },
+        projectConfig: baseProjectConfig,
+        modulesRegistry: { modules: reusableFixture.modules },
+        roots: { workflowRoot, projectRoot }
+      });
+      assert(actual.contexts.some((item) => item.type === 'module'), `${roleId} must be able to consume a current Module Context.`);
+      if (roleId === 'project-analyst') {
+        assert(actual.blockers.length === 0, 'Project Analyst Module Context must never block even when analyze is configured as required.');
+        assert(actual.contexts.every((item) => item.type !== 'module' || item.required === false), 'Project Analyst Module Context must always remain optional.');
+      }
+    }
   }
 }
 
@@ -1009,7 +1053,7 @@ function checkReferencePipeline() {
   const moduleManifest = {
     ...manifest,
     task_id: 'acceptance-module-analysis-fullstack',
-    raw_request: 'Analyze Lunch frontend and backend module',
+    raw_request: '角色：module-analyst\nAnalyze Lunch frontend and backend module',
     action: 'analyze',
     task_type: 'analysis',
     role_id: 'module-analyst',
@@ -1019,6 +1063,15 @@ function checkReferencePipeline() {
     routing_triggers: [],
     review_mode: null,
     analysis_mode: 'module',
+    provenance: {
+      ...manifest.provenance,
+      action: { source: 'explicit', confidence: 1, evidence: ['Module analysis'], candidates: ['analyze'] },
+      task_type: { source: 'inference', confidence: 1, evidence: ['Analysis request'], candidates: ['analysis'] },
+      role_id: { source: 'explicit', confidence: 1, evidence: ['角色：module-analyst'], candidates: ['module-analyst'] },
+      targets: { source: 'explicit', confidence: 1, evidence: ['Frontend and backend'], candidates: ['frontend', 'backend'] },
+      modules: { source: 'explicit', confidence: 1, evidence: ['Lunch module'], candidates: ['lunch'] },
+      analysis_mode: { source: 'explicit', confidence: 1, evidence: ['Module scope'], candidates: ['module'] }
+    },
     unresolved: [],
     status: 'analyzed'
   };
@@ -1032,7 +1085,7 @@ function checkReferencePipeline() {
   const discoveryManifest = {
     ...moduleManifest,
     task_id: 'acceptance-module-analysis-repository-discovery',
-    raw_request: '分析 inventory-v2 模組並自行從陌生專案尋找相關檔案',
+    raw_request: '角色：module-analyst\n分析 inventory-v2 模組並自行從陌生專案尋找相關檔案',
     targets: [],
     target_mode: 'unknown',
     modules: [{ module_id: 'inventory-v2', name: 'inventory-v2', aliases: [], candidate_paths: [] }],

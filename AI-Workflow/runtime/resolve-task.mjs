@@ -8,6 +8,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import {
   assessTaskRisk,
   preflightReferencePipeline,
+  roleActivationSatisfied,
   resolveExecutionProfile,
   runReferencePipeline,
   verifyExecutor
@@ -240,6 +241,16 @@ function validatePlannerPaths(workflowRoot, workflowConfig, role) {
   return [authoringPath, role.planner].map((item) => item.replaceAll('\\', '/'));
 }
 
+function validateRoleActivation(manifest, role) {
+  if (!role || role.activation !== 'explicit-only' || roleActivationSatisfied(manifest, role)) return;
+  const exactDirective = `角色：${role.role_id}`;
+  throw new RuntimeWorkflowError(
+    'ROLE_EXPLICIT_ACTIVATION_REQUIRED',
+    `Role requires the exact standalone directive: ${exactDirective}`,
+    '/task_manifest/role_id'
+  );
+}
+
 function riskAndProfileDiagnostics(taskRisk, executionProfile) {
   const diagnostics = [];
   if (taskRisk.status !== 'assessed') {
@@ -316,6 +327,7 @@ function buildErrorContext(request, roots, stage) {
 
 function resolveRouting(request, roots) {
   const { role, skills, workflowConfig } = loadRoutingMetadata(roots.workflowRoot, request.task_manifest);
+  validateRoleActivation(request.task_manifest, role);
   const taskRisk = assessTaskRisk(request.task_manifest);
   const executionProfile = resolveExecutionProfile(request.task_manifest, taskRisk, role, skills);
   const diagnostics = riskAndProfileDiagnostics(taskRisk, executionProfile);
@@ -354,6 +366,8 @@ function resolveExecution(request, roots) {
   let executorVerification = null;
   try {
     validateExecutionRegistries(roots.workflowRoot);
+    const { role } = loadRoutingMetadata(roots.workflowRoot, request.task_manifest);
+    validateRoleActivation(request.task_manifest, role);
     pipeline = runReferencePipeline(request.task_manifest, roots, request.role_plan);
     preflight = preflightReferencePipeline({
       manifest: request.task_manifest,

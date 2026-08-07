@@ -1,5 +1,12 @@
 # Developer 限制規則
 
+## Action 授權限制
+
+- `action=analyze` 為唯讀授權，禁止寫入、刪除、移動或格式化檔案，禁止安裝依賴、執行 migration、
+  改變 Git 狀態或呼叫外部寫入操作。
+- `action=analyze` 不得產生 Module Context、Project Analysis 或其他 md 報告。
+- 只有新的 `action=develop` Execution Contract 才能開始修改；對話中預期未來可能修改不等於已授權。
+
 ## 資料流限制
 - 禁止破壞既有資料流
 

@@ -76,6 +76,25 @@ export function validateRegistrySnapshot(workflowRoot, registry) {
 
 const readJson = (absolutePath) => JSON.parse(fs.readFileSync(absolutePath, 'utf8'));
 const defaultTaskRiskPolicy = readJson(fileURLToPath(new URL('../../policies/task-risk-policy.json', import.meta.url)));
+const moduleContextConsumerRoles = new Set(['developer', 'review', 'project-analyst']);
+
+export function roleSupportsAction(role, action) {
+  if (!role || role.status !== 'active') return false;
+  const supportedActions = Array.isArray(role.supported_actions) ? role.supported_actions : [role.action];
+  return supportedActions.includes(action);
+}
+
+export function roleActivationSatisfied(manifest, role) {
+  if (!role || role.activation !== 'explicit-only') return true;
+  const exactDirective = `角色：${role.role_id}`;
+  const hasExactDirective = typeof manifest.raw_request === 'string'
+    && manifest.raw_request.split(/\r?\n/u).some((line) => line === exactDirective);
+  const roleProvenance = manifest.provenance?.role_id;
+  return hasExactDirective
+    && roleProvenance?.source === 'explicit'
+    && Array.isArray(roleProvenance.candidates)
+    && roleProvenance.candidates.includes(role.role_id);
+}
 
 const provenanceConfidence = (manifest, field) => {
   const provenance = manifest.provenance?.[field];
@@ -240,11 +259,11 @@ export function resolveExecutionProfile(manifest, taskRisk, role = null, skills 
   const profileId = profileByLevel[taskRisk.level];
   const reasons = [`risk-level=${taskRisk.level}`];
   let blocked = taskRisk.status !== 'assessed' || manifest.task_id !== taskRisk.task_id;
+  if (!roleSupportsAction(role, manifest.action)) {
+    blocked = true;
+    reasons.push('role-action-incompatible');
+  }
   if (taskRisk.level === 1) {
-    if (!role || role.status !== 'active' || role.action !== manifest.action) {
-      blocked = true;
-      reasons.push('advisory-role-not-yet-supported');
-    }
     const skillById = new Map(skills.map((skill) => [skill.skill_id, skill]));
     for (const skillId of manifest.skill_ids ?? []) {
       const skill = skillById.get(skillId);
@@ -322,6 +341,7 @@ export function buildReferenceRolePlan(manifest, role, taskRisk = null) {
 
   const unresolved = [];
   if (!role?.planner) unresolved.push('role-planner-missing');
+  if (!roleActivationSatisfied(manifest, role)) unresolved.push('explicit-role-activation-required');
   const assessedTaskRisk = taskRisk
     && taskRisk.status === 'assessed'
     && taskRisk.task_id === manifest.task_id
@@ -339,7 +359,7 @@ export function buildReferenceRolePlan(manifest, role, taskRisk = null) {
       ? deriveResultReporting(manifest, taskRisk)
       : { minimum_level: 3, reasons: ['task-risk-unavailable'], upward_escalation: true },
     validation_profiles: [],
-    context_requirements: manifest.modules?.length && manifest.role_id !== 'module-analyst' ? ['module'] : [],
+    context_requirements: manifest.modules?.length && moduleContextConsumerRoles.has(manifest.role_id) ? ['module'] : [],
     unresolved,
     status: unresolved.length ? 'needs-resolution' : 'planned'
   };
@@ -407,6 +427,7 @@ const topologicalOrder = (selected, dependencies) => {
 };
 
 const contextRequired = (projectConfig, manifest, candidate, type) => {
+  if (type === 'module' && manifest.role_id === 'project-analyst') return false;
   const policy = projectConfig.context_policy ?? {};
   const requiredActions = type === 'module'
     ? policy.require_module_context_for ?? []
@@ -419,7 +440,8 @@ export function resolveContexts({ manifest, projectConfig, modulesRegistry, root
   const result = { contexts: [], warnings: [], blockers: [] };
   const policy = projectConfig.context_policy ?? {};
   const projectMustExist = (policy.require_project_context_for ?? []).includes(manifest.action);
-  const moduleMustExist = (policy.require_module_context_for ?? []).includes(manifest.action);
+  const moduleMustExist = ['developer', 'review'].includes(manifest.role_id)
+    && (policy.require_module_context_for ?? []).includes(manifest.action);
   const verifiedProjectId = projectConfig.project_id;
   if (manifest.project?.project_id !== verifiedProjectId) {
     result.blockers.push('project-id-mismatch');
@@ -475,16 +497,17 @@ export function resolveContexts({ manifest, projectConfig, modulesRegistry, root
   else if (eligibleProjectContexts.length === 1) addContext(eligibleProjectContexts[0], 'project');
   else if (projectMustExist) result.blockers.push('required-project-context-missing');
 
-  // Module Analyst creates a fresh Module Context from repository evidence. Its
-  // named module is a discovery seed, not a pointer into the Context Registry.
-  if (manifest.role_id === 'module-analyst' && manifest.analysis_mode === 'module') return result;
+  // Only Developer, Review, and Project Analyst consume existing Module Context.
+  // Project Analyst consumption is always optional. Module Analyst creates a fresh
+  // Module Context from repository evidence and never reads an existing one.
+  if (!moduleContextConsumerRoles.has(manifest.role_id)) return result;
 
   for (const requested of manifest.modules ?? []) {
     const requestedId = requested.module_id ?? requested.name;
     const direct = (modulesRegistry.modules ?? []).filter((module) => module.module_id === requestedId);
     const aliases = direct.length ? direct : (modulesRegistry.modules ?? []).filter((module) => (module.aliases ?? []).includes(requestedId));
     if (aliases.length !== 1) {
-      result.blockers.push(`module-ambiguous-or-missing:${requestedId}`);
+      (moduleMustExist ? result.blockers : result.warnings).push(`module-ambiguous-or-missing:${requestedId}`);
       continue;
     }
     const module = aliases[0];
@@ -685,6 +708,7 @@ export function preflightReferencePipeline({ manifest, taskRisk = null, executio
   if (taskRisk.status !== 'assessed') blockers.push('task-risk-incomplete');
   if (executionProfile.status !== 'selected') blockers.push('execution-profile-blocked');
   if (executionProfile.risk_level < taskRisk.level) blockers.push('execution-profile-risk-downgrade');
+  if (manifest.role_id === 'developer' && !(manifest.targets ?? []).length) blockers.push('developer-target-unresolved');
   if (!rolePlan?.result_reporting) blockers.push('result-reporting-missing');
   if (rolePlan && (rolePlan.role_id !== manifest.role_id || rolePlan.action !== manifest.action)) {
     blockers.push('role-plan-routing-mismatch');

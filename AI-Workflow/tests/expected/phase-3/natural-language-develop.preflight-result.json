@@ -15,7 +15,7 @@
   "execution_contract": {
     "role_id": "developer",
     "executor_entry": "roles/developer/entry.md",
-    "rule_set_fingerprint": "sha256:95e179dc90ffcaf91e58dd762f6996243f00533d11c8ede2442e60a51dd81f7a",
+    "rule_set_fingerprint": "sha256:76c2156600e031d01bebbafa983a6a7279c59d8a46ca70edd07e9bf1dcbd2a52",
     "allowed_action": "develop",
     "risk_level": 2,
     "execution_profile": "standard",

@@ -11,7 +11,7 @@
   "targets": [],
   "target_mode": "unknown",
   "project": {
-    "project_id": "controlled-agent-workflow",
+    "project_id": "controlled-agent-workflow-team",
     "project_root": ".",
     "config_path": "project.config.json"
   },

@@ -14,7 +14,7 @@
         "routing_triggers": [],
         "scope": {"include_paths": ["src/orders/OrderList.vue"], "change_source": "request"},
         "modules": [],
-        "project": {"project_id": "controlled-agent-workflow"}
+        "project": {"project_id": "controlled-agent-workflow-team"}
       },
       "expected_planner": "roles/developer/planner.md",
       "expected_selectors": ["role=developer", "action=develop", "task-type=change", "target=frontend"],
@@ -32,7 +32,7 @@
         "routing_triggers": [],
         "review_mode": "change",
         "modules": [],
-        "project": {"project_id": "controlled-agent-workflow"}
+        "project": {"project_id": "controlled-agent-workflow-team"}
       },
       "expected_planner": "roles/review/planner.md",
       "expected_selectors": ["role=review", "action=review", "review-mode=change", "target=frontend"],
@@ -52,7 +52,7 @@
         "scope": {"include_paths": [], "change_source": "full-project"},
         "analysis_mode": "project",
         "modules": [],
-        "project": {"project_id": "controlled-agent-workflow"}
+        "project": {"project_id": "controlled-agent-workflow-team"}
       },
       "expected_planner": "roles/project-analyst/planner.md",
       "expected_selectors": ["role=project-analyst", "action=analyze", "analysis-mode=project"],
@@ -63,6 +63,7 @@
       "explicit_role": true,
       "manifest": {
         "task_id": "role-plan-module-analyst",
+        "raw_request": "角色：module-analyst\n分析 purchase 模組",
         "role_id": "module-analyst",
         "action": "analyze",
         "task_type": "analysis",
@@ -70,10 +71,31 @@
         "routing_triggers": [],
         "analysis_mode": "module",
         "modules": [{"module_id": "purchase"}],
-        "project": {"project_id": "controlled-agent-workflow"}
+        "project": {"project_id": "controlled-agent-workflow-team"},
+        "provenance": {
+          "role_id": {"source": "explicit", "confidence": 1, "evidence": ["角色：module-analyst"], "candidates": ["module-analyst"]}
+        }
       },
       "expected_planner": "roles/module-analyst/planner.md",
       "expected_selectors": ["role=module-analyst", "action=analyze", "analysis-mode=module", "target=backend"],
+      "expected_result_level": 2
+    },
+    {
+      "scenario_id": "developer-readonly-analysis",
+      "explicit_role": false,
+      "manifest": {
+        "task_id": "role-plan-developer-analysis",
+        "role_id": "developer",
+        "action": "analyze",
+        "task_type": "analysis",
+        "targets": ["backend"],
+        "routing_triggers": [],
+        "analysis_mode": null,
+        "modules": [{"module_id": "purchase"}],
+        "project": {"project_id": "controlled-agent-workflow-team"}
+      },
+      "expected_planner": "roles/developer/planner.md",
+      "expected_selectors": ["role=developer", "action=analyze", "task-type=analysis", "target=backend"],
       "expected_result_level": 2
     },
     {
@@ -87,7 +109,7 @@
         "targets": ["frontend"],
         "routing_triggers": [],
         "modules": [],
-        "project": {"project_id": "controlled-agent-workflow"}
+        "project": {"project_id": "controlled-agent-workflow-team"}
       },
       "expected_planner": "roles/developer/planner.md",
       "expected_selectors": ["role=developer", "action=develop", "task-type=change", "target=frontend"],

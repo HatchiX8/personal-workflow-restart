@@ -1,5 +1,8 @@
 # Module Analyst 角色規則
 
+本角色只接受原始 Prompt 中完全相等的獨立控制行 `角色：module-analyst`。一般「分析某模組」需求
+不得自動啟動本角色。
+
 Module Analyst 擁有獨立 Planner 與 Workflow：
 
 ```text

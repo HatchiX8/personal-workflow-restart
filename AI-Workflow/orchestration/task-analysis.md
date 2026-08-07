@@ -55,10 +55,15 @@ Skill：<skill_id>
 
 - 只有需求明確要求修改程式碼或規則時，implement、fix、add、update、refactor 等 Develop 動詞才能推導為 `action=develop`。
 - review、inspect a diff、check a completed feature 等 Review 動詞推導為 `action=review`。
-- map、investigate、document architecture 等 Analyze 動詞推導為 `action=analyze`。
-- 除非已明確提供 Role，否則將 Action 對應到 Registry 中唯一 active Role。
+- map、investigate、explain existing behavior、分析既有功能或資料流等唯讀需求推導為
+  `action=analyze`。一般程式碼／功能分析使用 `role_id=developer`；完整 Project Analysis 使用
+  `project-analyst`。
+- 除非已明確提供 Role，否則依 Role Registry 的 `supported_actions`、activation policy 與分析範圍
+  選擇相容 Role；不得只依單一 canonical Action 猜測 Role。
 - 明確 Role 優先，但其 Registry Action 必須與需求相容。Develop 需求若明確指定 Review，必須列為 unresolved，不得靜默轉換。
-- Analyze 只有在明確需求證據支持時，才能判斷 `analysis_mode=project` 或 `module`；否則可以確定 Action，但 Role 仍須保持 unresolved。
+- Developer 的唯讀分析固定 `analysis_mode=null`。Project Analyst 只有在明確 Project 範圍支持時
+  使用 `analysis_mode=project`。Module Analyst 只有原始需求包含完全相等的獨立一行
+  `角色：module-analyst` 時才能選取，並使用 `analysis_mode=module`；其他模組分析文字不得自動啟動。
 
 ### Task Type 與 Targets
 
@@ -69,14 +74,15 @@ Canonical task type 為 `feature`、`change`、`bugfix`、`refactor`、`migratio
 - 新增或建立新能力對應 `feature`；有明確邊界的調整對應 `change`。
 - Frontend、backend、database、tooling 與 docs 是彼此獨立的 `targets`。
 - 確認同時包含 frontend 與 backend 時，正規化為 `target_mode=fullstack`。
-- Project Analysis、未限制 Target 的 Module Analysis，或可安全只使用 common checks 的 Review，
+- Project Analysis、未限制 Target 的明示 Module Analysis，或可安全只使用 common checks 的 Review，
   可以讓 Target 為空。Module Analysis 的空 Targets 表示以角色基礎規則進行跨 Target discovery；
-  Develop 仍必須解析出 Target，Preflight 才能通過。
+  Developer 的 `develop` 與 `analyze` 仍必須解析出 Target，Preflight 才能通過。
 
 ### Module、Scope 與角色模式
 
 - 一般執行任務的 Module 透過明確 Registry ID／alias、需求或 repository evidence 比對。
-- `role_id=module-analyst` 且 `analysis_mode=module` 時，使用者明確指定的單一模組名稱本身就是合法的
+- 只有原始需求含精確獨立控制行 `角色：module-analyst`，且 `role_id=module-analyst`、
+  `analysis_mode=module` 時，使用者明確指定的單一模組名稱本身才是合法的
   discovery identity，不要求 Registry ID、alias 設定、project binding、current pointer 或既有 Context。
   將原始名稱與明示別名保留在 `modules[0]`；`candidate_paths` 可以為空。
 - Module Analysis 若同時出現多個無法區分的模組名稱才列為 unresolved；缺少預先設定路徑本身不是

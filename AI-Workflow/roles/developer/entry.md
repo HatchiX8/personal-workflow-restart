@@ -17,7 +17,7 @@ Preflight 的固定輸入，不負責解析原始 Prompt、推導任務或選擇
 開始執行前，必須確認：
 
 - `role_id=developer`
-- `allowed_action=develop`
+- `allowed_action=develop|analyze`
 - Role Plan 的 `planner_entry=roles/developer/planner.md`，且 Role、Action 與 Task Manifest 一致
 - `targets` 至少包含一個已解析 Target
 - `Resolved Rule Set` 與 `execution_contract` 的入口及 fingerprint 一致
@@ -30,14 +30,22 @@ Preflight 的固定輸入，不負責解析原始 Prompt、推導任務或選擇
 ## 執行責任
 
 通過驗證後，只能依 `Resolved Rule Set.load_order` 使用已載入的規則與 Context，並在 Task
-Manifest 核准的 Scope 與 Execution Profile 內依 Role Plan 執行開發工作。
+Manifest 核准的 Scope 與 Execution Profile 內依 Role Plan 執行工作。
 
-Developer 負責：
+`allowed_action=develop` 時，Developer 負責：
 
 - 依需求實作、修正或重構程式碼
 - 遵守已選取的通用、Target、Skill、Project 與 Module 規則
 - 維持既有架構、資料流與 public behavior 的穩定性
 - 依已載入的 review 與 output 規則完成驗證及結果回報
+
+`allowed_action=analyze` 時，Developer 只負責唯讀理解既有功能、程式碼、資料流、Contract 與可能影響：
+
+- 只能列舉、搜尋與讀取必要檔案，以及執行不改變專案狀態的檢查。
+- 不得修改程式碼、設定、依賴、Git 狀態或其他專案產物。
+- 只在對話中回覆分析結果，不得建立 Module Context、Project Analysis 或其他 md 報告。
+- 使用者後續要求修改時，必須建立新的 `action=develop` Task Manifest 並重新執行 Runtime；不得沿用
+  本次 `action=analyze` 的 Execution Contract。
 
 入口不得變更 Role、Action、Task Type、Target、Module、Skill、Context、規則載入
 順序或優先級，也不得掃描目錄或猜測規則檔名。

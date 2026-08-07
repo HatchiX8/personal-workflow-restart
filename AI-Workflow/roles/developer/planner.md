@@ -3,12 +3,12 @@
 ## 責任
 
 本 Planner 接收已完成的 Task Manifest，依 `orchestration/role-planner.md` 產生 Developer Role
-Plan。它只推導開發任務事實，不讀取 Skill 規則、不選 Skill ID，也不修改程式碼。
+Plan。它只推導 Developer 任務事實，不讀取 Skill 規則、不選 Skill ID，也不修改程式碼。
 
 ## 必要驗證
 
 - `role_id=developer`
-- `action=develop`
+- `action=develop|analyze`
 - Task Risk 已完成，Execution Profile 已選取，且兩者 Task ID 一致
 - 至少一個 Target
 - Scope、Project 與明確 Skill ID 已由 Task Analysis 固定
@@ -19,7 +19,7 @@ Plan。它只推導開發任務事實，不讀取 Skill 規則、不選 Skill ID
 
 依任務與 repository evidence 產生下列高信心 facts：
 
-- `task-type`：feature、change、bugfix、refactor、migration、maintenance。
+- `task-type`：feature、change、bugfix、refactor、migration、maintenance、analysis。
 - `target`：frontend、backend、database、tooling、docs。
 - `runtime`：node-js、dotnet、python 或其他已確認 runtime。
 - `framework`：vue、react、express 或其他已確認 framework。
@@ -40,7 +40,9 @@ Planner 可以依已確認事實提出 validation profile：
 - `test`
 - `manual`
 
-實際指令與是否可執行仍由 Project Context、已選 Skill 與 Developer validation 規則決定。
+`action=analyze` 時只能使用唯讀的 `manual`／evidence 檢查，不得執行會產生或修改檔案的 build、test、
+format 或其他命令。`action=develop` 的實際指令仍由 Project Context、已選 Skill 與 Developer
+validation 規則決定。
 
 ## 結果回報設定
 
@@ -50,12 +52,12 @@ Task Type、Target、Risk、Scope mode 與輸出詳細度需求產生 `result_re
 
 ## Context 選取需求
 
-- Module 範圍或跨模組開發可以提出 `module` Context selector；有相符 current Context 時載入。
+- Module 範圍或跨模組的 Developer 分析／開發可以提出 `module` Context selector；有相符 current Context 時載入。
 - Architecture、Migration、Database、Full Stack 或 Cross-module 任務可以提出 `project` Context
   selector；Context 不存在時不得僅因風險類型阻擋。
 - Project／Module Context 預設為 optional。只有 Project Config 或 Context metadata 明確要求目前
   Action 時，Planner 才能將該 Context 視為 required。
-- Routine Develop 不得僅因角色是 Developer 就要求任何 Context。
+- Routine Developer 任務不得僅因角色是 Developer 就要求任何 Context。
 
 ## 禁止事項
 

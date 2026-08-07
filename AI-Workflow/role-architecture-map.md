@@ -34,6 +34,10 @@ roles/<role-id>/
 
 ## Developer
 
+Developer 支援 `action=develop` 與 `action=analyze`。一般功能、程式碼、資料流或 contract 分析使用
+唯讀的 `analyze` 分支並直接在對話回覆，不建立分析 md；後續若要修改，必須以新的 `develop`
+Task Manifest 重新路由。
+
 | 原始規則 | 重整後位置／責任 |
 |---|---|
 | `core.md` | Role Kernel 原則 |
@@ -70,6 +74,9 @@ Change 與 Feature 共同的 workflow、restrictions、report 與 PASS／FAIL �
 
 ## Project Analyst
 
+Project Analyst 可參考已解析的 Project Context 與 Module Context；Module Context 對此角色永遠是
+選用資料，缺少、過期、歧義或無法解析時只能產生 warning，不得阻擋專案分析。
+
 | 原始規則 | 重整後位置／責任 |
 |---|---|
 | `identify-project.md` | Project Analyst 固定 phase |
@@ -82,6 +89,9 @@ Project Analyst 目前沒有必要強制建立 active Skill；保留 `skills/` �
 Profile 擴充點。
 
 ## Module Analyst
+
+Module Analyst 只有在原始 Prompt 含完全相等的獨立一行 `角色：module-analyst` 時才能啟動。
+它必須直接從 Repository Evidence 探索模組範圍，不讀取或要求既有 Module Context。
 
 | 原始規則 | 重整後位置／責任 |
 |---|---|

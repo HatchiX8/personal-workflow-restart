@@ -18,9 +18,10 @@ Preflight 驗證 Task Manifest、Task Risk Assessment、Execution Profile Contra
    每個 `category=skill` 項目都必須回查 Skill Registry，且 Registry 的 `role_id` 必須等於 Resolved Rule Set 的 Role；不符合時以 `skill-role-mismatch:<skill-id>` 阻擋。
 7. 每個已選 Context 都存在於宣告的 canonical `path_base` 下、未超出該基準、符合 project／module／target，保留 Context Resolution 的 required／optional reason，並符合 Context policy。
 8. Rule Set 沒有衝突、狀態為 `resolved`，且重新計算的 fingerprint 與提供的 fingerprint 相同。
-9. Develop 已解析出 Target；Module 範圍任務具有唯一 Module。Project／Module Context 預設為
+9. Developer 的 Develop／Analyze 已解析出 Target；Module 範圍任務具有唯一 Module。Project／Module Context 預設為
    optional；只有 Project Config 或 Context metadata 明確標記 required 時，缺少或無效 Context
-   才能阻擋。Module Analysis 不要求既有 Context。
+   才能阻擋。Module Analyst 不讀取既有 Module Context；Project Analyst 的 Module Context 缺失或
+   不相容不得成為 blocker。
 10. Task Risk 必須為 `status=assessed`、沒有 unresolved，且 Profile 必須為 `status=selected`。Profile 的 `risk_level` 不得低於 Task Risk 的 `level`，Profile ID 與設定的風險層級必須相容，`upward_escalation` 必須為 true。
 11. Profile 宣告的 required stages 必須具有對應的有效產物；任何被列為 skipped 的 stage 不得是該 Profile 的安全核心或必要階段。`full` Profile 必須保留現有完整流程。
 12. Role Plan 必須包含符合 Result Reporting 政策的 `result_reporting`；最低層級、理由與允許向上
