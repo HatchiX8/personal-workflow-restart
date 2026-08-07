@@ -101,7 +101,8 @@ function checkAllJsonParses() {
 function checkConfigReferences() {
   const workflowConfig = readWorkflowJson('workflow.config.json');
   const projectConfig = readJson('project.config.json');
-  if (!workflowConfig || !projectConfig) return;
+  const projectConfigSchema = readWorkflowJson('schemas/project-config.schema.json');
+  if (!workflowConfig || !projectConfig || !projectConfigSchema) return;
 
   const workflowReferences = [
     ['bootstrap', workflowConfig.bootstrap],
@@ -145,7 +146,19 @@ function checkConfigReferences() {
   }
   assert(!(projectConfig.context_policy?.require_project_context_for ?? []).includes('develop'), 'Routine Develop must not require a Project Context by default.');
   assert(!(projectConfig.context_policy?.require_project_context_for ?? []).includes('review'), 'Routine Review must not require a Project Context by default.');
+  assert(!hasOwn(projectConfig.context_policy, 'high_risk_conditions'), 'Current Project Config must not use deprecated context_policy.high_risk_conditions.');
   assert((projectConfig.project_contexts ?? []).every((item) => item && typeof item === 'object' && !Array.isArray(item)), 'Project Context entries must use the structured canonical format.');
+
+  const contextPolicySchema = projectConfigSchema.properties?.context_policy;
+  assert(contextPolicySchema?.additionalProperties === false, 'Project Config context_policy schema must reject unknown fields.');
+  assert(
+    JSON.stringify(projectConfigSchema.$defs?.contextRequiredActions?.items?.enum) === JSON.stringify(['develop', 'review', 'analyze']),
+    'Project Config context_policy action lists must use the canonical action vocabulary.'
+  );
+  assert(
+    contextPolicySchema?.properties?.high_risk_conditions?.deprecated === true,
+    'Legacy context_policy.high_risk_conditions must remain explicitly deprecated during the 2.x compatibility window.'
+  );
 }
 
 function checkRuntimeFallbackConsent() {
@@ -568,6 +581,7 @@ function checkTaskRiskPolicy() {
 function checkPhase3Fixtures() {
   const fixtureDir = path.join(workflowRoot, 'tests', 'fixtures', 'phase-3');
   const expectedDir = path.join(workflowRoot, 'tests', 'expected', 'phase-3');
+  const roles = readWorkflowJson('registry/roles.json');
   for (const file of fs.readdirSync(fixtureDir).filter((name) => name.endsWith('.request.json'))) {
     const scenario = readJson(path.join('AI-Workflow', 'tests', 'fixtures', 'phase-3', file));
     const id = file.replace('.request.json', '');
@@ -591,6 +605,44 @@ function checkPhase3Fixtures() {
         assert((preflight.blockers ?? []).length > 0, `Phase 3 blocked Preflight needs a blocker: ${id}`);
       } else {
         assert(preflight.execution_contract && typeof preflight.execution_contract === 'object', `Phase 3 passing Preflight needs an execution contract: ${id}`);
+        const registeredRole = (roles?.roles ?? []).find((item) => item.role_id === manifest?.role_id);
+        assert(
+          preflight.execution_contract?.executor_entry === registeredRole?.entry,
+          `Phase 3 Preflight executor must match the active Role Registry: ${id}`
+        );
+        assert(
+          workflowPathExists(preflight.execution_contract?.executor_entry),
+          `Phase 3 Preflight executor path does not exist: ${id}`
+        );
+        const fingerprint = preflight.execution_contract?.rule_set_fingerprint;
+        assert(
+          /^sha256:[a-f0-9]{64}$/u.test(fingerprint ?? '') && !/^sha256:([a-f0-9])\1{63}$/u.test(fingerprint ?? ''),
+          `Phase 3 Preflight must use a non-placeholder SHA-256 fingerprint: ${id}`
+        );
+        assert(
+          (preflight.execution_contract?.result_reporting?.reasons ?? []).some((reason) =>
+            /^task-risk-level:[123]$/u.test(reason) || /^(?:task-risk|risk-fact):/u.test(reason)),
+          `Phase 3 Result Reporting must remain traceable to frozen Task Risk: ${id}`
+        );
+
+        const actualRun = runReferencePipeline(manifest, { workflowRoot, projectRoot });
+        const actualPreflight = preflightReferencePipeline({
+          manifest,
+          taskRisk: actualRun.taskRisk,
+          executionProfile: actualRun.executionProfile,
+          rolePlan: actualRun.rolePlan,
+          resolution: actualRun.resolution,
+          context: actualRun.context,
+          roots: { workflowRoot, projectRoot }
+        });
+        assert(
+          fingerprint === actualPreflight.execution_contract?.rule_set_fingerprint,
+          `Phase 3 Preflight fingerprint is stale: ${id}; actual=${actualPreflight.execution_contract?.rule_set_fingerprint ?? 'none'}`
+        );
+        assert(
+          JSON.stringify(preflight.execution_contract?.result_reporting) === JSON.stringify(actualPreflight.execution_contract?.result_reporting),
+          `Phase 3 Result Reporting contract is stale: ${id}`
+        );
       }
     }
   }
@@ -783,7 +835,13 @@ function checkRolePlannerCases() {
   for (const testCase of fixture?.cases ?? []) {
     const manifest = testCase.manifest;
     const role = (roles?.roles ?? []).find((item) => item.role_id === manifest.role_id);
-    const rolePlan = buildReferenceRolePlan(manifest, role);
+    const taskRisk = {
+      task_id: manifest.task_id,
+      level: testCase.expected_result_level,
+      reasons: [`fixture-risk-level=${testCase.expected_result_level}`],
+      status: 'assessed'
+    };
+    const rolePlan = buildReferenceRolePlan(manifest, role, taskRisk);
     assert(rolePlan.status === 'planned', `Role Planner did not complete: ${testCase.scenario_id}`);
     assert(rolePlan.planner_entry === testCase.expected_planner, `Role Planner entry mismatch: ${testCase.scenario_id}`);
     assert(rolePlan.role_id === manifest.role_id, `Role Plan role mismatch: ${testCase.scenario_id}`);

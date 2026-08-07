@@ -14,14 +14,14 @@
   "warnings": ["Lunch Module Context is unavailable and will not be loaded."],
   "execution_contract": {
     "role_id": "developer",
-    "executor_entry": "roles/developer/executor.md",
-    "rule_set_fingerprint": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+    "executor_entry": "roles/developer/entry.md",
+    "rule_set_fingerprint": "sha256:95e179dc90ffcaf91e58dd762f6996243f00533d11c8ede2442e60a51dd81f7a",
     "allowed_action": "develop",
     "risk_level": 2,
     "execution_profile": "standard",
     "result_reporting": {
       "minimum_level": 2,
-      "reasons": ["一般開發任務"],
+      "reasons": ["task-risk-level:2"],
       "upward_escalation": true
     }
   }

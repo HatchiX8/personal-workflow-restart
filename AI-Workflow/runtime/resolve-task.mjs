@@ -33,6 +33,105 @@ const DERIVED_WORKFLOW_ROOT = path.resolve(RUNTIME_DIRECTORY, '..');
 
 const MAX_REQUEST_BYTES = 1024 * 1024;
 
+const isObject = (value) => value !== null && typeof value === 'object' && !Array.isArray(value);
+
+function inspectProjectConfig(projectRoot) {
+  let projectConfig;
+  try {
+    projectConfig = JSON.parse(fs.readFileSync(path.join(projectRoot, 'project.config.json'), 'utf8'));
+  } catch {
+    throw new RuntimeWorkflowError('PROJECT_CONFIG_INVALID', 'project.config.json is not valid JSON.', '/project_config');
+  }
+
+  const policy = projectConfig.context_policy;
+  if (!isObject(policy)) {
+    throw new RuntimeWorkflowError('PROJECT_CONFIG_INVALID', 'context_policy must be an object.', '/project_config/context_policy');
+  }
+
+  const allowedFields = new Set([
+    'require_project_context_for',
+    'require_module_context_for',
+    'allow_project_analysis_without_context',
+    'status_policy',
+    'high_risk_conditions'
+  ]);
+  for (const key of Object.keys(policy)) {
+    if (!allowedFields.has(key)) {
+      throw new RuntimeWorkflowError(
+        'PROJECT_CONFIG_INVALID',
+        'Unknown context_policy field.',
+        `/project_config/context_policy/${key}`
+      );
+    }
+  }
+
+  const actions = new Set(['develop', 'review', 'analyze']);
+  for (const key of ['require_project_context_for', 'require_module_context_for']) {
+    if (!Object.hasOwn(policy, key)) continue;
+    const values = policy[key];
+    if (!Array.isArray(values) || !values.every((value) => actions.has(value)) || new Set(values).size !== values.length) {
+      throw new RuntimeWorkflowError(
+        'PROJECT_CONFIG_INVALID',
+        `${key} must contain unique canonical actions.`,
+        `/project_config/context_policy/${key}`
+      );
+    }
+  }
+
+  if (
+    Object.hasOwn(policy, 'allow_project_analysis_without_context')
+    && typeof policy.allow_project_analysis_without_context !== 'boolean'
+  ) {
+    throw new RuntimeWorkflowError(
+      'PROJECT_CONFIG_INVALID',
+      'allow_project_analysis_without_context must be a boolean.',
+      '/project_config/context_policy/allow_project_analysis_without_context'
+    );
+  }
+
+  if (Object.hasOwn(policy, 'status_policy')) {
+    const statusPolicy = policy.status_policy;
+    if (!isObject(statusPolicy)) {
+      throw new RuntimeWorkflowError('PROJECT_CONFIG_INVALID', 'status_policy must be an object.', '/project_config/context_policy/status_policy');
+    }
+    const allowedStatusFields = new Set(['current', 'stale', 'partial', 'unknown', 'required_context_failure']);
+    const allowedStatusValues = {
+      current: new Set(['pass']),
+      stale: new Set(['warning', 'blocked']),
+      partial: new Set(['warning', 'blocked']),
+      unknown: new Set(['warning', 'blocked']),
+      required_context_failure: new Set(['blocked'])
+    };
+    for (const [key, value] of Object.entries(statusPolicy)) {
+      if (!allowedStatusFields.has(key) || !allowedStatusValues[key].has(value)) {
+        throw new RuntimeWorkflowError(
+          'PROJECT_CONFIG_INVALID',
+          'Unknown status_policy field or unsupported value.',
+          `/project_config/context_policy/status_policy/${key}`
+        );
+      }
+    }
+  }
+
+  const diagnostics = [];
+  if (Object.hasOwn(policy, 'high_risk_conditions')) {
+    const values = policy.high_risk_conditions;
+    if (!Array.isArray(values) || !values.every((value) => typeof value === 'string' && value.length > 0) || new Set(values).size !== values.length) {
+      throw new RuntimeWorkflowError(
+        'PROJECT_CONFIG_INVALID',
+        'high_risk_conditions must contain unique non-empty strings.',
+        '/project_config/context_policy/high_risk_conditions'
+      );
+    }
+    diagnostics.push(diagnostic(
+      'DEPRECATED_PROJECT_CONFIG_FIELD',
+      '/project_config/context_policy/high_risk_conditions',
+      'high_risk_conditions is deprecated and ignored; remove it from project.config.json.'
+    ));
+  }
+  return diagnostics;
+}
+
 function readRequestFile(projectRoot, requestDirectory, requestPath) {
   if (typeof requestPath !== 'string' || requestPath.length === 0 || path.isAbsolute(requestPath)) {
     throw new RuntimeInputError('INVALID_REQUEST_PATH', 'Request file path must be project-relative.', '/arguments/1');
@@ -376,7 +475,9 @@ export async function main(argv = process.argv.slice(2)) {
     request = parseRequestContext(rawInput);
     request = parseRuntimeRequest(rawInput);
     roots = resolveRuntimeRoots(request, DERIVED_WORKFLOW_ROOT);
+    const projectConfigDiagnostics = inspectProjectConfig(roots.projectRoot);
     outcome = runRuntimeRequest(request, roots);
+    outcome.result.diagnostics.push(...projectConfigDiagnostics);
   } catch (error) {
     const context = failureEnvelope(request, roots, inferFailureStage(request, error));
     if (isRuntimeFailure(error)) {

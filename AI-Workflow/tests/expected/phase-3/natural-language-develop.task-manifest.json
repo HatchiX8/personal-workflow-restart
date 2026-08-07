@@ -44,6 +44,6 @@
     "review_mode": {"source": "inference", "confidence": 1.0, "evidence": ["action is develop"], "candidates": []},
     "analysis_mode": {"source": "inference", "confidence": 1.0, "evidence": ["action is develop"], "candidates": []}
   },
-  "unresolved": ["Module Context for lunch is unbound and has no current pointer."],
-  "status": "needs-resolution"
+  "unresolved": [],
+  "status": "analyzed"
 }

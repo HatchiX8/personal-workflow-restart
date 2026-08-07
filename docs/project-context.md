@@ -55,3 +55,10 @@ Context 預設為選用；缺少、未綁定或過期時只提出警告。只有
 
 可使用的 Action 為 `develop`、`review`、`analyze`。將 Action 加入對應陣列後，該類任務缺少必要
 Context 時會停止執行。
+
+`context_policy` 只接受文件與 Schema 明列的欄位；未知欄位或不合法 Action 會被 Runtime 阻擋，
+避免設定拼錯後靜默失效。
+
+舊版的 `context_policy.high_risk_conditions` 已棄用且不參與 Task Risk。為了讓既有專案平順升級，
+2.x 仍接受此欄位，但 Runtime 會回傳 `DEPRECATED_PROJECT_CONFIG_FIELD` diagnostic。新專案與 template
+不應再加入；Task Risk 一律由中央 `task-risk-policy.json` 與 Task Manifest provenance 決定。

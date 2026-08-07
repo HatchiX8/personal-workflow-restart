@@ -274,54 +274,23 @@ export function resolveExecutionProfile(manifest, taskRisk, role = null, skills 
 }
 
 export function deriveResultReporting(manifest, taskRisk = null) {
-  const routingTriggers = new Set(
-    (manifest.routing_triggers ?? []).map((trigger) =>
-      trigger.startsWith('risk=') ? trigger.slice('risk='.length) : trigger
-    )
-  );
-  const includePaths = manifest.scope?.include_paths ?? [];
-  const moduleCount = manifest.modules?.length ?? 0;
-  const scopeMode = manifest.scope?.change_source === 'full-project'
-    ? 'full-project'
-    : moduleCount > 1
-      ? 'cross-module'
-      : moduleCount === 1
-        ? 'module'
-        : includePaths.length === 1
-          ? 'file'
-          : 'unknown';
-  const highRiskFacts = new Set([
-    'architecture', 'database', 'database-schema', 'data-migration', 'migration',
-    'public-api-contract', 'authentication', 'authorization', 'security',
-    'payment', 'monetary-flow', 'destructive-operation', 'file-delete', 'rollback'
-  ]);
-  const matchedHighRisks = [...routingTriggers].filter((risk) => highRiskFacts.has(risk));
+  if (
+    !taskRisk ||
+    taskRisk.status !== 'assessed' ||
+    taskRisk.task_id !== manifest.task_id ||
+    ![1, 2, 3].includes(taskRisk.level)
+  ) {
+    throw new Error('Result Reporting requires the assessed Task Risk for the same task.');
+  }
+
   const detailedReportRequested = /完整報告|詳細(?:報告|說明)|設計決策|風險評估|full report|design decisions|risk assessment/iu
     .test(manifest.raw_request ?? '');
-  const level3Reasons = [];
-  if (['cross-module', 'full-project'].includes(scopeMode)) level3Reasons.push(`scope-mode=${scopeMode}`);
-  if (['fullstack', 'mixed'].includes(manifest.target_mode)) level3Reasons.push(`target-mode=${manifest.target_mode}`);
-  if (manifest.task_type === 'migration') level3Reasons.push('task-type=migration');
-  level3Reasons.push(...matchedHighRisks.map((risk) => `risk=${risk}`));
-  if (detailedReportRequested) level3Reasons.push('explicit-detailed-report-request');
-  if (taskRisk?.level === 3) level3Reasons.push(...(taskRisk.reasons ?? []).map((reason) => `task-risk:${reason}`));
-  if (level3Reasons.length > 0) {
-    return { minimum_level: 3, reasons: [...new Set(level3Reasons)], upward_escalation: true };
-  }
-
-  const level1TaskType = ['change', 'bugfix', 'maintenance'].includes(manifest.task_type);
-  const singleTarget = (manifest.targets ?? []).length === 1;
-  if ((taskRisk?.level ?? 1) === 1 && scopeMode === 'file' && singleTarget && level1TaskType) {
-    return {
-      minimum_level: 1,
-      reasons: ['scope-mode=file', `task-type=${manifest.task_type}`, 'single-target'],
-      upward_escalation: true
-    };
-  }
-
+  const minimumLevel = detailedReportRequested ? 3 : taskRisk.level;
+  const reasons = [`task-risk-level:${taskRisk.level}`];
+  if (detailedReportRequested && taskRisk.level < 3) reasons.push('explicit-detailed-report-request');
   return {
-    minimum_level: 2,
-    reasons: [scopeMode === 'unknown' ? 'scope-size-not-confirmed' : 'default-general-task'],
+    minimum_level: minimumLevel,
+    reasons,
     upward_escalation: true
   };
 }
@@ -353,6 +322,11 @@ export function buildReferenceRolePlan(manifest, role, taskRisk = null) {
 
   const unresolved = [];
   if (!role?.planner) unresolved.push('role-planner-missing');
+  const assessedTaskRisk = taskRisk
+    && taskRisk.status === 'assessed'
+    && taskRisk.task_id === manifest.task_id
+    && [1, 2, 3].includes(taskRisk.level);
+  if (!assessedTaskRisk) unresolved.push('task-risk-unavailable');
   return {
     schema_version: '1.0',
     task_id: manifest.task_id,
@@ -361,7 +335,9 @@ export function buildReferenceRolePlan(manifest, role, taskRisk = null) {
     planner_entry: role?.planner ?? 'unresolved',
     facts,
     skill_selectors: [...skillSelectors].sort(),
-    result_reporting: deriveResultReporting(manifest, taskRisk),
+    result_reporting: assessedTaskRisk
+      ? deriveResultReporting(manifest, taskRisk)
+      : { minimum_level: 3, reasons: ['task-risk-unavailable'], upward_escalation: true },
     validation_profiles: [],
     context_requirements: manifest.modules?.length && manifest.role_id !== 'module-analyst' ? ['module'] : [],
     unresolved,

@@ -97,7 +97,8 @@ export function checkRuntimeCliIntegration({
   if (!manifest || !roles || !skills || !policy || !fs.existsSync(entry)) return;
 
   const role = (roles.roles ?? []).find((item) => item.role_id === manifest.role_id);
-  const rolePlan = buildReferenceRolePlan(manifest, role);
+  const initialTaskRisk = assessTaskRisk(manifest, policy);
+  const rolePlan = buildReferenceRolePlan(manifest, role, initialTaskRisk);
   const routingRequest = {
     protocol_version: '1.0',
     operation: 'resolve-routing',
@@ -132,6 +133,50 @@ export function checkRuntimeCliIntegration({
   assert(execution.json?.task_id === manifest.task_id, 'Runtime execution result Task ID mismatch.');
   assert(execution.json?.preflight?.can_execute === true, 'Runtime execution must pass Preflight.');
   assert(execution.json?.execution_contract?.rule_set_fingerprint === execution.json?.fingerprint, 'Runtime execution must freeze the returned fingerprint.');
+  assert(
+    JSON.stringify(execution.json?.execution_contract?.result_reporting) === JSON.stringify({
+      minimum_level: initialTaskRisk.level,
+      reasons: [`task-risk-level:${initialTaskRisk.level}`],
+      upward_escalation: true
+    }),
+    'Reference Role Plan Result Reporting must use the frozen Task Risk as its only classification baseline.'
+  );
+
+  const compatibilityRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'controlled-agent-runtime-config-'));
+  try {
+    const baseProjectConfig = JSON.parse(fs.readFileSync(path.join(projectRoot, 'project.config.json'), 'utf8'));
+    const legacyProjectConfig = clone(baseProjectConfig);
+    legacyProjectConfig.context_policy.high_risk_conditions = ['architecture'];
+    fs.writeFileSync(path.join(compatibilityRoot, 'project.config.json'), JSON.stringify(legacyProjectConfig), 'utf8');
+    const legacyResult = runCli(entry, compatibilityRoot, routingRequest);
+    assert(legacyResult.exitCode === 0 && legacyResult.json?.status === 'resolved', 'Deprecated high_risk_conditions must remain compatible during 2.x.');
+    assert(
+      (legacyResult.json?.diagnostics ?? []).some((item) =>
+        item.code === 'DEPRECATED_PROJECT_CONFIG_FIELD'
+          && item.path === '/project_config/context_policy/high_risk_conditions'),
+      'Deprecated high_risk_conditions must emit a stable warning diagnostic.'
+    );
+
+    const typoProjectConfig = clone(baseProjectConfig);
+    typoProjectConfig.context_policy.require_module_context_fro = ['develop'];
+    fs.writeFileSync(path.join(compatibilityRoot, 'project.config.json'), JSON.stringify(typoProjectConfig), 'utf8');
+    const typoResult = runCli(entry, compatibilityRoot, routingRequest);
+    assert(typoResult.exitCode === 2 && typoResult.json?.status === 'blocked', 'Unknown context_policy fields must fail closed.');
+    assert(typoResult.json?.error_code === 'PROJECT_CONFIG_INVALID', 'Unknown context_policy fields must return PROJECT_CONFIG_INVALID.');
+    assert(
+      (typoResult.json?.diagnostics ?? []).some((item) =>
+        item.code === 'PROJECT_CONFIG_INVALID'
+          && item.path === '/project_config/context_policy/require_module_context_fro'),
+      'Unknown context_policy fields must identify the exact invalid path.'
+    );
+  } finally {
+    const canonicalTemp = fs.realpathSync.native(os.tmpdir());
+    const canonicalCompatibilityRoot = fs.realpathSync.native(compatibilityRoot);
+    const relation = path.relative(canonicalTemp, canonicalCompatibilityRoot);
+    if (relation && relation !== '..' && !relation.startsWith(`..${path.sep}`) && !path.isAbsolute(relation)) {
+      fs.rmSync(canonicalCompatibilityRoot, { recursive: true, force: true });
+    }
+  }
 
   const invalidJson = runCli(entry, projectRoot, '{not-json');
   assert(invalidJson.exitCode === 64, `Invalid JSON must exit 64, received ${invalidJson.exitCode}.`);
@@ -336,5 +381,5 @@ export function checkRuntimeCliIntegration({
     }
   }
 
-  notes.push(`Runtime CLI checked: 2 success paths, 5 invalid inputs, ${policy.hard_triggers.length} hard triggers, fail-closed and read-only behavior`);
+  notes.push(`Runtime CLI checked: 3 success paths, 6 invalid inputs, ${policy.hard_triggers.length} hard triggers, config compatibility, fail-closed and read-only behavior`);
 }
