@@ -2,7 +2,7 @@
   "$schema": "schemas/workflow-config.schema.json",
   "schema_version": "1.0",
   "workflow_id": "controlled-agent-workflow",
-  "workflow_version": "2.0.2",
+  "workflow_version": "2.0.5",
   "bootstrap": "bootstrap.md",
   "orchestration": {
     "dispatcher": "orchestration/dispatcher.md",

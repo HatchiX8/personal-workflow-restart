@@ -39,6 +39,8 @@ diagnostics:
 - 不得把 `blocked`、`invalid` 或 `error` 改成 `ready`。
 - 不得降低 Task Risk／Execution Profile、補造 Module／Target／Scope 或自動修改 Project Config。
 - 不得自行改走 Markdown fallback；Runtime 技術上不可用時仍須遵守使用者確認契約。
+- 未知 Role／Skill diagnostic 中的相似候選只供提示，不代表已解析或已授權。必須請目前使用者確認
+  精確 ID，不得自動套用、修改 Manifest 或替使用者回答。
 - 不得載入完整 Registry、Schema、未命中規則或原始 request file；只使用 Runtime Result、
   `error_context`、已載入的精簡契約與對話中使用者已提供的事實。
 - 推論必須明確標示；無法區分使用者資料與 Workflow 缺陷時使用 `unknown` 並說明缺少的證據。

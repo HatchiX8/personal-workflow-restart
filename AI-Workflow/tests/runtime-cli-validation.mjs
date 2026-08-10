@@ -167,6 +167,40 @@ export function checkRuntimeCliIntegration({
     'Developer read-only analysis must not load Module Analyst report rules.'
   );
 
+  const misspelledRoleManifest = clone(manifest);
+  misspelledRoleManifest.task_id = 'runtime-misspelled-explicit-role';
+  misspelledRoleManifest.raw_request = '角色：developr\n更新工作流程說明文件。';
+  misspelledRoleManifest.role_id = 'developr';
+  misspelledRoleManifest.provenance.role_id = {
+    source: 'explicit',
+    confidence: 1,
+    evidence: ['角色：developr'],
+    candidates: ['developr']
+  };
+  const misspelledRole = runCli(entry, projectRoot, { ...routingRequest, task_manifest: misspelledRoleManifest });
+  const roleSuggestion = (misspelledRole.json?.diagnostics ?? []).find((item) => item.code === 'ROLE_UNRESOLVED');
+  assert(misspelledRole.exitCode === 2 && misspelledRole.json?.status === 'blocked', 'A misspelled explicit Role must remain blocked.');
+  assert(roleSuggestion?.reason.includes('developer'), 'A unique close Role ID must be included as a non-authoritative suggestion.');
+  assert(roleSuggestion?.reason.includes('not selected') && roleSuggestion?.reason.includes('confirmation'), 'A Role suggestion must state that it was not selected and requires confirmation.');
+  assert(misspelledRole.json?.next === null, 'A Role suggestion must not advance routing.');
+
+  const misspelledSkillManifest = clone(manifest);
+  misspelledSkillManifest.task_id = 'runtime-misspelled-explicit-skill';
+  misspelledSkillManifest.raw_request = 'Skill：developer.language.typescrip\n更新 TypeScript 工作流程範例。';
+  misspelledSkillManifest.skill_ids = ['developer.language.typescrip'];
+  misspelledSkillManifest.provenance.skill_ids = {
+    source: 'explicit',
+    confidence: 1,
+    evidence: ['Skill：developer.language.typescrip'],
+    candidates: ['developer.language.typescrip']
+  };
+  const misspelledSkill = runCli(entry, projectRoot, { ...routingRequest, task_manifest: misspelledSkillManifest });
+  const skillSuggestion = (misspelledSkill.json?.diagnostics ?? []).find((item) => item.code === 'SKILL_UNRESOLVED');
+  assert(misspelledSkill.exitCode === 2 && misspelledSkill.json?.status === 'blocked', 'A misspelled explicit Skill must remain blocked.');
+  assert(skillSuggestion?.reason.includes('developer.language.typescript'), 'A unique close Skill ID must be included as a non-authoritative suggestion.');
+  assert(skillSuggestion?.reason.includes('not selected') && skillSuggestion?.reason.includes('confirmation'), 'A Skill suggestion must state that it was not selected and requires confirmation.');
+  assert(misspelledSkill.json?.next === null, 'A Skill suggestion must not advance routing.');
+
   const compatibilityRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'controlled-agent-runtime-config-'));
   try {
     const baseProjectConfig = JSON.parse(fs.readFileSync(path.join(projectRoot, 'project.config.json'), 'utf8'));
@@ -423,5 +457,5 @@ export function checkRuntimeCliIntegration({
     }
   }
 
-  notes.push(`Runtime CLI checked: 5 success paths, 7 invalid/blocking inputs, ${policy.hard_triggers.length} hard triggers, explicit Role activation, config compatibility, fail-closed and read-only behavior`);
+  notes.push(`Runtime CLI checked: 5 success paths, 9 invalid/blocking inputs, ${policy.hard_triggers.length} hard triggers, explicit Role activation, non-authoritative ID suggestions, config compatibility, fail-closed and read-only behavior`);
 }

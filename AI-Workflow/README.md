@@ -132,7 +132,9 @@ Skill：developer.language.typescript
 調整 TypeScript 前端訂單列表元件的資料型別。
 ```
 
-Role 與 Skill 必須使用 Registry 中的精確 ID。未知、停用或不相容的值會被 Preflight 阻擋，不會套用相似 alias 或預設值。
+Role 與 Skill 必須使用 Registry 中的精確 ID。未知、停用或不相容的值會被阻擋，不會套用相似 alias
+或預設值；Runtime 若找到唯一且足夠接近的 ID，只會在 diagnostic 中提示，仍須由目前使用者確認後
+重新送出。
 
 Task Type、Target、Module、Scope 與 Review Mode 都由 Task Analysis、Project Config 與 Registry 推導，不接受 Prompt 結構化欄位直接指定。Workflow Root 與 Bootstrap 路徑也不能透過 Prompt 覆寫。
 

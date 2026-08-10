@@ -62,6 +62,9 @@ Runtime 驗證其與啟動 cwd 完全相同。
   使用 display name、僅提到「模組分析」或把該字串放在句子中都不算明示啟動。
 - 使用者明確提供的 `角色：<role_id>` 或 `Skill：<skill_id>` 原樣保留，交由 Runtime 精確驗證。
   不得讀取完整 Registry，也不得用相似名稱修正未知 ID。
+- Runtime 可以在未知的明示 Role／Skill diagnostic 中提供一個非權威候選，但本次 request 仍須
+  `blocked`。候選不得寫回 Manifest、不得自動重試，也不得由 Agent 或子代理代替目前使用者確認；
+  只有使用者確認或重新輸入精確 ID 後，才能建立新 request。
 - Developer 的 `develop` 與 `analyze` 都必須解析至少一個 Target。Project Analysis、未限制 Target
   的明示 Module Analysis，或可安全只使用 common checks 的 Review，才能讓 Target 為空。Module Analysis 的空 Targets 表示先執行
   target-neutral repository discovery，不代表已確認沒有 Frontend／Backend。

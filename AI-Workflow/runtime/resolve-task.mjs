@@ -36,6 +36,44 @@ const MAX_REQUEST_BYTES = 1024 * 1024;
 
 const isObject = (value) => value !== null && typeof value === 'object' && !Array.isArray(value);
 
+function editDistance(left, right) {
+  const source = left.toLowerCase();
+  const target = right.toLowerCase();
+  let previous = Array.from({ length: target.length + 1 }, (_, index) => index);
+  for (let sourceIndex = 1; sourceIndex <= source.length; sourceIndex += 1) {
+    const current = [sourceIndex];
+    for (let targetIndex = 1; targetIndex <= target.length; targetIndex += 1) {
+      current[targetIndex] = Math.min(
+        current[targetIndex - 1] + 1,
+        previous[targetIndex] + 1,
+        previous[targetIndex - 1] + (source[sourceIndex - 1] === target[targetIndex - 1] ? 0 : 1)
+      );
+    }
+    previous = current;
+  }
+  return previous[target.length];
+}
+
+function suggestedCanonicalId(input, candidateIds) {
+  if (typeof input !== 'string' || input.length === 0) return null;
+  const ranked = [...new Set(candidateIds)]
+    .map((candidate) => ({ candidate, distance: editDistance(input, candidate) }))
+    .sort((left, right) => left.distance - right.distance || left.candidate.localeCompare(right.candidate));
+  if (ranked.length === 0) return null;
+  const threshold = Math.max(1, Math.floor(input.length * 0.2));
+  if (ranked[0].distance > threshold || ranked[1]?.distance === ranked[0].distance) return null;
+  return ranked[0].candidate;
+}
+
+function unresolvedIdReason(kind, input, candidateIds, explicit) {
+  const base = `No active ${kind} matches the specified ID.`;
+  if (!explicit) return base;
+  const suggestion = suggestedCanonicalId(input, candidateIds);
+  return suggestion
+    ? `${base} Did you mean "${suggestion}"? The suggestion was not selected; current-user confirmation is required.`
+    : base;
+}
+
 function inspectProjectConfig(projectRoot) {
   let projectConfig;
   try {
@@ -212,9 +250,10 @@ function loadRoutingMetadata(workflowRoot, manifest) {
 
   const roleRegistry = readWorkflowJson(workflowRoot, roleRegistryPath, '/workflow_config/registries/roles');
   const skillRegistry = readWorkflowJson(workflowRoot, skillRegistryPath, '/workflow_config/registries/skills');
-  const role = (roleRegistry.roles ?? []).find((item) => item.role_id === manifest.role_id && item.status === 'active') ?? null;
+  const roles = Array.isArray(roleRegistry.roles) ? roleRegistry.roles : [];
+  const role = roles.find((item) => item.role_id === manifest.role_id && item.status === 'active') ?? null;
   const skills = Array.isArray(skillRegistry.skills) ? skillRegistry.skills : [];
-  return { role, skills, workflowConfig };
+  return { role, roles, skills, workflowConfig };
 }
 
 function validateExecutionRegistries(workflowRoot) {
@@ -326,13 +365,41 @@ function buildErrorContext(request, roots, stage) {
 }
 
 function resolveRouting(request, roots) {
-  const { role, skills, workflowConfig } = loadRoutingMetadata(roots.workflowRoot, request.task_manifest);
-  validateRoleActivation(request.task_manifest, role);
-  const taskRisk = assessTaskRisk(request.task_manifest);
-  const executionProfile = resolveExecutionProfile(request.task_manifest, taskRisk, role, skills);
+  const manifest = request.task_manifest;
+  const { role, roles, skills, workflowConfig } = loadRoutingMetadata(roots.workflowRoot, manifest);
+  validateRoleActivation(manifest, role);
+  const taskRisk = assessTaskRisk(manifest);
+  const executionProfile = resolveExecutionProfile(manifest, taskRisk, role, skills);
   const diagnostics = riskAndProfileDiagnostics(taskRisk, executionProfile);
 
-  if (!role) diagnostics.push(diagnostic('ROLE_UNRESOLVED', '/task_manifest/role_id', 'No active Role matches role_id.'));
+  if (!role) {
+    diagnostics.push(diagnostic(
+      'ROLE_UNRESOLVED',
+      '/task_manifest/role_id',
+      unresolvedIdReason(
+        'Role',
+        manifest.role_id,
+        roles.filter((item) => item.status === 'active').map((item) => item.role_id),
+        manifest.provenance?.role_id?.source === 'explicit'
+      )
+    ));
+  }
+  const activeCompatibleSkillIds = skills
+    .filter((item) => item.status === 'active' && (!role || item.role_id === role.role_id))
+    .map((item) => item.skill_id);
+  for (const [index, skillId] of (manifest.skill_ids ?? []).entries()) {
+    if (skills.some((item) => item.skill_id === skillId && item.status === 'active')) continue;
+    diagnostics.push(diagnostic(
+      'SKILL_UNRESOLVED',
+      `/task_manifest/skill_ids/${index}`,
+      unresolvedIdReason(
+        'Skill',
+        skillId,
+        activeCompatibleSkillIds,
+        manifest.provenance?.skill_ids?.source === 'explicit'
+      )
+    ));
+  }
   let plannerPaths = null;
   if (diagnostics.length === 0) plannerPaths = validatePlannerPaths(roots.workflowRoot, workflowConfig, role);
 
