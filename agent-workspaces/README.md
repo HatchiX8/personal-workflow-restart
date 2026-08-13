@@ -1,33 +1,22 @@
 # Agent Workspaces
 
-本資料夾是目前專案所有 Agent 正式 Markdown 產物的統一根目錄。路徑相對於 Project Root，
-不得寫入集中式 `AI-Workflow/`。
+本目錄集中保存 Project Analyst 與 Module Analyst 產生的本機分析報告，避免將 Agent 分析產物寫入被分析的工作專案。
 
-## 目錄結構
+預設結構：
 
 ```text
-agent-workspaces/
-├─ project-analysis/
-│  └─ PROJECT_ANALYSIS.md
-├─ module-context/
-│  ├─ frontend/
-│  ├─ backend/
-│  ├─ fullstack/
-│  └─ unknown/
-├─ reviews/
-│  ├─ change/
-│  └─ feature/
-└─ examples/
-   ├─ project-a/
-   └─ project-b/
+analysis/
+  <project-slug>/
+    project/
+      PROJECT_ANALYSIS.md
+    modules/
+      frontend/
+      backend/
+      fullstack/
+      unknown/
 ```
 
-## 分類
-
-- `project-analysis/`：Project Analyst 產生的專案地圖、技術棧、入口、團隊風格與上手資訊。
-- `module-context/`：Module Analyst 依 Target 產生的模組邊界、資料流與 Contract。
-- `reviews/`：Review 依 Change／Feature mode 產生的報告。
-- `examples/`：Context 格式範例，不是目前專案的 active Context。
-
-Project Analysis 與 Module Context 只有在 `project.config.json` 或專案 Module Registry 完成登錄後，
-才會成為可自動載入的 Context；單純存在於本資料夾不代表已啟用。
+- Project Analysis 使用固定檔名，重新分析同一專案時可更新既有文件。
+- Module Context 使用 timestamp 與 module slug 建立新報告；只有使用者明確指定時才更新既有文件。
+- 每份報告都必須記錄 Project Name、Project Root、Project Config Path 與分析時間，避免同名專案混淆。
+- `analysis/` 內容預設由 Git 忽略，只保留本說明與 `.gitkeep`。

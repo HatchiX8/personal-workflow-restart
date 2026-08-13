@@ -1,7 +1,0 @@
-{
-  "scenario_id": "cross-project-optional-warning",
-  "status": "RESOLVED_WITH_WARNINGS",
-  "contexts": [],
-  "warnings": ["跨專案 Context 不會載入，但選用 Context 缺失不阻擋任務。"],
-  "blockers": []
-}

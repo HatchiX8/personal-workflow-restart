@@ -1,7 +1,0 @@
-{
-  "scenario_id": "unbound-optional-warning",
-  "status": "RESOLVED_WITH_WARNINGS",
-  "contexts": [],
-  "warnings": ["Lunch Module Context 未綁定，任務仍可在沒有 Context 的情況下執行。"],
-  "blockers": []
-}

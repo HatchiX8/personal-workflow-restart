@@ -1,9 +1,0 @@
-{
-  "scenario_id": "stale-high-risk-warning",
-  "status": "RESOLVED_WITH_WARNINGS",
-  "contexts": [
-    {"context_id": "ctx.synthetic-a.project.stale", "type": "project", "project_id": "synthetic-a", "module_id": null, "targets": ["docs"], "path_base": "workflow_root", "path": "tests/fixtures/phase-5/context-files/synthetic-a-project-stale.md", "required": false, "status": "stale", "reason": "高風險任務不會隱性將 Project Context 改為必填。"}
-  ],
-  "warnings": ["Project Context 已過期但為選用資訊，因此僅提出警告。"],
-  "blockers": []
-}

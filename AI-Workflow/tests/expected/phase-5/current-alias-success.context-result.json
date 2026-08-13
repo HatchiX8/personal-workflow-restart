@@ -1,9 +1,0 @@
-{
-  "scenario_id": "current-alias-success",
-  "status": "RESOLVED",
-  "contexts": [
-    {"context_id": "ctx.synthetic-a.orders.frontend.current", "type": "module", "project_id": "synthetic-a", "module_id": "orders", "targets": ["frontend"], "path_base": "workflow_root", "path": "tests/fixtures/phase-5/context-files/synthetic-a-orders-frontend-current.md", "required": false, "status": "current", "reason": "模組別名 order 已解析為 orders，並選用相符的 current Context。"}
-  ],
-  "warnings": [],
-  "blockers": []
-}

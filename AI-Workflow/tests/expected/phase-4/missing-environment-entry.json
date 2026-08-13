@@ -1,8 +1,0 @@
-{
-  "scenario_id": "missing-environment-entry",
-  "status": "BLOCKED",
-  "blocker": "workflow-bootstrap-unavailable",
-  "project_copy_used": false,
-  "request_classification_performed": false,
-  "execution_started": false
-}

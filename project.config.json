@@ -1,33 +1,18 @@
 {
-  "$schema": "https://controlled-agent-workflow.local/schemas/project-config.schema.json",
-  "schema_version": "1.0",
-  "project_id": "controlled-agent-workflow-team",
-  "project_root": ".",
-  "workflow_compatibility": {
-    "minimum_version": "2.0.5",
-    "maximum_major_version": 2
+  "version": 1,
+  "project": {
+    "name": "controlled-agent-workflow",
+    "root": "."
   },
-  "project_contexts": [],
-  "module_registry": null,
-  "module_aliases": {},
-  "auto_skills": [],
-  "context_resolution": {
-    "project_identity": "verified-config-and-canonical-root",
-    "module_identity": "project_id+module_id_or_alias+targets",
-    "auto_load": "current-only",
-    "candidate_conflict": "blocked",
-    "cross_project_context": "blocked"
-  },
-  "context_policy": {
-    "require_project_context_for": [],
-    "require_module_context_for": [],
-    "allow_project_analysis_without_context": true,
-    "status_policy": {
-      "current": "pass",
-      "stale": "warning",
-      "partial": "warning",
-      "unknown": "warning",
-      "required_context_failure": "blocked"
+  "stacks": [
+    {
+      "id": "workflow",
+      "target": "tooling",
+      "frameworks": [],
+      "languages": [],
+      "runtimes": []
     }
-  }
+  ],
+  "rules": [],
+  "validation": {}
 }

@@ -1,12 +1,6 @@
 .env
-# 專案產生的 Review 與 Module Context 預設只保留在本機。
-agent-workspaces/reviews/*
-!agent-workspaces/reviews/README.md
-agent-workspaces/module-context/*
-!agent-workspaces/module-context/README.md
-# 驗收報告屬於本機執行產物；測試程式、案例與預期結果仍需納入版本控制。
-AI-Workflow/tests/results/*
-!AI-Workflow/tests/results/README.md
-# Local Workflow runtime artifacts. Runtime source under AI-Workflow/runtime is tracked.
-.ai-workflow/runtime/
-AI-Workflow/runtime/artifacts/
+
+# Agent 產生的分析報告預設只保留在本機；保留目錄說明與空目錄標記。
+agent-workspaces/*
+!agent-workspaces/README.md
+!agent-workspaces/.gitkeep

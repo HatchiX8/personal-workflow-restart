@@ -1,85 +1,64 @@
 # Controlled Agent Workflow
 
-集中式 AI Workflow 規則庫，讓多個專案與 Agent 平台共用同一份 Bootstrap、Registry、Role、Skill
-與執行規則。使用者只需描述任務，LLM 負責語意理解，Node.js Runtime 負責風險與規則路由。
+這是一套由 Git 管理的個人 Agent Workflow。角色、共通規則與 Skills 集中保存在本 repository；其他工作專案只保留入口與專案設定，不需要複製整套規則。
 
-## 安裝需求
-
-將本 repository 放在固定位置，並安裝 Node.js 20.11.0 以上版本。不需要 `npm install`、第三方套件、
-常駐服務、資料庫或網路。
-
-## 設定專案入口
-
-將對應平台的入口檔與 `project.config.json` 放到專案根目錄即可：
+## Repository 結構
 
 ```text
-<PROJECT_ROOT>/
-  AGENTS.md          # Codex
-  或 CLAUDE.md       # Claude Code
-  project.config.json
+workflow/                       中央入口與 Workflow 規格
+workflow/roles/                 Developer、Review、Project Analyst、Module Analyst
+workflow/roles/*/skills/        依槽位組合的角色 Skills
+agent-workspaces/               集中保存本機分析報告，不寫入工作專案
+AGENTS.md                       本 repository 自己使用的入口
+project.config.json             本 repository 自己的專案設定
 ```
 
-若檔案尚未預先設定，確認入口檔包含正確的 `AI-Workflow/bootstrap.md` 絕對路徑，並將
-`project.config.json` 的 `project_id` 改為目前專案的唯一識別。
+Workflow 內部運作方式請見 [`workflow/README.md`](workflow/README.md)，Project Config 完整格式請見 [`workflow/project-config.md`](workflow/project-config.md)。
 
-## 多 Agent 平台與執行授權
+## 導入其他專案
 
-Codex、Claude Code 與其他能執行 Node.js 的 Agent 都可以使用本 Workflow。第一次執行時，依平台
-提示允許以下 Runtime 指令即可：
+在工作專案根目錄建立 `AGENTS.md`：
 
-```text
-node <WORKFLOW_ROOT>/runtime/resolve-task.mjs --request-file .ai-workflow/runtime/requests/<task_id>.json
+```markdown
+Encoding: UTF-8
+
+開始工作前，必須直接以 UTF-8 讀取並遵守以下絕對路徑中的工作流程入口：
+
+`C:\Users\MiLu\Desktop\個人用\agent\controlled-agent-workflow\workflow\entry.md`
 ```
 
-Agent 會在專案內建立單次、受控且不納入版控的 request file，Runtime 只讀取該檔案、設定與規則，
-不連網且本身不寫檔；命令結束後 Agent 立即清除本次 request file。Runtime 無法執行時，Agent 必須先詢問是否允許本次改用
-較耗 Token 的 Markdown fallback，不能自行同意；Runtime 已執行並回傳阻擋時則直接停止。Claude Code
-若需要讀取專案外的集中式 Workflow，啟動時加入：
+再於同一層建立 `project.config.json`：
 
-```text
-claude --add-dir <WORKFLOW_ROOT>
+```json
+{
+  "version": 1,
+  "project": {
+    "name": "example-web",
+    "root": "."
+  },
+  "stacks": [
+    {
+      "id": "web",
+      "target": "frontend",
+      "frameworks": ["vue"],
+      "languages": ["typescript"],
+      "runtimes": ["node-js"]
+    }
+  ],
+  "rules": [],
+  "validation": {
+    "lint": "npm run lint",
+    "typecheck": "npm run typecheck",
+    "build": "npm run build",
+    "test": "npm test"
+  }
+}
 ```
 
-## 最簡單的使用方式
+完成後即可用一般自然語言交付任務，也可以明確指定 `developer`、`review`、`project-analyst` 或 `module-analyst`。
 
-一般情況直接描述任務即可，角色與 Skill 可以省略：
+## 更新
 
-```text
-請修正訂單列表無法更新付款狀態的問題。
-修改範圍限制在訂單模組，完成後執行既有測試。
-```
+所有工作專案都直接讀取此 repository。更新規則並提交 Git 後，工作專案下次執行即會使用新版。
 
-建議在需求中說明要做什麼、允許處理的範圍，以及完成條件與需要執行的驗證。
-
-## Agent 產物目錄
-
-Review、Module Context 與 Project Analysis 預設寫入專案根目錄的 `agent-workspaces/`：
-
-```text
-<PROJECT_ROOT>/agent-workspaces/
-  project-analysis/
-  module-context/
-  reviews/
-```
-
-使用者另有指定時，以指定位置為準。
-
-## 安裝健康檢查
-
-完成入口檔與 `project.config.json` 設定後，送出：
-
-```text
-測試 AI Workflow 規則運作
-```
-
-成功時只會回覆：
-
-```text
-測試規則運作成功
-```
-
-## 進階文件
-
-- [Project／Module Context 設定](docs/project-context.md)
-- [Workflow 架構與維護](AI-Workflow/README.md)
-- [Workflow 架構圖](AI-Workflow/migration-map.md)
+若移動本 repository，必須同步更新各工作專案 `AGENTS.md` 中的絕對路徑。需要讓不同專案固定在不同版本時，可再使用 Git tag、獨立 worktree 或版本化安裝目錄。

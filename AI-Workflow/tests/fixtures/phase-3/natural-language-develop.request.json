@@ -1,5 +1,0 @@
-{
-  "scenario_id": "natural-language-develop",
-  "raw_request": "修正午餐訂單列表無法更新付款狀態的問題。",
-  "project_config_path": "project.config.json"
-}
