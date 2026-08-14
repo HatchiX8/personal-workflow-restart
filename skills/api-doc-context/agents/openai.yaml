@@ -1,0 +1,4 @@
+interface:
+  display_name: "API Doc Context"
+  short_description: "Retrieve and analyze API contracts from a specified document source"
+  default_prompt: "Use api-doc-context to retrieve the specified API documentation and analyze its contract."

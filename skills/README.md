@@ -15,7 +15,7 @@ skills/
 
 - `<skill-id>` 使用 lowercase kebab-case，並與 `SKILL.md` frontmatter 的 `name` 相同。
 - 每個 Skill 必須有 UTF-8 編碼的 `SKILL.md`，frontmatter 只包含 `name` 與 `description`。
-- 詳細資料按需要放入 `scripts/`、`references/` 或 `assets/`；不要在每個 Skill 內另外建立 README。
+- 詳細資料按需要放入 `scripts/`、`references/` 或 `assets/`。使用者明確需要了解用途、使用方式或效果時，可以建立供人閱讀的 `README.md`；Agent 執行 Skill 時不載入該 README。
 - Skill 只保留執行該流程必要的規則與資源，避免複製角色或 Project Config 已經定義的內容。
 
 ## 使用方式
