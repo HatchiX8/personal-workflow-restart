@@ -1,56 +1,76 @@
 # Workflow
 
-## 執行關係
+## 模式與載入關係
+
+`workflow/entry.md` 是所有任務的共通入口。它先保留 UTF-8 與安全邊界，再依使用者明確指定的角色或 Skills 分流；不依所在專案、任務關鍵字或上一則對話自動選擇角色。
 
 ```text
-workflow/entry.md
-→ workflow/project-config.md
-→ 工作專案 project.config.json
-→ 主要角色 entry.md
-→ 作用中 stack 對應的槽位 Skills
-→ Task Skill
-→ 執行與驗證
+未指定角色或 Skills
+→ 助理模式
+→ assistant/core.md + assistant/preferences.md
+
+個人 Skills：<id>
+→ Skill 模式
+→ assistant 規則 + 指定 Skill
+
+角色：developer／review
+→ 專案模式
+→ workflow/project-entry.md
+→ project-config + 專案規則 + 角色規則／槽位 Skills
+→ 指定個人 Skills
 ```
 
-入口只連接專案設定、角色規則與 Skills，不建立 Task Manifest、registry、Execution Profile、fingerprint 或其他前置推導產物。
+助理模式不讀取 `project.config.json`，也不推導角色。一般提問、討論、設計評估或延續前文可直接回答；未指定角色的修改型需求必須要求使用者改以 Developer 角色提出。
 
-## 角色
+## 專案角色
 
 - `developer`：分析、修改、修復或實作程式碼。
 - `review`：檢查變更、功能品質與回歸風險。
-- `project-analyst`：建立專案結構、技術棧與工程風格理解。
-- `module-analyst`：建立指定模組的邊界、資料流與依賴理解。
 
-使用者明確指定角色時直接使用。未指定時，以任務的主要交付成果選擇一個角色。
+角色必須在每次任務中明確指定，且只適用該任務：
 
-## Review 模式
-
-Review 角色支援兩種任務層級模式：
-
-- `change`：檢查 diff、staged changes、commit、PR 或指定修改檔案。
-- `feature`：檢查頁面、模組、完整 user flow 或整體功能狀態。
-
-需要精準指定時，在任務中加入：
+```text
+角色：developer
+任務：修正訂單數量為 0 時仍會減成負數的問題。
+```
 
 ```text
 角色：review
 模式：change
-任務：檢查目前 staged changes
+任務：檢查目前 staged changes。
 ```
 
-或：
+Review 的 `change` 用於 diff、commit、PR 或指定修改檔案；`feature` 用於頁面、模組、user flow 或完整功能。兩種模式都合理且會改變檢查範圍時，Review 必須先確認。
+
+## 個人 Skills
+
+個人 Skills 位於 `skills/<skill-id>/SKILL.md`，只在 Prompt 明確指定時載入，且不會因 Project Config、repository evidence 或問題描述自動觸發。
+
+獨立使用 Skill：
 
 ```text
-角色：review
-模式：feature
-任務：檢查登入功能的完整流程
+個人 Skills：project-analysis
+任務：分析這個陌生專案並建立專案分析文件。
 ```
 
-Review mode 是單次任務的檢查範圍，不寫入 `project.config.json`。未指定時由 Review workflow 根據檢查對象判斷；兩種模式都合理且會影響範圍時，必須向使用者確認。
+```text
+個人 Skills：module-analysis
+任務：分析訂單模組的入口、資料流與修改邊界。
+```
+
+角色工作中的擴充 Skill：
+
+```text
+角色：developer
+個人 Skills：frontend-ui, testing-workflow
+任務：完成會員資料編輯頁面並補齊相關測試。
+```
+
+角色模式的個人 Skill 在專案規則、角色規則與角色槽位 Skills 之後才載入；它只能補充流程、檢查清單或輸出方式，不能改寫角色邊界或擴大授權。無角色的 Skill 不得修改工作專案，但可依自身規則在 Workflow Root 的受控位置產出文件。
 
 ## Skills 槽位
 
-角色的 Skills 位於 `workflow/roles/<role>/skills/`，依下列槽位組合：
+專案模式下，角色的 Skills 位於 `workflow/roles/<role>/skills/`，依下列槽位組合：
 
 ```text
 target/<id>/SKILL.md
@@ -60,28 +80,16 @@ runtime/<id>/SKILL.md
 task/<id>/SKILL.md
 ```
 
-各角色只建立實際需要的槽位。Developer 目前具有完整技術槽位；Review 與 Module Analyst 目前以 Target Skills 為主；Project Analyst 尚未配置專用 Skills。
-
-載入順序：
-
-1. 角色入口。
-2. Target Skill。
-3. Framework Skills。
-4. Language Skills。
-5. Runtime Skills。
-6. 與本次任務明確相符的 Task Skill。
-
-Project Config 描述專案的穩定技術事實，Task Skill 則由本次任務決定。例如 Vue + TypeScript 前端專案會使用 `target/frontend`、`framework/vue`、`language/typescript` 與 `runtime/node-js`；只有明確要求重構時才另外使用 `task/refactor`。
+Developer 依 Target、Framework、Language、Runtime，並在任務明確符合時載入 Task Skill。Review 目前以 Target Skills 為主。技術棧與專案規則由 `project.config.json` 描述，詳細格式與缺漏處理見 `workflow/project-config.md`。
 
 ## 規則邊界
 
+- 助理規則處理預設互動、對話脈絡與無角色任務。
+- 專案入口處理角色模式、Project Config 與專案規則。
 - 角色規則定義責任與工作限制。
-- Target Skill 定義前端、後端或 Tooling 的共通規則。
-- Framework、Language 與 Runtime Skills 只補充各自技術維度。
-- Task Skill 只補充本次工作類型，不得改寫角色或技術槽位規則。
-- 專案既有慣例與明確專案規則優先於通用風格偏好。
-- Skill 不得擴大使用者授權、修改範圍或角色邊界。
+- 槽位 Skills 補充特定技術維度；個人 Skills 補充使用者指定的能力或流程。
+- Skills 的載入順序不代表規則優先序；專案規則與角色限制優先於補充 Skill。
 
 ## UTF-8
 
-入口、角色、Skills、Project Config 與工作專案文字檔案預設以 UTF-8 讀寫。Agent 必須在第一次讀取時指定 UTF-8，不得先解讀亂碼再推測內容。
+入口、助理規則、角色、Skills、Project Config 與工作專案文字檔案預設以 UTF-8 讀寫。Agent 必須在第一次讀取時指定 UTF-8，不得先解讀亂碼再推測內容。

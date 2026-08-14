@@ -1,6 +1,6 @@
 # Project Config 規格
 
-Agent 在解析任何工作專案的 `project.config.json` 前，必須先讀取本文件。
+需要解析工作專案的 `project.config.json` 時，必須先讀取本文件。專案模式由 `workflow/project-entry.md` 觸發；獨立 Skill 只有在自身流程明確需要專案設定時才可讀取本文件與 Config。
 
 ## 完整格式
 
@@ -82,21 +82,24 @@ Agent 在解析任何工作專案的 `project.config.json` 前，必須先讀取
    - 只有一個 stack 時直接使用。
    - 多個 stack 時，依任務指定範圍與 repository evidence 選擇。
    - 無法可靠區分且選擇會改變結果時，向使用者確認。
-   - Project Analyst 進行完整專案分析時不縮成單一 stack；讀取全部已宣告 stacks，並逐一與 repository evidence 比對。
-   - Module Analyst 的模組明確跨越多個 stack 時，可選取涵蓋該模組的最小 stack 集合；不得因此擴大成全專案分析。
+   - `project-analysis` 進行完整專案分析時不縮成單一 stack；讀取全部已宣告 stacks，並逐一與 repository evidence 比對。
+   - `module-analysis` 的模組明確跨越多個 stack 時，可選取涵蓋該模組的最小 stack 集合；不得因此擴大成全專案分析。
 4. 讀取 `rules` 中的所有專案規則。
-5. 讀取主要角色 `entry.md`。
-6. 在 `workflow/roles/<role>/skills/` 下依序尋找並讀取：
+5. 專案模式讀取 Developer 或 Review 的 `entry.md`；獨立分析 Skill 的載入與 references 由該 Skill 自身定義。
+6. 只有 Developer 或 Review 才在 `workflow/roles/<role>/skills/` 下依序尋找並讀取：
    - `target/<target>/SKILL.md`
    - 每個 `framework/<framework>/SKILL.md`
    - 每個 `language/<language>/SKILL.md`
    - 每個 `runtime/<runtime>/SKILL.md`
-7. 只有任務明確符合時，才讀取相關 `task/<task>/SKILL.md`。
-8. 依 `validation` 使用與修改範圍相關的指令。
+7. 只有 Developer 任務明確符合時，才讀取相關 `task/<task>/SKILL.md`。
+8. 使用者在專案模式 Prompt 額外指定個人 Skills 時，依 `workflow/entry.md` 從 Workflow Root 的 `skills/` 載入。
+9. 依目前角色或分析流程的邊界使用與任務相關的 validation 指令。
 
-使用多個 stacks 時，合併其與目前角色相符的 Skills，重複 Skill 只讀取一次。Project Analyst 尚無對應 Skill 時，仍須使用全部 stacks 作為專案辨識與設定比對資料，不得因此縮小專案分析範圍。
+使用多個 stacks 時，合併其與目前角色相符的 Skills，重複 Skill 只讀取一次。`project-analysis` 使用全部 stacks 作為專案辨識與設定比對資料，不得因此縮小專案分析範圍。
 
-某角色沒有對應槽位 Skill 時，不得改讀其他角色的 Skill。繼續使用角色基礎規則，並在該技術專業規則確實影響結果時說明缺口。
+個人 Skills 不屬於 Project Config 的穩定技術資料，不得加入 `stacks` 或其他設定欄位，也不得由 Config 自動觸發。它們只由使用者在單次 Prompt 明確指定；無角色的 Skill 是否需要本設定由 Skill 自身定義，角色模式的個人 Skills 則在角色規則與角色 Skills 讀取完成後載入。
+
+Developer 或 Review 沒有對應槽位 Skill 時，不得改讀其他角色的 Skill。繼續使用角色基礎規則，並在該技術專業規則確實影響結果時說明缺口。
 
 ## 缺少或不完整設定
 
@@ -149,8 +152,8 @@ Agent 在解析任何工作專案的 `project.config.json` 前，必須先讀取
 
 - 使用者明確指定 stack 時使用指定項目。
 - 未指定時，依任務範圍與 repository evidence 選擇唯一相符的 stack。
-- Project Analyst 的完整專案分析是例外：使用全部 stacks 建立專案地圖，不要求使用者先選一個 stack，也不將專案拆成多份分析。
-- Module Analyst 的指定模組若有明確跨 stack 證據，可選取涵蓋該模組的最小 stack 集合並載入對應 Target Skills。
+- `project-analysis` 的完整專案分析是例外：使用全部 stacks 建立專案地圖，不要求使用者先選一個 stack，也不將專案拆成多份分析。
+- `module-analysis` 的指定模組若有明確跨 stack 證據，可選取涵蓋該模組的最小 stack 集合並讀取對應分析 references。
 - 多個 stack 都合理但會造成不同讀取、修改或驗證範圍時，先詢問使用者。
 - 不得為了避免詢問而任意選擇第一個 stack。
 

@@ -6,8 +6,10 @@
 
 ```text
 workflow/                       中央入口與 Workflow 規格
-workflow/roles/                 Developer、Review、Project Analyst、Module Analyst
+assistant/                      預設助理規則與個人互動偏好
+workflow/roles/                 Developer、Review
 workflow/roles/*/skills/        依槽位組合的角色 Skills
+skills/                         使用者在 Prompt 明確指定的個人擴充 Skills
 agent-workspaces/               集中保存本機分析報告，不寫入工作專案
 AGENTS.md                       本 repository 自己使用的入口
 project.config.json             本 repository 自己的專案設定
@@ -27,7 +29,9 @@ Encoding: UTF-8
 `C:\Users\MiLu\Desktop\個人用\agent\controlled-agent-workflow\workflow\entry.md`
 ```
 
-再於同一層建立 `project.config.json`：
+完成後，未指定角色的一般提問會以助理模式直接處理，不需要建立 `project.config.json`。
+
+若該工作專案需要使用 `developer` 或 `review`，再於同一層建立 `project.config.json`：
 
 ```json
 {
@@ -55,7 +59,7 @@ Encoding: UTF-8
 }
 ```
 
-完成後即可用一般自然語言交付任務，也可以明確指定 `developer`、`review`、`project-analyst` 或 `module-analyst`。
+一般自然語言提問、討論與設計評估會留在助理模式。需要修改程式碼時明確指定 `developer`，需要正式檢查時明確指定 `review`。需要套用個人流程時，可使用 `個人 Skills：<skill-id>` 指定根目錄 `skills/` 中的 Skill；`project-analysis` 與 `module-analysis` 是獨立分析流程，不需指定角色。
 
 ## 更新
 
