@@ -41,4 +41,6 @@ Developer 與 Review 都可以使用個人 Skills。Skill 必須遵守目前角�
 
 `project-analysis` 與 `module-analysis` 不需要角色：它們本身是獨立唯讀分析流程，會直接讀取各自的 SKILL.md 與 references。使用時不可同時指定 Developer 或 Review。
 
+`weekly-team-review` 也不需要角色：它是明確指定的獨立回顧流程，從可取得的 Codex 對話與 Workflow Root 任務日誌建立週報；不讀取 `project.config.json`，也不進入專案角色流程。
+
 個人 Skill 不得切換角色、變更 stack、取代專案規則、降低驗證要求或擴大使用者授權。
