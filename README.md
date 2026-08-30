@@ -9,7 +9,7 @@ workflow/                       中央入口與 Workflow 規格
 assistant/                      預設助理規則與個人互動偏好
 workflow/roles/                 Developer、Review
 workflow/roles/*/skills/        依槽位組合的角色 Skills
-skills/                         使用者在 Prompt 明確指定的個人擴充 Skills
+skills/                         明確指定或由入口登記觸發的個人擴充 Skills
 agent-workspaces/               集中保存本機分析報告，不寫入工作專案
 AGENTS.md                       本 repository 自己使用的入口
 project.config.json             本 repository 自己的專案設定
@@ -59,7 +59,7 @@ Encoding: UTF-8
 }
 ```
 
-一般自然語言提問、討論與設計評估會留在助理模式。需要修改程式碼時明確指定 `developer`，需要正式檢查時明確指定 `review`。需要套用個人流程時，可使用 `個人 Skills：<skill-id>` 指定根目錄 `skills/` 中的 Skill；`project-analysis` 與 `module-analysis` 是獨立分析流程，不需指定角色。
+未命中角色、Skill、原流程延續或個人化模式的訊息會使用最小助理模式。需要修改程式碼時明確指定 `developer`，需要正式檢查時明確指定 `review`。一般個人流程可使用 `個人 Skills：<skill-id>` 指定根目錄 `skills/` 中的 Skill；入口登記且已啟用的個人化 Skill 可依觸發條件與目前對話狀態載入。`project-analysis` 與 `module-analysis` 是獨立分析流程，不需指定角色。
 
 ## 更新
 

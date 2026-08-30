@@ -97,7 +97,7 @@
 
 使用多個 stacks 時，合併其與目前角色相符的 Skills，重複 Skill 只讀取一次。`project-analysis` 使用全部 stacks 作為專案辨識與設定比對資料，不得因此縮小專案分析範圍。
 
-個人 Skills 不屬於 Project Config 的穩定技術資料，不得加入 `stacks` 或其他設定欄位，也不得由 Config 自動觸發。它們只由使用者在單次 Prompt 明確指定；無角色的 Skill 是否需要本設定由 Skill 自身定義，角色模式的個人 Skills 則在角色規則與角色 Skills 讀取完成後載入。
+個人 Skills 不屬於 Project Config 的穩定技術資料，不得加入 `stacks` 或其他設定欄位，也不得由 Config 自動觸發。一般個人 Skills 由使用者在單次 Prompt 明確指定；只有 `workflow/entry.md` 明確定義的個人化 Skill 可依自身觸發條件與目前對話狀態載入。無角色的 Skill 是否需要本設定由 Skill 自身定義，角色模式的個人 Skills 則在角色規則與角色 Skills 讀取完成後載入。
 
 Developer 或 Review 沒有對應槽位 Skill 時，不得改讀其他角色的 Skill。繼續使用角色基礎規則，並在該技術專業規則確實影響結果時說明缺口。
 
