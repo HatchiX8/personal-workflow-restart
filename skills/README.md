@@ -1,6 +1,8 @@
 # Personal Skills
 
-本目錄保存需要由使用者在單次 Prompt 明確指定的個人擴充 Skills。
+本目錄保存個人擴充 Skills。一般 Skill 需要由使用者在單次 Prompt 明確指定；入口明確登記的個人化 Skill 可在啟用後依自身觸發條件與目前對話狀態載入。
+
+目前啟用的個人化 Skill 為 `wang-ning`；實際觸發、延續與排除條件以入口及該 Skill 為準。
 
 ## 結構
 
@@ -35,7 +37,7 @@ skills/
 任務：完成指定功能並依個人流程驗證。
 ```
 
-沒有角色時，指定的個人 Skill 可直接執行；它是否需要 Project Config 或額外 references，由自身 `SKILL.md` 定義。Developer 或 Review 任務則會先讀完角色規則與角色槽位 Skills，再依 Prompt 順序讀取指定的個人 Skills。沒有被明確指定的個人 Skill 不會自動載入。
+沒有角色時，指定的個人 Skill 可直接執行；它是否需要 Project Config 或額外 references，由自身 `SKILL.md` 定義。Developer 或 Review 任務則會先讀完角色規則與角色槽位 Skills，再依 Prompt 順序讀取指定的個人 Skills。除入口明確登記且已啟用的個人化 Skill 外，沒有被明確指定的個人 Skill 不會自動載入。
 
 Developer 與 Review 都可以使用個人 Skills。Skill 必須遵守目前角色邊界；例如 Review 載入測試流程 Skill 時，只能補充檢查方法與證據要求，不能因此取得程式碼修改權限。
 

@@ -2,25 +2,24 @@
 
 ## 模式與載入關係
 
-`workflow/entry.md` 是所有任務的共通入口。它先保留 UTF-8 與安全邊界，再依使用者明確指定的角色或 Skills 分流；不依所在專案、任務關鍵字或上一則對話自動選擇角色。
+`workflow/entry.md` 是所有任務的共通入口。它先保留 UTF-8 與安全邊界，再依明確指定、原流程延續、個人化對話狀態與最小助理 fallback 分流；不依所在專案自動選擇角色。
 
 ```text
-未指定角色或 Skills
-→ 助理模式
+個人 Skills：<id> 或明確角色
+→ 對應 Skill／專案模式
+
+角色或 Skill 的直接延續
+→ 延續原流程
+
+個人化模式已啟用或命中觸發條件
+→ 個人化 Skill
+
+其餘訊息
+→ 最小助理模式
 → assistant/core.md + assistant/preferences.md
-
-個人 Skills：<id>
-→ Skill 模式
-→ assistant 規則 + 指定 Skill
-
-角色：developer／review
-→ 專案模式
-→ workflow/project-entry.md
-→ project-config + 專案規則 + 角色規則／槽位 Skills
-→ 指定個人 Skills
 ```
 
-助理模式不讀取 `project.config.json`，也不推導角色。一般提問、討論、設計評估或延續前文可直接回答；未指定角色的修改型需求必須要求使用者改以 Developer 角色提出。
+最小助理模式不讀取 `project.config.json`，也不推導角色或 Skill。未命中其他模式的一般訊息可直接回答；未指定角色的修改型需求必須要求使用者改以 Developer 角色提出。
 
 ## 規則路徑測試
 
@@ -37,7 +36,7 @@
 - `developer`：分析、修改、修復或實作程式碼。
 - `review`：檢查變更、功能品質與回歸風險。
 
-角色必須在每次任務中明確指定，且只適用該任務：
+角色必須在每個無關的新任務中明確指定；同一對話中對角色產出的直接討論、追問、修正或補充可延續原流程：
 
 ```text
 角色：developer
@@ -54,7 +53,7 @@ Review 的 `change` 用於 diff、commit、PR 或指定修改檔案；`feature` 
 
 ## 個人 Skills
 
-個人 Skills 位於 `skills/<skill-id>/SKILL.md`，只在 Prompt 明確指定時載入，且不會因 Project Config、repository evidence 或問題描述自動觸發。
+個人 Skills 位於 `skills/<skill-id>/SKILL.md`。一般 Skill 只在 Prompt 明確指定時載入；入口明確登記且已啟用的個人化 Skill 可依自身觸發條件與目前對話狀態載入。Project Config 與 repository evidence 都不得自行觸發個人 Skill。
 
 獨立使用 Skill：
 
@@ -82,7 +81,7 @@ Review 的 `change` 用於 diff、commit、PR 或指定修改檔案；`feature` 
 
 ## 任務日誌
 
-`workflow/task-journal.md` 是共用 Workflow 規則。每個已結束的 Developer、Review 或獨立個人 Skill 任務都在完成回覆前建立一份客觀日誌，寫入 `agent-workspaces/task-journals/`；一般助理模式與規則路徑測試不建立日誌。日誌的 `completed_at` 是後續週回顧的時間依據，不使用檔案修改時間。每次日誌流程結束後，會清除 `task-journals/` 與 `weekly-reviews/` 中保存期限達 30 天的紀錄，不影響 `analysis/` 或 `acceptance/`。
+`workflow/task-journal.md` 是共用 Workflow 規則。每個已結束的 Developer、Review 或獨立個人 Skill 任務都在完成回覆前建立一份客觀日誌，寫入 `agent-workspaces/task-journals/`；最小助理模式、持續對話型的個人化模式與規則路徑測試不建立日誌。日誌的 `completed_at` 是後續週回顧的時間依據，不使用檔案修改時間。每次日誌流程結束後，會清除 `task-journals/` 與 `weekly-reviews/` 中保存期限達 30 天的紀錄，不影響 `analysis/` 或 `acceptance/`。
 
 ## Skills 槽位
 
