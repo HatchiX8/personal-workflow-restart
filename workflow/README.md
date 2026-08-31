@@ -77,12 +77,6 @@ Review 的 `change` 用於 diff、commit、PR 或指定修改檔案；`feature` 
 
 角色模式的個人 Skill 在專案規則、角色規則與角色槽位 Skills 之後才載入；它只能補充流程、檢查清單或輸出方式，不能改寫角色邊界或擴大授權。無角色的 Skill 不得修改工作專案，但可依自身規則在 Workflow Root 的受控位置產出文件。
 
-`weekly-team-review` 是明確指定的獨立 Skill，不讀取 Project Config 或角色規則。它的週報寫入 `agent-workspaces/weekly-reviews/`；詳細流程見 `skills/weekly-team-review/SKILL.md`。
-
-## 任務日誌
-
-`workflow/task-journal.md` 是共用 Workflow 規則。每個已結束的 Developer、Review 或獨立個人 Skill 任務都在完成回覆前建立一份客觀日誌，寫入 `agent-workspaces/task-journals/`；最小助理模式、持續對話型的個人化模式與規則路徑測試不建立日誌。日誌的 `completed_at` 是後續週回顧的時間依據，不使用檔案修改時間。每次日誌流程結束後，會清除 `task-journals/` 與 `weekly-reviews/` 中保存期限達 30 天的紀錄，不影響 `analysis/` 或 `acceptance/`。
-
 ## Skills 槽位
 
 專案模式下，角色的 Skills 位於 `workflow/roles/<role>/skills/`，依下列槽位組合：

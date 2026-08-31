@@ -64,7 +64,6 @@
 - `project-analysis` 與 `module-analysis` 是獨立唯讀流程，不能與 Developer 或 Review 同時作為同一任務流程；兩者同時指定時要求使用者拆成兩次任務。
 - Skill 不得擴大使用者授權、修改範圍或角色邊界。無角色的 Skill 不得修改工作專案內容，除非 Skill 明確產出至 Workflow Root 的受控位置。
 - 載入順序不代表規則優先序；Skill 與入口、角色限制或專案規則衝突時，停止套用衝突部分並回報。
-- 除持續對話型的個人化模式外，獨立個人 Skill 任務結束並判定為 `completed`、`partial`、`blocked` 或 `cancelled` 時，必須在完成回覆前讀取並依 `workflow/task-journal.md` 建立任務日誌與執行保存期限清理。此規則只授權在該規則指定的 `task-journals/` 與 `weekly-reviews/` 位置寫入、讀取或刪除過期紀錄，不授權修改工作專案、`analysis/` 或其他位置。
 
 ## 路徑基準
 

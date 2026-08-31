@@ -1,6 +1,0 @@
-interface:
-  display_name: "每週工作回顧"
-  short_description: "建立 5 分鐘可讀、以決策與下週重點為核心的工作回顧"
-  default_prompt: "Use $weekly-team-review to create a concise weekly work review, with traceability details in the appendix."
-policy:
-  allow_implicit_invocation: false

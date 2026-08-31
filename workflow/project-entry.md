@@ -13,7 +13,6 @@
 7. 依作用中 stack 讀取指定角色對應的 Target、Framework、Language 與 Runtime 槽位 Skills；Developer 只有在任務明確符合時才讀取 Task Skill。
 8. 最後依使用者列出的順序讀取個人 Skills。
 9. 依適用規則與 Skills 完成工作與驗證。
-10. Developer 或 Review 的角色工作結束後，且任務判定為 `completed`、`partial`、`blocked` 或 `cancelled` 時，在完成回覆前讀取並依 `workflow/task-journal.md` 建立任務日誌與執行保存期限清理；清理只可影響該規則指定的 Workflow Root 紀錄位置。
 
 ## 角色與任務
 
@@ -38,7 +37,6 @@
 - 專案規則決定 repository 內的實作風格；未定義之處維持既有一致性。
 - 修改後依風險與影響範圍執行適當驗證。
 - 清楚區分已確認事實、推論、未執行驗證與待確認事項。
-- 任務日誌是角色工作結束後的共用 Workflow 步驟，不以風險等級作為條件，也不改變角色既有的修改或唯讀邊界。
 
 ## 需要確認
 
