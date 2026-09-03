@@ -1,0 +1,441 @@
+openapi: 3.1.0
+
+info:
+  title: Adventure Page API
+  version: 1.0.0
+  description: 第一階段 MVP 遊歷頁面 API。
+
+servers:
+  - url: /api/v1
+
+security:
+  - bearerAuth: []
+
+tags:
+  - name: Adventure
+    description: 遊歷頁面狀態與行動。
+
+paths:
+  /adventure/current:
+    get:
+      tags:
+        - Adventure
+      operationId: getCurrentAdventure
+      x-endpoint-id: ADV-001
+      summary: 取得目前遊歷頁面
+      description: 取得同一角色遊戲狀態版本下的劇情、世界時間、玩家摘要與可執行操作。
+      responses:
+        '200':
+          description: 成功取得目前遊歷頁面。
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdventurePageState'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: 使用者沒有可載入的角色或遊戲進度。
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '409':
+          description: 角色仍在戰鬥中；前端必須依 redirect 返回既有戰鬥。
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdventureFlowConflictResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /adventure/actions:
+    post:
+      tags:
+        - Adventure
+      operationId: executeAdventureAction
+      x-endpoint-id: ADV-002
+      summary: 執行遊歷行動
+      description: 執行目前劇情節點的預設行動。CUSTOM_TEXT 僅預留 Contract，第一階段固定回傳 422 且不推進遊戲狀態。
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdventureActionRequest'
+      responses:
+        '200':
+          description: 行動完成，前端依 transition 更新遊歷狀態或進入戰鬥。
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdventureActionResponse'
+        '400':
+          description: Request body 格式錯誤或欄位內容不合法。
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: 行動、角色或目前劇情節點不存在。
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '409':
+          description: stateVersion 過期、相同行動已處理，或角色已進入互斥流程。
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '422':
+          description: 行動在目前狀態不可執行，或送出第一階段停用的 CUSTOM_TEXT。
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      description: 前端第一階段由環境變數取得 Token，並以 Authorization Bearer Header 傳送。
+
+  responses:
+    Unauthorized:
+      description: Bearer Token 不存在、無效或已失效。
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiErrorResponse'
+    InternalServerError:
+      description: Server 無法完成操作；Response 不會揭露內部例外資訊。
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiErrorResponse'
+
+  schemas:
+    ApiErrorResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - message
+      properties:
+        message:
+          type: string
+
+    AdventureFlowConflictResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - message
+        - currentState
+        - redirect
+      properties:
+        message:
+          type: string
+        currentState:
+          type: string
+          const: BATTLE
+        redirect:
+          type: object
+          additionalProperties: false
+          required:
+            - target
+            - battleId
+          properties:
+            target:
+              type: string
+              const: BATTLE
+            battleId:
+              type: string
+              minLength: 1
+              description: Server 提供的不透明戰鬥識別字串。
+
+    ResourceMeter:
+      type: object
+      additionalProperties: false
+      required:
+        - current
+        - max
+      properties:
+        current:
+          type: integer
+          minimum: 0
+        max:
+          type: integer
+          minimum: 0
+      description: current 不得大於 max。
+
+    WorldTime:
+      type: object
+      additionalProperties: false
+      required:
+        - seasonLabel
+        - day
+        - displayText
+      properties:
+        seasonLabel:
+          type: string
+        day:
+          type: integer
+          minimum: 1
+        displayText:
+          type: string
+          description: 前端應直接顯示此值，不自行推導季節換日規則。
+
+    AdventureLocation:
+      type: object
+      additionalProperties: false
+      required:
+        - locationId
+        - name
+      properties:
+        locationId:
+          type: string
+          minLength: 1
+          description: Server 提供的不透明識別字串。
+        name:
+          type: string
+
+    StoryScene:
+      type: object
+      additionalProperties: false
+      required:
+        - chapterId
+        - chapterTitle
+        - sceneId
+        - headline
+        - narrative
+        - sceneAssetKey
+        - characterAssetKey
+      properties:
+        chapterId:
+          type: string
+          minLength: 1
+        chapterTitle:
+          type: string
+        sceneId:
+          type: string
+          minLength: 1
+        headline:
+          type: string
+        narrative:
+          type: string
+        sceneAssetKey:
+          type:
+            - string
+            - 'null'
+          description: Server 提供的不透明素材 Key；沒有素材時為 null。
+        characterAssetKey:
+          type:
+            - string
+            - 'null'
+          description: Server 提供的不透明素材 Key；沒有素材時為 null。
+
+    PresetAction:
+      type: object
+      additionalProperties: false
+      required:
+        - actionId
+        - label
+      properties:
+        actionId:
+          type: string
+          minLength: 1
+          description: 在目前 sceneId 中唯一的不透明識別字串。
+        label:
+          type: string
+
+    CustomActionControl:
+      type: object
+      additionalProperties: false
+      required:
+        - enabled
+        - placeholder
+        - maxLength
+      properties:
+        enabled:
+          type: boolean
+          const: false
+          description: 第一階段固定停用。
+        placeholder:
+          type: string
+        maxLength:
+          type: integer
+          const: 300
+          description: 後續階段啟用自行輸入時的預留最大字元數。
+
+    PlayerAdventureSummary:
+      type: object
+      additionalProperties: false
+      required:
+        - name
+        - realmLabel
+        - hp
+        - mana
+        - speed
+      properties:
+        name:
+          type: string
+        realmLabel:
+          type: string
+        hp:
+          $ref: '#/components/schemas/ResourceMeter'
+        mana:
+          $ref: '#/components/schemas/ResourceMeter'
+        speed:
+          type: number
+
+    AdventureNavigation:
+      type: object
+      additionalProperties: false
+      required:
+        - canOpenCharacter
+        - canOpenInventory
+        - canOpenCultivation
+      properties:
+        canOpenCharacter:
+          type: boolean
+        canOpenInventory:
+          type: boolean
+        canOpenCultivation:
+          type: boolean
+
+    AdventurePageState:
+      type: object
+      additionalProperties: false
+      required:
+        - stateVersion
+        - worldTime
+        - location
+        - scene
+        - presetActions
+        - customAction
+        - player
+        - navigation
+      properties:
+        stateVersion:
+          type: integer
+          minimum: 0
+          description: 角色遊戲狀態 aggregate version。
+        worldTime:
+          $ref: '#/components/schemas/WorldTime'
+        location:
+          $ref: '#/components/schemas/AdventureLocation'
+        scene:
+          $ref: '#/components/schemas/StoryScene'
+        presetActions:
+          type: array
+          items:
+            $ref: '#/components/schemas/PresetAction'
+        customAction:
+          $ref: '#/components/schemas/CustomActionControl'
+        player:
+          $ref: '#/components/schemas/PlayerAdventureSummary'
+        navigation:
+          $ref: '#/components/schemas/AdventureNavigation'
+
+    PresetAdventureActionRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - type
+        - actionId
+        - stateVersion
+      properties:
+        type:
+          type: string
+          const: PRESET
+        actionId:
+          type: string
+          minLength: 1
+        stateVersion:
+          type: integer
+          minimum: 0
+
+    CustomTextAdventureActionRequest:
+      type: object
+      additionalProperties: false
+      deprecated: true
+      description: 第一階段停用；合法格式的 Request 仍固定回傳 422。
+      required:
+        - type
+        - text
+        - stateVersion
+      properties:
+        type:
+          type: string
+          const: CUSTOM_TEXT
+        text:
+          type: string
+          minLength: 1
+          maxLength: 300
+          pattern: '.*\\S.*'
+          description: 去除前後空白後不得為空。
+        stateVersion:
+          type: integer
+          minimum: 0
+
+    AdventureActionRequest:
+      oneOf:
+        - $ref: '#/components/schemas/PresetAdventureActionRequest'
+        - $ref: '#/components/schemas/CustomTextAdventureActionRequest'
+      discriminator:
+        propertyName: type
+        mapping:
+          PRESET: '#/components/schemas/PresetAdventureActionRequest'
+          CUSTOM_TEXT: '#/components/schemas/CustomTextAdventureActionRequest'
+
+    AdventureContinueResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - transition
+        - resultNarrative
+        - adventure
+      properties:
+        transition:
+          type: string
+          const: ADVENTURE
+        resultNarrative:
+          type: string
+        adventure:
+          $ref: '#/components/schemas/AdventurePageState'
+
+    AdventureBattleResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - transition
+        - resultNarrative
+        - stateVersion
+        - battleId
+      properties:
+        transition:
+          type: string
+          const: BATTLE
+        resultNarrative:
+          type: string
+        stateVersion:
+          type: integer
+          minimum: 0
+        battleId:
+          type: string
+          minLength: 1
+          description: Server 提供的不透明戰鬥識別字串。
+
+    AdventureActionResponse:
+      oneOf:
+        - $ref: '#/components/schemas/AdventureContinueResponse'
+        - $ref: '#/components/schemas/AdventureBattleResponse'
+      discriminator:
+        propertyName: transition
+        mapping:
+          ADVENTURE: '#/components/schemas/AdventureContinueResponse'
+          BATTLE: '#/components/schemas/AdventureBattleResponse'

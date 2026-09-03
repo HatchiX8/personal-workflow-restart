@@ -1,0 +1,4 @@
+interface:
+  display_name: "API Contract Finalize"
+  short_description: "Finalize reviewed API decisions into OpenAPI"
+  default_prompt: "Use $api-contract-finalize to apply my reviewed API decisions, approve the Markdown contract, and generate one OpenAPI YAML file."
